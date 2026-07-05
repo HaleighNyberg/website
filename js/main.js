@@ -1,27 +1,27 @@
 // Main entry point
-import { state } from './config.js?v=real14';
-import { initScene } from './scene.js?v=real14';
-import { initLighting } from './lighting.js?v=real14';
-import { initTerrain } from './terrain.js?v=real14';
-import { initOcean } from './ocean.js?v=real14';
-import { initGlass } from './glass.js?v=real14';
-import { initEffects } from './effects.js?v=real14';
-import { initControls } from './controls.js?v=real14';
-import { initZones, setApproachActive } from './zones.js?v=real14';
-import { startAnimateLoop } from './animate.js?v=real14';
-import { startApproach } from './loadingApproach.js?v=real14';
-import { initEasterEggs } from './easterEggs.js?v=real14';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real14';
-import { FEATURES } from './features.js?v=real14';
-import { initAudio } from './audio.js?v=real14';
-import { initAudioViz } from './audioViz.js?v=real14';
-import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real14';
-import { initTerminal } from './terminal.js?v=real14';
-import { initWeatherUI } from './weather.js?v=real14';
-import { initVolcano } from './volcano.js?v=real14';
-import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real14';
-import { initChromePanel } from './chromePanel.js?v=real14';
-import { renderContent } from './content.js?v=real14';
+import { state } from './config.js?v=real16';
+import { initScene } from './scene.js?v=real16';
+import { initLighting } from './lighting.js?v=real16';
+import { initTerrain } from './terrain.js?v=real16';
+import { initOcean } from './ocean.js?v=real16';
+import { initGlass } from './glass.js?v=real16';
+import { initEffects } from './effects.js?v=real16';
+import { initControls } from './controls.js?v=real16';
+import { initZones, setApproachActive } from './zones.js?v=real16';
+import { startAnimateLoop } from './animate.js?v=real16';
+import { startApproach } from './loadingApproach.js?v=real16';
+import { initEasterEggs } from './easterEggs.js?v=real16';
+import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real16';
+import { FEATURES } from './features.js?v=real16';
+import { initAudio } from './audio.js?v=real16';
+import { initAudioViz } from './audioViz.js?v=real16';
+import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real16';
+import { initTerminal } from './terminal.js?v=real16';
+import { initWeatherUI } from './weather.js?v=real16';
+import { initVolcano } from './volcano.js?v=real16';
+import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real16';
+import { initChromePanel } from './chromePanel.js?v=real16';
+import { renderContent } from './content.js?v=real16';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the

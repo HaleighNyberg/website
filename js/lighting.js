@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, BASE_DEPTH, FLOOR_Y,
     SUN_WORLD_POSITION, MOON_ORBIT_RADIUS, MOON_ORBIT_PERIOD, MOON_ORBIT_PHASE,
-} from './config.js?v=real14';
+} from './config.js?v=real16';
 
 // Scratch vectors — write-then-read within a single updateScene call.
 // Per-frame moon orbit scratch (avoids `new THREE.Vector3(...)` each frame).

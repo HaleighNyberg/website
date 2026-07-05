@@ -9,7 +9,7 @@
 // switch, no "fake to real" seam.
 //
 // Usage:
-//   import { startApproach } from './loadingApproach.js?v=real14';
+//   import { startApproach } from './loadingApproach.js?v=real16';
 //   startApproach(camera, scene, () => { /* scene ready */ });
 
 import * as THREE from 'three';
