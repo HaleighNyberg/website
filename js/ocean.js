@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Water } from './Water.js?v=real16'; // local copy with reflection-layer hack
+import { Water } from './Water.js?v=real17'; // local copy with reflection-layer hack
 import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, BASE_DEPTH, FLOOR_Y,
-} from './config.js?v=real16';
+} from './config.js?v=real17';
 
 // ---------------------------------------------------------------------------
 // Procedural noise textures for the lava underside shader (no external files)

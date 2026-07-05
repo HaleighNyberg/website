@@ -1,27 +1,27 @@
 // Main entry point
-import { state } from './config.js?v=real16';
-import { initScene } from './scene.js?v=real16';
-import { initLighting } from './lighting.js?v=real16';
-import { initTerrain } from './terrain.js?v=real16';
-import { initOcean } from './ocean.js?v=real16';
-import { initGlass } from './glass.js?v=real16';
-import { initEffects } from './effects.js?v=real16';
-import { initControls } from './controls.js?v=real16';
-import { initZones, setApproachActive } from './zones.js?v=real16';
-import { startAnimateLoop } from './animate.js?v=real16';
-import { startApproach } from './loadingApproach.js?v=real16';
-import { initEasterEggs } from './easterEggs.js?v=real16';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real16';
-import { FEATURES } from './features.js?v=real16';
-import { initAudio } from './audio.js?v=real16';
-import { initAudioViz } from './audioViz.js?v=real16';
-import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real16';
-import { initTerminal } from './terminal.js?v=real16';
-import { initWeatherUI } from './weather.js?v=real16';
-import { initVolcano } from './volcano.js?v=real16';
-import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real16';
-import { initChromePanel } from './chromePanel.js?v=real16';
-import { renderContent } from './content.js?v=real16';
+import { state } from './config.js?v=real17';
+import { initScene } from './scene.js?v=real17';
+import { initLighting } from './lighting.js?v=real17';
+import { initTerrain } from './terrain.js?v=real17';
+import { initOcean } from './ocean.js?v=real17';
+import { initGlass } from './glass.js?v=real17';
+import { initEffects } from './effects.js?v=real17';
+import { initControls } from './controls.js?v=real17';
+import { initZones, setApproachActive } from './zones.js?v=real17';
+import { startAnimateLoop } from './animate.js?v=real17';
+import { startApproach } from './loadingApproach.js?v=real17';
+import { initEasterEggs } from './easterEggs.js?v=real17';
+import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real17';
+import { FEATURES } from './features.js?v=real17';
+import { initAudio } from './audio.js?v=real17';
+import { initAudioViz } from './audioViz.js?v=real17';
+import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real17';
+import { initTerminal } from './terminal.js?v=real17';
+import { initWeatherUI } from './weather.js?v=real17';
+import { initVolcano } from './volcano.js?v=real17';
+import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real17';
+import { initChromePanel } from './chromePanel.js?v=real17';
+import { renderContent } from './content.js?v=real17';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the
@@ -116,6 +116,12 @@ let _approachStarted = false;
 function beginApproach() {
     if (_approachStarted) return;
     _approachStarted = true;
+
+    // Let the scene render behind the still-opaque loader for a beat first.
+    // The ocean/dish take a few frames to settle (water reflection populating,
+    // the brief load-in "square"); rendering them hidden means the viewer
+    // only ever sees the clean, settled scene when the fly-in reveals it.
+    setTimeout(function () {
 
     // Make the loading screen transparent so the real scene is visible
     // behind the title card during the approach.
@@ -225,6 +231,8 @@ function beginApproach() {
         setTimeout(revealOnce, 3000);
     }
     });
+
+    }, 900);
 }
 
 // Kick off the fly-in as soon as the ocean's ripple map is ready (or after

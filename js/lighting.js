@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, BASE_DEPTH, FLOOR_Y,
     SUN_WORLD_POSITION, MOON_ORBIT_RADIUS, MOON_ORBIT_PERIOD, MOON_ORBIT_PHASE,
-} from './config.js?v=real16';
+} from './config.js?v=real17';
 
 // Scratch vectors — write-then-read within a single updateScene call.
 // Per-frame moon orbit scratch (avoids `new THREE.Vector3(...)` each frame).
@@ -473,7 +473,19 @@ export function initLighting() {
     diagramGroup.name = 'orbitalDiagramGroup';
     scene.add(diagramGroup);
 
-    const SUN_WORLD = SUN_WORLD_POSITION;
+    // Centre the heliocentric ring on where the sun ACTUALLY sits: the sun
+    // orb is SUN_WORLD_POSITION rotated by SUN_PHASE0 (the "behind isle"
+    // staging), so the ring must use the same rotated point. Using the raw
+    // constant left the orbit curving around empty space beside the star
+    // instead of around the star itself. Radius (AU) is unchanged — rotation
+    // preserves the sun→origin distance, so the near arc still passes through
+    // the dish.
+    const _sp0c = Math.cos(SUN_PHASE0), _sp0s = Math.sin(SUN_PHASE0);
+    const SUN_WORLD = new THREE.Vector3(
+        SUN_WORLD_POSITION.x * _sp0c - SUN_WORLD_POSITION.z * _sp0s,
+        SUN_WORLD_POSITION.y,
+        SUN_WORLD_POSITION.x * _sp0s + SUN_WORLD_POSITION.z * _sp0c
+    );
     const AU = Math.hypot(SUN_WORLD.x, SUN_WORLD.z);
 
     function _makeCircle(radius, material, center, segs) {

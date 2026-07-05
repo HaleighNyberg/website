@@ -6,8 +6,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
-import { state } from './config.js?v=real16';
-import { buildSpaceEnvironment } from './spaceEnv.js?v=real16';
+import { state } from './config.js?v=real17';
+import { buildSpaceEnvironment } from './spaceEnv.js?v=real17';
 
 export function initScene() {
     // --- Scene setup ---
