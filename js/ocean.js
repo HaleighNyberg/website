@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Water } from './Water.js?v=real13'; // local copy with reflection-layer hack
+import { Water } from './Water.js?v=real14'; // local copy with reflection-layer hack
 import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, BASE_DEPTH, FLOOR_Y,
-} from './config.js?v=real13';
+} from './config.js?v=real14';
 
 // ---------------------------------------------------------------------------
 // Procedural noise textures for the lava underside shader (no external files)
@@ -122,9 +122,13 @@ export function initOcean() {
     const waterSunDir = SUN_DIR.clone();
     waterSunDir.y = 0.60;
     waterSunDir.normalize();
+    // Low-power devices render the reflection into a much smaller target —
+    // still a real reflection, just softer — to cut the per-frame fill cost
+    // of the second (mirror) scene render. Desktops keep the full 1024.
+    const reflectRes = state.lowPower ? 256 : 1024;
     const water = new Water(waterGeometry, {
-        textureWidth: 1024,
-        textureHeight: 1024,
+        textureWidth: reflectRes,
+        textureHeight: reflectRes,
         waterNormals: waterNormalTex,
         sunDirection: waterSunDir,
         // Full-strength cream sun glint (matches the sun's emission).

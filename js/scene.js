@@ -6,8 +6,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
-import { state } from './config.js?v=real13';
-import { buildSpaceEnvironment } from './spaceEnv.js?v=real13';
+import { state } from './config.js?v=real14';
+import { buildSpaceEnvironment } from './spaceEnv.js?v=real14';
 
 export function initScene() {
     // --- Scene setup ---
@@ -199,6 +199,21 @@ export function initScene() {
     state.renderer = renderer;
     state.islandGroup = islandGroup;
 
+    // Low-power tier: only genuinely weak TOUCH devices get a lighter scene
+    // (ambient-occlusion pass off, reduced water-reflection resolution) so
+    // they stay smooth. Desktops and laptops (fine pointer) are never
+    // affected — the owner and any reviewer on a computer always see the full
+    // scene. Preview either path with ?lowpower=1 / ?lowpower=0.
+    state.lowPower = (function () {
+        const q = new URLSearchParams(location.search).get('lowpower');
+        if (q === '1') return true;
+        if (q === '0') return false;
+        const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+        const cores = navigator.hardwareConcurrency || 8;
+        const mem = navigator.deviceMemory || 8;
+        return coarse && (cores <= 4 || mem <= 4);
+    })();
+
     // --- Post-processing: bloom ---
     const composer = new EffectComposer(renderer);
     // 4x MSAA on the composer's ping-pong targets: antialias:true on the
@@ -261,6 +276,9 @@ export function initScene() {
     );
     composer.addPass(gtaoPass);
     state.gtaoPass = gtaoPass;
+    // Low-power devices skip the ambient-occlusion pass (heavy full-screen
+    // AO + denoise). The pass stays in the chain but is a no-op.
+    if (state.lowPower) gtaoPass.enabled = false;
 
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),

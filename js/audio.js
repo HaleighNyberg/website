@@ -7,7 +7,7 @@
 // is the required gesture). Default state is muted so first-time
 // visitors hear silence until they opt in.
 
-import { SONIFICATIONS, pickRandom, SOURCE_PAGE, CREDIT_HTML } from './sonifications.js?v=real13';
+import { SONIFICATIONS, pickRandom, SOURCE_PAGE, CREDIT_HTML } from './sonifications.js?v=real14';
 
 const STORAGE_KEY = 'audio';
 

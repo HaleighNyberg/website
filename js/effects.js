@@ -3,7 +3,7 @@ import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, TERRAIN_HEIGHT,
     BASE_DEPTH, FLOOR_Y,
     RAIN_COUNT, RAIN_AREA, RAIN_HEIGHT, RAIN_SPEED,
-} from './config.js?v=real13';
+} from './config.js?v=real14';
 
 export function initEffects() {
     const { islandGroup, scene, camera, SUN_DIR } = state;
