@@ -1,0 +1,373 @@
+/* ============================================
+   Design System — Haleigh Nyberg
+   A friendly sci-fi HUD over the scene.
+   Shades of blue only — ice ink on deep navy, one
+   electric cyan accent. Nasalization is the display
+   voice (rounded, future-forward), JetBrains Mono is
+   the working voice (the whole chrome behaves like a
+   well-loved linux env), Inter carries long prose.
+   ============================================ */
+
+/* --- @font-face (all local, no network) --- */
+
+@font-face {
+    font-family: 'Nasalization';
+    src: url('../assets/fonts/Nasalization Rg.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('../assets/fonts/Inter-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('../assets/fonts/Inter-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('../assets/fonts/Inter-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('../assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* --- Tokens --- */
+
+:root {
+    /* Blues, dark to light. The accent is the ice-cyan the ocean
+       throws at the glass rim. */
+    --navy-900: #030a16;   /* void */
+    --navy-800: #061224;
+    --navy-700: #0a1c36;
+    --navy-600: #10294c;
+
+    --blue-500: #1e5f8f;   /* deep accent / depressed */
+    --blue-400: #2f88c4;   /* mid accent */
+    --blue-300: #4fb3e8;   /* accent rest */
+    --blue-200: #7fd4ff;   /* primary accent — active, focus, glow */
+    --blue-100: #c0eaff;   /* highlight */
+
+    --ink-100: #e6f2fa;    /* primary ice ink */
+    --ink-200: #b8cfe0;    /* secondary body */
+    --ink-300: #7e9cb4;    /* tertiary labels */
+    --ink-400: #4e6a82;    /* muted */
+    --ink-500: #1c3450;    /* hairlines on the void */
+
+    --bg-void:   var(--navy-900);
+    --bg-panel:  rgba(6, 18, 36, 0.66);
+    --bg-panel-strong: rgba(5, 14, 28, 0.92);
+    --hairline:  rgba(127, 212, 255, 0.16);
+    --hairline-strong: rgba(127, 212, 255, 0.34);
+
+    --text-primary:   var(--ink-100);
+    --text-secondary: var(--ink-200);
+    --text-tertiary:  var(--ink-300);
+    --text-muted:     var(--ink-400);
+    --accent:         var(--blue-200);
+    --accent-rest:    var(--blue-300);
+    --accent-hover:   var(--blue-100);
+
+    /* Holo glow — spent on active states and display type only. */
+    --glow-soft:   0 0 14px rgba(127, 212, 255, 0.22);
+    --glow-strong: 0 0 8px rgba(127, 212, 255, 0.55), 0 0 28px rgba(79, 179, 232, 0.28);
+
+    /* Back-compat aliases (style.css progress bar, older hooks) */
+    --amber-300: var(--blue-100);
+    --amber-400: var(--blue-200);
+    --amber-500: var(--blue-400);
+    --bone-100: var(--ink-100);
+    --bone-200: var(--ink-200);
+    --bone-300: var(--ink-300);
+    --bone-400: var(--ink-400);
+    --cyan-300: var(--blue-100);
+    --cyan-400: var(--blue-200);
+    --cyan-500: var(--blue-300);
+    --cyan-600: var(--blue-500);
+    --accent-blue: var(--blue-300);
+    --overlay-bg: var(--bg-panel);
+    --border-subtle: var(--hairline);
+
+    /* --- Type scale --- */
+    --fs-2xs:  0.625rem;
+    --fs-xs:   0.6875rem;
+    --fs-sm:   0.8125rem;
+    --fs-base: 0.9375rem;
+    --fs-md:   1.125rem;
+    --fs-lg:   1.5rem;
+    --fs-xl:   2.125rem;   /* zone headline (Nasalization runs wide) */
+    --fs-2xl:  3.25rem;
+
+    --lh-tight: 1.08;
+    --lh-snug:  1.35;
+    --lh-body:  1.7;
+
+    --ls-display: 0.1em;   /* Nasalization wants air */
+    --ls-label:   0.2em;
+    --ls-body:    0.005em;
+
+    /* --- Spacing (4px base) --- */
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3:  12px;
+    --space-4:  16px;
+    --space-5:  24px;
+    --space-6:  32px;
+    --space-7:  40px;
+    --space-8:  48px;
+    --space-10: 64px;
+    --space-12: 96px;
+
+    --space-xs:  var(--space-1);
+    --space-sm:  var(--space-2);
+    --space-md:  var(--space-4);
+    --space-lg:  var(--space-6);
+    --space-xl:  var(--space-10);
+    --space-2xl: var(--space-12);
+
+    --font-display: 'Nasalization', 'Inter', system-ui, sans-serif;
+    --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+
+    /* Readability shadow for type set directly on the scene. */
+    --text-shadow: 0 1px 2px rgba(2, 8, 18, 0.9), 0 0 10px rgba(3, 10, 22, 0.7);
+    --text-shadow-strong: 0 1px 3px rgba(2, 8, 18, 0.95), 0 0 8px rgba(3, 10, 22, 0.7);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --surface-radius: var(--radius-md);
+    --surface-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.55);
+
+    /* Blueprint grid, drawn locally. Sits at a whisper on panels. */
+    --grid: repeating-linear-gradient(0deg,
+                rgba(127, 212, 255, 0.05) 0, rgba(127, 212, 255, 0.05) 1px,
+                transparent 1px, transparent 28px),
+            repeating-linear-gradient(90deg,
+                rgba(127, 212, 255, 0.05) 0, rgba(127, 212, 255, 0.05) 1px,
+                transparent 1px, transparent 28px);
+
+    /* Motion vocabulary */
+    --zone-title-in: 700ms;
+    --zone-body-in: 600ms;
+    --zone-body-delay: 220ms;
+    --zone-out: 340ms;
+    --zone-crossfade: 280ms;
+    --ease-out: cubic-bezier(0.22, 0.7, 0.16, 1);
+    --ease-draw: cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+::selection {
+    background: rgba(127, 212, 255, 0.3);
+    color: var(--ink-100);
+}
+
+/* --- Typography utilities --- */
+
+.display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-display);
+    color: var(--text-primary);
+    text-shadow: var(--text-shadow-strong), var(--glow-soft);
+}
+
+.display--hero {
+    letter-spacing: 0.12em;
+    line-height: 1;
+}
+
+.display--zone {
+    font-size: var(--fs-xl);
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+}
+
+.body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: var(--fs-base);
+    line-height: var(--lh-body);
+    letter-spacing: var(--ls-body);
+    color: var(--text-secondary);
+    text-shadow: var(--text-shadow);
+    max-width: 62ch;
+}
+
+/* Label: mono caps kicker — the env's working voice. */
+.label {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--blue-300);
+    text-shadow: var(--text-shadow);
+}
+
+.mono {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+    text-shadow: var(--text-shadow);
+}
+
+/* --- Links --- */
+
+.brand-link {
+    color: var(--blue-100);
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 1px;
+    border-bottom: 1px solid var(--hairline-strong);
+    transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out),
+                text-shadow 180ms var(--ease-out);
+    pointer-events: auto;
+}
+.brand-link:hover {
+    color: var(--blue-200);
+    border-color: var(--blue-200);
+    text-shadow: var(--glow-soft);
+}
+
+/* --- Loading screen ---
+   loadingApproach.js owns .loading-name's size/tracking/opacity via
+   inline styles; family and color live here. */
+
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-void);
+    opacity: 1;
+    transition: opacity 800ms ease;
+}
+#loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-5);
+}
+
+.loading-name {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 2rem;
+    color: var(--text-primary);
+    opacity: 0; /* faded in by loadingApproach.js */
+}
+
+.loading-spinner {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--blue-200);
+    animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 0.25; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.8); }
+}
+
+/* --- Wordmark character reveal (main.js splits the h1 into .char) --- */
+
+.display--hero .char {
+    display: inline-block;
+    clip-path: inset(-15% 105% -15% -5%);
+    transition: clip-path 140ms var(--ease-draw);
+    transition-delay: calc(var(--char-i) * 42ms);
+}
+
+#site-header.revealed .display--hero .char {
+    clip-path: inset(-15% -5% -15% -5%);
+}
+
+/* --- Skip-link --- */
+
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: var(--space-5);
+    background: var(--blue-200);
+    color: var(--navy-900);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    z-index: 10000;
+    transition: top 200ms var(--ease-out);
+}
+.skip-link:focus-visible {
+    top: var(--space-3);
+}
+
+/* --- Focus --- */
+
+:focus-visible {
+    outline: 2px solid var(--blue-200);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* --- Pending / disabled --- */
+
+.brand-link--pending {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+    border-bottom-color: transparent;
+}
+
+/* --- Responsive type --- */
+
+@media (min-width: 1920px) {
+    :root { --fs-2xl: 3.75rem; --fs-xl: 2.5rem; }
+}
+@media (max-width: 1200px) {
+    :root { --fs-2xl: 2.5rem; --fs-xl: 1.75rem; }
+}
+@media (max-width: 768px) {
+    :root { --fs-2xl: 1.875rem; --fs-xl: 1.375rem; }
+    .display { text-shadow: 0 1px 1px rgba(2, 8, 18, 0.95); }
+}
+
+/* --- Reduced motion: honor it globally --- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+    }
+}

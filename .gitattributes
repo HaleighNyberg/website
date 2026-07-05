@@ -1,0 +1,4 @@
+* text=auto
+.githooks/pre-commit    text eol=lf
+.githooks/*.mjs         text eol=lf
+*.sh                    text eol=lf

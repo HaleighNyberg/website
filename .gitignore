@@ -1,0 +1,12 @@
+# Tooling / test artifacts
+.playwright-mcp/
+docs/screenshots/
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# Large unused model (never shipped)
+gateway.glb

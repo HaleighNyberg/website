@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Haleigh Nyberg &middot; Astrobiology & Computational Science</title>
+<meta content="Haleigh Nyberg &middot; Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." name="description">
+<meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science" property="og:title">
+<meta content="Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." property="og:description">
+<meta content="website" property="og:type">
+<meta content="https://haleighnyberg.com/" property="og:url">
+<meta content="summary_large_image" name="twitter:card">
+<meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science" name="twitter:title">
+<meta content="Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." name="twitter:description">
+<meta content="https://haleighnyberg.com/assets/photos/og-image.png" property="og:image">
+<meta content="1440" property="og:image:width">
+<meta content="900" property="og:image:height">
+<meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science portfolio" property="og:image:alt">
+<meta content="https://haleighnyberg.com/assets/photos/og-image.png" name="twitter:image">
+<link href="https://haleighnyberg.com/" rel="canonical">
+<link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;circle cx='16' cy='16' r='14' fill='%23051525' stroke='%234A7FA5' stroke-width='1.5'/&gt;&lt;circle cx='16' cy='14' r='3' fill='%236fc3e8'/&gt;&lt;/svg&gt;" rel="icon">
+<link href="css/style.css?v=real9" rel="stylesheet">
+<link href="css/brand.css?v=real9" rel="stylesheet">
+<link href="css/zones.css?v=real9" rel="stylesheet">
+<script>
+        try {
+            if (localStorage.getItem('reviewer') === '1') {
+                document.documentElement.classList.add('reviewer-mode');
+            }
+        } catch (e) {}
+    </script>
+<!-- Structured data -->
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Haleigh Nyberg",
+        "jobTitle": "PhD Candidate in Astrobiology",
+        "affiliation": {
+            "@type": "Organization",
+            "name": "Purdue University",
+            "department": "Earth, Atmospheric, and Planetary Sciences"
+        },
+        "url": "https://haleighnyberg.com/",
+        "sameAs": [
+            "https://github.com/HaleighNyberg",
+            "https://scholar.google.com/citations?user=5SRk2uIAAAAJ",
+            "https://orcid.org/0009-0000-8593-9188",
+            "https://www.linkedin.com/in/haleighnyberg/"
+        ],
+        "knowsAbout": ["Exoplanet Climate Modeling", "Astrobiology", "Origin of Life Chemistry", "ExoPlaSim", "Computational Planetary Science"],
+        "image": "https://haleighnyberg.com/assets/photos/headshot.jpg"
+    }
+    </script>
+</head>
+<body>
+<!-- Skip-link for accessibility -->
+<a class="skip-link" href="#content-overlay">Skip to content</a>
+<!-- Loading screen. Title and progress bar start fully transparent and
+         are faded in by loadingApproach.js at scripted timestamps during
+         the camera fly-in — no pre-JS flash of small letters. -->
+<div id="loading-screen">
+<div class="loading-content">
+<span class="loading-name">Haleigh Nyberg</span>
+</div>
+<div id="loading-progress"><div id="loading-progress-fill"></div></div>
+</div>
+<!-- Content overlay — sits on top of canvas, pointer-events none -->
+<!-- Fixed header: name + tagline + section nav (always visible) -->
+<div id="site-header">
+<h1 class="display display--hero">Haleigh Nyberg</h1>
+<p class="masthead-credential">PhD Candidate (ABD)<span class="cred-sep" aria-hidden="true">&middot;</span>Astrobiology<span class="cred-sep" aria-hidden="true">&middot;</span>Purdue EAPS</p>
+<nav aria-label="Site sections" class="section-nav section-nav--masthead" id="section-nav">
+<a aria-current="true" class="section-nav__item active" data-zone="0" role="button" tabindex="0">Home</a>
+<a class="section-nav__item" data-zone="1" role="button" tabindex="0">About</a>
+<a class="section-nav__item" data-zone="2" role="button" tabindex="0">Research</a>
+<a class="section-nav__item" data-zone="3" role="button" tabindex="0">Resume / CV</a>
+<a class="section-nav__item" data-zone="4" role="button" tabindex="0">Connect</a>
+</nav>
+<p class="home-annotation" id="home-typed-msg" style="display:none"></p>
+<p aria-hidden="true" class="nav-hint" id="nav-hint"></p>
+</div>
+<!-- Section indicator dots -->
+<div aria-hidden="true" id="zone-dots">
+<span class="zone-dot active" data-zone="0" title="Home"></span>
+<span class="zone-dot" data-zone="1" title="About"></span>
+<span class="zone-dot" data-zone="2" title="Research"></span>
+<span class="zone-dot" data-zone="3" title="Resume / CV"></span>
+<span class="zone-dot" data-zone="4" title="Connect"></span>
+</div>
+<div id="content-overlay">
+<!-- ZONE: Default (hero / landing) -->
+<div class="zone zone--default" id="zone-default">
+<div class="zone__body">
+<!-- Hero statement — bottom-left lockup over the full-bleed scene.
+                     Reveal is gated on #site-header.revealed so it never shows
+                     during the fly-in approach. -->
+<div class="home-hero">
+<p class="home-hero__statement">Could life originate here?</p>
+<p class="home-hero__meta">NSF Graduate Research Fellow &middot; Zonta Amelia Earhart Fellow</p>
+<p aria-hidden="true" class="home-hero__seed"><span id="daily-label-inline"></span></p>
+</div>
+<!-- Reviewer-mode hero: only visible when the 3D scene is
+                     collapsed. Provides a proper standalone landing block so
+                     the reduced view reads as a full site, not a fallback. -->
+<div class="reviewer-hero">
+<p class="reviewer-hero__kicker">PhD Candidate &middot; Computational Astrobiology &middot; Purdue</p>
+<h2 class="reviewer-hero__lead">I map how a planet's tilt, spin, and star shape its odds of originating life.</h2>
+<p class="reviewer-hero__body">NSF Graduate Research Fellow working with Dr. Stephanie Olson. I run ExoPlaSim simulations across obliquity, rotation rate, and stellar type to track wet-dry cycling in shoreline ponds (the conditions RNA precursors need to accumulate).</p>
+<div class="reviewer-hero__ctas">
+<a class="reviewer-cta reviewer-cta--primary" download href="assets/Nyberg_CV.pdf" rel="noopener" target="_blank">Download CV</a>
+<a class="reviewer-cta" href="mailto:haleigh@purdue.edu">Get in touch</a>
+</div>
+</div>
+<p class="zone__hint label hint-fade" style="display:none">scroll to explore</p>
+<!-- Scanning typewriter disabled. Restore by reinstating the IIFE
+                     and removing the style="display:none" on #home-typed-msg. -->
+</div>
+</div>
+<!-- ZONE: About (top-down view — looking down at the island = looking at who studies it) -->
+<div class="zone zone--about" id="zone-about">
+<p aria-hidden="true" class="zone__no">02 <span class="zone__path">~/about</span></p>
+<h2 class="display display--zone">About</h2>
+<div class="zone__body">
+<img loading="lazy" decoding="async" alt="Haleigh Nyberg" class="about-headshot" src="assets/photos/headshot.jpg">
+<p class="body">A planet that holds liquid water can <em>sustain</em> life. Whether it can <em>start</em> one is a different question, and it is the question my doctoral work asks: which planetary conditions are most conducive to an origin of life, and how that knowledge can point future missions like NASA's Habitable Worlds Observatory and ESA's PLATO toward the targets most likely to have actually originated one.</p>
+<p class="body">In Dr. Stephanie Olson's PHAB Lab at Purdue, I use ExoPlaSim and a custom post-processing pipeline to simulate volcanic island worlds across obliquity, rotation rate, and stellar host, tracking the wet-dry cycling and prebiotic-organic accumulation that prefigure abiogenesis. The deliverable is an Origin of Life Index (a pre-computed ranking of exoplanet targets by their likelihood of originating, not just sustaining, life).</p>
+<ul class="about-recognition" aria-label="Fellowships and recognition">
+<li class="cred-chip">NSF Graduate Research Fellow</li>
+<li class="cred-chip">Zonta Amelia Earhart Fellow</li>
+<li class="cred-chip">Ross Fellowship</li>
+<li class="cred-chip">Summa Cum Laude</li>
+<li class="cred-chip">NASA Space Grant (INSGC)</li>
+<li class="cred-chip">AGU Invited Speaker (2025)</li>
+<li class="cred-chip">Session Chair, Goldschmidt 2026</li>
+</ul>
+<figure class="photo-figure">
+<img loading="lazy" decoding="async" alt="Gateway visualization team — Spring 2025 cohort at Purdue" class="about-talk-photo about-talk-photo--hero" src="assets/photos/gateway-sem1/20250429_140624.webp">
+<figcaption class="label">Artemis Gateway visualization team, Spring 2025 (Purdue Data Mine, Barrios Technology, NASA Johnson)</figcaption>
+</figure>
+<figure class="photo-figure">
+<img loading="lazy" decoding="async" alt="Haleigh beside an ISS module mockup and mission-patch wall at a NASA facility" class="about-talk-photo" src="assets/photos/nasa-module-selfie.webp">
+<figcaption class="label">ISS module mockup &amp; mission-patch wall, NASA facility</figcaption>
+</figure>
+<p class="body">Alongside the science, I've spent two semesters as scrum master for 16-member, multi-university teams developing an Unreal Engine visualization and mission-planning tool for NASA's Artemis Gateway, in partnership with Barrios Technology and Johnson Space Center. It turns a real spacecraft and its live EVA procedures into something an astronaut can rehearse inside before flying. I also co-founded <a class="brand-link" href="https://pallas.gallery" rel="noopener" target="_blank">PALLAS</a>, designing the front-end of a platform that connects artists with scientists for professional collaboration.</p>
+<div class="about-photo-pair about-photo-pair--trio">
+<figure class="photo-figure">
+<img loading="lazy" decoding="async" alt="Haleigh presenting at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0375.webp">
+<figcaption class="label">AGU 2025: "Planetary Obliquity and Origin of Life Potential" (invited)</figcaption>
+</figure>
+<figure class="photo-figure">
+<img loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0390.webp">
+<figcaption class="label">PALLAS poster at AGU 2025</figcaption>
+</figure>
+<figure class="photo-figure">
+<img loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AbSciCon 2026" class="about-talk-photo" src="assets/photos/abscicon-2026/pallas-poster-2026.webp">
+<figcaption class="label">PALLAS poster at AbSciCon 2026</figcaption>
+</figure>
+</div>
+<p class="body">As an NSF Graduate Research Fellow, I serve as Executive Secretary on NASA's Habitable Worlds and Exoplanet Research Program review panels, peer-review for the Planetary Science Journal, and coach incoming GRFP applicants through Purdue's Office of Graduate School and Professional Studies after winning my own.</p>
+<!-- Selected projects — rendered from js/content.js into #project-grid. -->
+<section class="about-projects">
+<p class="pub-section-title">Selected Projects</p>
+<div class="project-grid" id="project-grid"></div>
+</section>
+</div>
+</div>
+<!-- ZONE: Resume/CV (edge view — cross-section = layers of experience) -->
+<div class="zone zone--publications" id="zone-publications">
+<p aria-hidden="true" class="zone__no">04 <span class="zone__path">~/cv</span></p>
+<h2 class="display display--zone">Resume / CV</h2>
+<div class="zone__body">
+<!-- Bare-bones CV: the document itself, nothing else. Downloads sit
+                     directly above the embedded PDF. Skills live in Research;
+                     projects live in About. -->
+<div class="cv-downloads">
+<a class="cv-download-cta" download href="assets/Nyberg_CV.pdf" rel="noopener" target="_blank">
+    <svg class="cv-download-cta__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span>Download CV (PDF)</span>
+</a>
+<a class="cv-download-cta" download href="assets/Nyberg_Resume.pdf" rel="noopener" target="_blank">
+    <svg class="cv-download-cta__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span>1-page Resume (PDF)</span>
+</a>
+</div>
+<!-- Full academic CV — embedded PDF. On wide screens the viewer
+                     renders inline. On narrow viewports the iframe collapses to
+                     a download prompt (see .cv-viewer CSS). -->
+<div class="cv-section">
+<div class="cv-viewer">
+<iframe loading="lazy" src="assets/Nyberg_CV.pdf#pagemode=none&view=FitH&toolbar=1" title="Haleigh Nyberg, Full CV"></iframe>
+</div>
+<p class="cv-mobile-note">PDF preview available on larger screens.</p>
+</div>
+</div>
+</div>
+<!-- ZONE: Research (close-up — zoomed into the island = zoomed into the science) -->
+<div class="zone zone--research" id="zone-research">
+<p aria-hidden="true" class="zone__no">03 <span class="zone__path">~/research</span></p>
+<h2 class="display display--zone">Research</h2>
+<p class="label label--kicker">Computational Astrobiology &middot; ExoPlaSim</p>
+<div class="zone__body">
+<p class="body">For a planet to host life, it must first become the origin of that life. I run ExoPlaSim (a 3D general circulation model) across a parameter space of obliquity, rotation rate, star type, and surface configuration to figure out which planets allow wet-dry cycling in warm little ponds. The pond model then tracks whether precipitation, evaporation, and haze deposition let RNA precursors actually accumulate.</p>
+<p class="body">Chapter 1 (in prep for PNAS): wet-dry cycling distribution is heavily dependent on incoming stellar flux distribution, with global permissiveness at higher obliquity. Organic concentrations heavily depend on the deposition of haze and the ability for warm little ponds to retain organic inventories throughout wet phases. Over 1,500 simulations so far, spanning all scenarios with a combined land-ocean-space-substellar map set.</p>
+<div class="research-figure-pair">
+<figure class="research-figure-item">
+<img loading="lazy" decoding="async" alt="Warm little pond in wet phase: rain, HCN aqueous chemistry, meteorite delivery, seepage" class="research-figure" src="assets/photos/research-illustrations/pool-wet.webp">
+<figcaption class="label">Wet phase (precipitation delivers organics)</figcaption>
+</figure>
+<figure class="research-figure-item">
+<img loading="lazy" decoding="async" alt="Warm little pond in dry phase: UV photolysis, evaporative concentration" class="research-figure" src="assets/photos/research-illustrations/pool-dry.webp">
+<figcaption class="label">Dry phase (UV drives polymerization)</figcaption>
+</figure>
+</div>
+<figure class="research-figure-item">
+<img loading="lazy" decoding="async" alt="Dissertation overview: C1 Obliquity, C2 Rotation, C3 Host Star" class="research-figure" src="assets/photos/research-illustrations/chapter-cartoon.webp">
+<figcaption class="label">Fig. 1: Dissertation overview of obliquity, rotation, and host star effects on wet-dry cycling</figcaption>
+</figure>
+<figure class="research-figure-item">
+<img loading="lazy" decoding="async" alt="Hadley cell circulation and wet-dry zone distribution across latitudes for 24hr modern Earth rotation" class="research-figure" src="assets/photos/research-illustrations/rotation-cartoon.webp">
+<figcaption class="label">Fig. 2: Atmospheric circulation drives precipitation patterns that control pond wet-dry cycling</figcaption>
+</figure>
+<figure class="research-figure-item">
+<img loading="lazy" decoding="async" alt="Two surface-temperature maps of the same Earth-like world: a 0-degree-tilt planet warm in an equatorial band, a 90-degree-tilt planet warm at its summer pole" class="research-figure" src="assets/photos/research-illustrations/obliquity-climate-0-90.png">
+<figcaption class="label">Axial tilt rewrites a planet's climate. Two ExoPlaSim runs of the same Earth-like world (no tilt on the left, a steep 90&deg; tilt on the right, at northern summer). A flat planet warms in a band at the equator, but a tilted one turns its summer pole into the hottest place on the map, and that seasonal swing is what drives shallow ponds to fill and dry.</figcaption>
+</figure>
+<p class="body">The island you see here is what I simulate (a volcanic hotspot where sea-land breeze circulation drives evaporation and precipitation through shoreline ponds).</p>
+<!-- Selected talks + proceedings rendered from js/content.js into #pub-list
+     (a curated few; full record lives in the CV / Scholar / ORCID). -->
+<div class="pub-list" id="pub-list"></div>
+<p class="body research-more"><a class="brand-link" href="assets/Nyberg_CV.pdf" download rel="noopener" target="_blank">Full CV (PDF)</a> &middot; <a class="brand-link" href="https://scholar.google.com/citations?user=5SRk2uIAAAAJ" rel="noopener" target="_blank">Google Scholar</a> &middot; <a class="brand-link" href="https://orcid.org/0009-0000-8593-9188" rel="noopener" target="_blank">ORCID</a> &middot; <a class="brand-link" href="https://www.stephanieocean.com/" rel="noopener" target="_blank">Olson Lab &rarr;</a></p>
+</div>
+</div>
+<!-- ZONE: Connect (far out) -->
+<div class="zone zone--connect" id="zone-connect">
+<p aria-hidden="true" class="zone__no">05 <span class="zone__path">~/connect</span></p>
+<h2 class="display display--zone">Connect</h2>
+<div class="zone__body">
+<img loading="lazy" decoding="async" alt="Haleigh Nyberg" class="connect-portrait" src="assets/photos/headshot-ivy.webp">
+<p class="body body--lede">
+    Happy to talk about exoplanet climates, prebiotic chemistry, or GCM development.
+</p>
+
+<section class="connect-section">
+<header class="connect-section__head">Find me</header>
+<div class="connect-grid">
+    <a class="connect-tile" href="mailto:haleigh@purdue.edu">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">Email</span>
+            <span class="connect-tile__host">haleigh@purdue.edu</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://github.com/HaleighNyberg" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">GitHub</span>
+            <span class="connect-tile__host">HaleighNyberg</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://www.linkedin.com/in/haleighnyberg/" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">LinkedIn</span>
+            <span class="connect-tile__host">in/haleighnyberg</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://scholar.google.com/citations?user=5SRk2uIAAAAJ" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">Google Scholar</span>
+            <span class="connect-tile__host">publications</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://orcid.org/0009-0000-8593-9188" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="9" y1="12" x2="9" y2="17"/><path d="M13 12h2.5a2.5 2.5 0 0 1 0 5H13z"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">ORCID</span>
+            <span class="connect-tile__host">0009-0000-8593-9188</span>
+        </span>
+    </a>
+</div>
+</section>
+
+<section class="connect-section">
+<header class="connect-section__head">Affiliations</header>
+<div class="connect-grid">
+    <a class="connect-tile" href="https://www.stephanieocean.com/" rel="noopener" target="_blank">
+        <span class="connect-tile__icon connect-tile__icon--image" aria-hidden="true">
+            <img loading="lazy" decoding="async" src="assets/photos/logos/phab-tardigrade.webp" alt="">
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">PHAB Lab</span>
+            <span class="connect-tile__host">stephanieocean.com</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://pallas.gallery" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 86.19 59.27" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M83.32,4.29C73.33,1.44,60.57.41,48.95.08c-1.37-.04-2.68.58-3.51,1.67-.13.17-.25.33-.38.5-1.23,1.65-1.9,3.64-1.97,5.69-.05-2.08-.73-4.1-1.97-5.77-.12-.17-.25-.34-.38-.5C39.91.58,38.61-.04,37.24,0,25.62.34,12.86,1.36,2.87,4.22.71,4.84-.22,6.56.04,8.9c.13,1.13.4,2.21.73,2.88,3.41,6.72,12.6,15.58,17.71,24.38.7,1.21,2.22,2.11,3.6,2.36.94.17,1.84.31,1.94.3.02.06-.15.18-.42.35-1.25.77-1.72,2.34-1.08,3.66,2.27,4.63,4.46,9.72,6.13,14.06.62,1.62,2.3,2.58,4.01,2.27.93-.17,1.87-.32,2.84-.45.09-.01.17-.02.26-.03.35-.04.71-.08,1.07-.12,1.52-.17,2.26-.36,3.62-.43.88-.04,1.7-.51,2.13-1.28.06-.1.29-.52.33-.64.08-.25.13-.44.16-.61.03.17.08.39.18.68.04.12.27.54.33.64.44.76,1.25,1.23,2.13,1.28,1.36.07,2.11.26,3.62.43.36.04.71.08,1.07.12.09.01.17.02.26.03.97.13,1.92.27,2.84.45,1.7.32,3.38-.65,4.01-2.27,1.67-4.35,3.86-9.43,6.13-14.06.64-1.31.17-2.89-1.08-3.66-.27-.16-.44-.29-.42-.35.1.01.99-.13,1.94-.3,1.38-.24,2.9-1.15,3.6-2.36,5.11-8.79,14.3-17.66,17.71-24.38.34-.66.61-1.75.73-2.88.26-2.35-.66-4.06-2.83-4.68ZM20.93,33.69c-3.99-6.79-8.73-13.45-13.79-19.52-1.93-2.32-.56-5.32,2.14-5.83,8.45-1.59,17.47-2.6,26.88-2.94,2.14-.08,3.97,1.6,4.06,3.74l.93,21.98c.09,2.12-1.55,3.91-3.67,4.02-3.79.2-7.46.59-10.95,1.16-2.23.37-4.45-.65-5.59-2.6ZM39.61,55.05c-1.96.11-3.85.3-5.68.58-1.63.25-3.21-.59-3.76-2.15-1.24-3.46-2.64-6.87-4.2-10.2-.61-1.29.1-3.69,1.5-3.99,3.58-.78,10.93-1.26,11.37-1.16,1.35.31,2.69,1.97,2.75,3.35l.46,10.97c.06,1.4-1.04,2.51-2.44,2.59ZM60.22,43.36c-1.56,3.33-2.97,6.74-4.2,10.2-.56,1.56-2.13,2.39-3.76,2.15-1.82-.28-3.72-.47-5.68-.58-1.4-.08-2.49-1.19-2.44-2.59l.46-10.97c.06-1.39,1.39-3.04,2.75-3.35.45-.1,7.79.38,11.37,1.16,1.39.3,2.1,2.7,1.5,3.99ZM79.05,14.24c-5.05,6.07-9.8,12.73-13.79,19.52-1.14,1.95-3.36,2.96-5.59,2.6-3.5-.57-7.16-.96-10.95-1.16-2.12-.11-3.76-1.9-3.67-4.02l.93-21.98c.09-2.14,1.92-3.81,4.06-3.74,9.41.34,18.43,1.35,26.88,2.94,2.7.51,4.07,3.51,2.14,5.83Z"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">PALLAS</span>
+            <span class="connect-tile__host">pallas.gallery</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://www.instagram.com/goldenz_purdue/" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="3.5"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">Golden Z Club</span>
+            <span class="connect-tile__host">@goldenz_purdue</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://datamine.purdue.edu/barrios/" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">Barrios &middot; Data Mine</span>
+            <span class="connect-tile__host">datamine.purdue.edu/barrios</span>
+        </span>
+    </a>
+    <a class="connect-tile" href="https://www.eaps.purdue.edu/research/planetary-science/people-grad.html" rel="noopener" target="_blank">
+        <span class="connect-tile__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/><path d="M22 10v6"/></svg>
+        </span>
+        <span class="connect-tile__text">
+            <span class="connect-tile__label">Purdue EAPS</span>
+            <span class="connect-tile__host">eaps.purdue.edu</span>
+        </span>
+    </a>
+</div>
+</section>
+
+</div>
+</div>
+<!-- Reviewer-mode footer: only visible when the 3D scene is
+             collapsed. Closes out the standalone reading experience. -->
+<footer class="reviewer-footer">
+<div class="reviewer-footer__inner">
+<p class="reviewer-footer__primary">Haleigh Nyberg &middot; PhD Candidate, Astrobiology &middot; Purdue University</p>
+<p class="reviewer-footer__links">
+<a href="mailto:haleigh@purdue.edu">haleigh@purdue.edu</a>
+<span class="reviewer-footer__sep">&middot;</span>
+<a href="https://github.com/HaleighNyberg" rel="noopener" target="_blank">GitHub</a>
+<span class="reviewer-footer__sep">&middot;</span>
+<a href="https://scholar.google.com/citations?user=5SRk2uIAAAAJ" rel="noopener" target="_blank">Google Scholar</a>
+<span class="reviewer-footer__sep">&middot;</span>
+<a href="https://orcid.org/0009-0000-8593-9188" rel="noopener" target="_blank">ORCID</a>
+<span class="reviewer-footer__sep">&middot;</span>
+<a href="https://www.linkedin.com/in/haleighnyberg/" rel="noopener" target="_blank">LinkedIn</a>
+</p>
+<p class="reviewer-footer__credit">Ambient audio: <a href="https://science.nasa.gov/mission/hubble/multimedia/sonifications/" rel="noopener" target="_blank">Hubble Sonifications</a> (NASA &middot; SYSTEM Sounds).</p>
+</div>
+</footer>
+</div>
+<script type="importmap">
+    {
+        "imports": {
+            "three": "./js/vendor/three/build/three.module.js?v=real9",
+            "three/addons/": "./js/vendor/three/examples/jsm/"
+        }
+    }
+    </script>
+<!-- Bottom-left chrome rail. Row of square tiles, each opening a
+         popover when relevant. Muted-by-default state means the music
+         tile starts collapsed (no audio viz, no autoplaying track). -->
+<aside aria-label="site controls" class="chrome-rail" id="chrome-panel">
+<!-- Audio tile: click toggles mute. When unmuted the audio viz is
+             revealed inside the popover; muted state hides the popover. -->
+<div class="chrome-tile" data-tile="audio">
+<button aria-expanded="false" aria-label="Play ambient audio" class="chrome-tile__btn" id="audio-tile-btn" title="Audio (muted)" type="button">
+<svg aria-hidden="true" class="chrome-tile__icon" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="16">
+<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+<line class="chrome-tile__mute-slash" x1="23" x2="17" y1="9" y2="15"></line>
+<line class="chrome-tile__mute-slash" x1="17" x2="23" y1="9" y2="15"></line>
+<path class="chrome-tile__wave" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+<path class="chrome-tile__wave" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+</svg>
+</button>
+<div aria-label="Now playing" class="chrome-pop chrome-pop--audio" id="chrome-pop-audio" role="region"></div>
+</div>
+<!-- Resources tile: link list popover. -->
+<div class="chrome-tile" data-tile="resources">
+<button aria-expanded="false" aria-label="Site resources" class="chrome-tile__btn" title="Resources" type="button">
+<svg aria-hidden="true" class="chrome-tile__icon" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="16">
+<circle cx="12" cy="12" r="9"></circle>
+<line x1="3" x2="21" y1="12" y2="12"></line>
+<path d="M12 3a14 14 0 0 1 0 18"></path>
+<path d="M12 3a14 14 0 0 0 0 18"></path>
+</svg>
+</button>
+<div aria-label="Resources" class="chrome-pop" id="chrome-pop-resources" role="region">
+<header>Resources</header>
+<a href="https://threejs.org" rel="noopener" target="_blank">&rarr; three.js</a>
+<a href="https://science.nasa.gov/mission/hubble/multimedia/sonifications/" rel="noopener" target="_blank">&rarr; Sonifications &middot; NASA</a>
+<a href="http://www.system-sounds.com/" rel="noopener" target="_blank">&rarr; SYSTEM Sounds</a>
+<a href="https://polyhaven.com/" rel="noopener" target="_blank">&rarr; Poly Haven</a>
+</div>
+</div>
+<!-- Contact tile: opens mailto immediately, no popover. -->
+<a aria-label="Email Haleigh" class="chrome-tile chrome-tile--link" href="mailto:haleigh@purdue.edu" title="haleigh@purdue.edu">
+<svg aria-hidden="true" class="chrome-tile__icon" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="16">
+<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+<polyline points="22,6 12,13 2,6"></polyline>
+</svg>
+</a>
+<!-- CV tile: triggers download immediately. -->
+<a aria-label="Download CV" class="chrome-tile chrome-tile--link" download href="assets/Nyberg_CV.pdf" id="cv-btn-fixed" rel="noopener" target="_blank" title="Download CV (PDF)">
+<svg aria-hidden="true" class="chrome-tile__icon" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="16">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+<polyline points="7 10 12 15 17 10"></polyline>
+<line x1="12" x2="12" y1="15" y2="3"></line>
+</svg>
+</a>
+</aside>
+<script>
+        /* CV reveal handled by chrome rail's panel.classList.add('revealed')
+           in js/chromePanel.js — see initChromePanel(). */
+
+        /* Quiet "Scroll" cue under the nav. Appears 2.5s after the dots
+           reveal IF the user hasn't navigated yet; the first
+           nav-affecting interaction hides it permanently for the
+           session. The breathing hairline lives in CSS (.nav-hint). */
+        (function() {
+            const hint = document.getElementById('nav-hint');
+            const dots = document.getElementById('zone-dots');
+            if (!hint || !dots) return;
+
+            let dismissed = false;
+
+            function dismiss() {
+                dismissed = true;
+                hint.classList.remove('visible');
+            }
+
+            function type() {
+                if (dismissed) return;
+                hint.textContent = 'Scroll';
+                hint.classList.add('visible');
+            }
+
+            // Dismiss on first nav-affecting interaction
+            const dismissEvents = ['wheel', 'keydown', 'touchstart'];
+            dismissEvents.forEach(ev => {
+                window.addEventListener(ev, dismiss, { once: true, passive: true });
+            });
+            document.querySelectorAll('.section-nav__item, .zone-dot').forEach(el => {
+                el.addEventListener('click', dismiss, { once: true });
+            });
+
+            // Start typing 2.5s after the dots have revealed (approach + reveal complete)
+            function arm() {
+                setTimeout(type, 2500);
+            }
+            if (dots.classList.contains('revealed')) {
+                arm();
+            } else {
+                new MutationObserver(function(m, obs) {
+                    if (dots.classList.contains('revealed')) {
+                        arm();
+                        obs.disconnect();
+                    }
+                }).observe(dots, { attributes: true, attributeFilter: ['class'] });
+            }
+        })();
+
+        /* Zone dots — click to navigate + sync active state from nav */
+        (function() {
+            const dots = document.querySelectorAll('.zone-dot');
+            const navItems = document.querySelectorAll('.section-nav__item');
+
+            // Click a dot -> trigger the matching nav item click
+            dots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const zone = dot.getAttribute('data-zone');
+                    const navItem = document.querySelector('.section-nav__item[data-zone="' + zone + '"]');
+                    if (navItem) navItem.click();
+                });
+            });
+
+            // Sync active state: poll which nav item is active
+            setInterval(() => {
+                let activeZone = '0';
+                navItems.forEach(item => {
+                    if (item.classList.contains('active')) {
+                        activeZone = item.getAttribute('data-zone');
+                    }
+                });
+                dots.forEach(dot => {
+                    dot.classList.toggle('active', dot.getAttribute('data-zone') === activeZone);
+                });
+            }, 100);
+        })();
+
+        /* Keyboard activation for the role="button" nav items —
+           Enter/Space must fire the same handler as click. */
+        (function() {
+            document.querySelectorAll('.section-nav__item').forEach(function(item) {
+                item.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        item.click();
+                    }
+                });
+            });
+        })();
+
+        /* Touch guard: a swipe that BEGINS inside interactive chrome
+           (an open content sheet, the nav bar, the tile rail) must
+           scroll that element, not fly the camera. This capture-phase
+           listener runs ahead of the window-level swipe listener in
+           js/zones.js and stops it for guarded gestures. */
+        (function() {
+            var guardSel = '.zone:not(.zone--default), #site-header, ' +
+                           '.section-nav, .chrome-rail, .audio-viz';
+            var guarded = false;
+            window.addEventListener('touchstart', function(e) {
+                guarded = !!(e.target instanceof Element && e.target.closest(guardSel));
+            }, { capture: true, passive: true });
+            window.addEventListener('touchend', function(e) {
+                if (guarded) e.stopPropagation();
+            }, { capture: true, passive: true });
+        })();
+    </script>
+<script src="./js/main.js?v=real9" type="module"></script>
+</body>
+</html>
