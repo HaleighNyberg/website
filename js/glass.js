@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state, OCEAN_RADIUS, WALL_THICK } from './config.js?v=real17';
+import { state, OCEAN_RADIUS, WALL_THICK } from './config.js?v=real18';
 
 export function initGlass() {
     const { islandGroup } = state;

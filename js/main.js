@@ -1,27 +1,27 @@
 // Main entry point
-import { state } from './config.js?v=real17';
-import { initScene } from './scene.js?v=real17';
-import { initLighting } from './lighting.js?v=real17';
-import { initTerrain } from './terrain.js?v=real17';
-import { initOcean } from './ocean.js?v=real17';
-import { initGlass } from './glass.js?v=real17';
-import { initEffects } from './effects.js?v=real17';
-import { initControls } from './controls.js?v=real17';
-import { initZones, setApproachActive } from './zones.js?v=real17';
-import { startAnimateLoop } from './animate.js?v=real17';
-import { startApproach } from './loadingApproach.js?v=real17';
-import { initEasterEggs } from './easterEggs.js?v=real17';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real17';
-import { FEATURES } from './features.js?v=real17';
-import { initAudio } from './audio.js?v=real17';
-import { initAudioViz } from './audioViz.js?v=real17';
-import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real17';
-import { initTerminal } from './terminal.js?v=real17';
-import { initWeatherUI } from './weather.js?v=real17';
-import { initVolcano } from './volcano.js?v=real17';
-import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real17';
-import { initChromePanel } from './chromePanel.js?v=real17';
-import { renderContent } from './content.js?v=real17';
+import { state } from './config.js?v=real18';
+import { initScene } from './scene.js?v=real18';
+import { initLighting } from './lighting.js?v=real18';
+import { initTerrain } from './terrain.js?v=real18';
+import { initOcean } from './ocean.js?v=real18';
+import { initGlass } from './glass.js?v=real18';
+import { initEffects } from './effects.js?v=real18';
+import { initControls } from './controls.js?v=real18';
+import { initZones, setApproachActive } from './zones.js?v=real18';
+import { startAnimateLoop } from './animate.js?v=real18';
+import { startApproach } from './loadingApproach.js?v=real18';
+import { initEasterEggs } from './easterEggs.js?v=real18';
+import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real18';
+import { FEATURES } from './features.js?v=real18';
+import { initAudio } from './audio.js?v=real18';
+import { initAudioViz } from './audioViz.js?v=real18';
+import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real18';
+import { initTerminal } from './terminal.js?v=real18';
+import { initWeatherUI } from './weather.js?v=real18';
+import { initVolcano } from './volcano.js?v=real18';
+import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real18';
+import { initChromePanel } from './chromePanel.js?v=real18';
+import { renderContent } from './content.js?v=real18';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the
@@ -112,6 +112,15 @@ startAnimateLoop();
 // shader samples an empty normal map for a beat and the surface catches
 // the reflection as a hard squarish slab before it settles into waves.
 // Never stall: a fallback starts the approach even if the texture is slow.
+//
+// Returning visitors skip the intro fly-in: the first visit sets a flag and
+// every load after snaps straight to the home view. Replay the full cinematic
+// anytime with ?intro=1.
+const _forceIntro = new URLSearchParams(location.search).get('intro') === '1';
+let _introSeen = false;
+try { _introSeen = localStorage.getItem('introSeen') === '1'; } catch (e) {}
+const _skipIntro = _introSeen && !_forceIntro;
+
 let _approachStarted = false;
 function beginApproach() {
     if (_approachStarted) return;
@@ -138,6 +147,9 @@ function beginApproach() {
     function revealScene() {
         // Re-enable scroll navigation
         setApproachActive(false);
+
+        // Mark the intro as seen so subsequent visits skip straight in.
+        try { localStorage.setItem('introSeen', '1'); } catch (e) {}
 
         // Approach over: restore the tight far plane. The 6000u frustum
         // exists only so spaceEnv renders during the fly-in; leaving it
@@ -230,9 +242,9 @@ function beginApproach() {
         pollReady();
         setTimeout(revealOnce, 3000);
     }
-    });
+    }, _skipIntro ? 1 : undefined);
 
-    }, 900);
+    }, _skipIntro ? 0 : 900);
 }
 
 // Kick off the fly-in as soon as the ocean's ripple map is ready (or after

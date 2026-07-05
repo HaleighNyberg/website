@@ -9,7 +9,7 @@
 // switch, no "fake to real" seam.
 //
 // Usage:
-//   import { startApproach } from './loadingApproach.js?v=real17';
+//   import { startApproach } from './loadingApproach.js?v=real18';
 //   startApproach(camera, scene, () => { /* scene ready */ });
 
 import * as THREE from 'three';
@@ -164,7 +164,11 @@ function completeProgressBar(fill) {
     fill.style.width = '100%';
 }
 
-export function startApproach(camera, scene, onComplete) {
+export function startApproach(camera, scene, onComplete, durationMs) {
+    // Duration override lets returning visitors snap straight to the home
+    // pose (near-zero duration) instead of sitting through the full fly-in.
+    const DUR = durationMs || DURATION;
+
     // Set initial camera pose
     camera.position.copy(START_POS);
     camera.lookAt(START_LOOK);
@@ -178,7 +182,7 @@ export function startApproach(camera, scene, onComplete) {
 
     function tick() {
         const elapsed = performance.now() - startTime;
-        const rawT = Math.min(1.0, elapsed / DURATION);
+        const rawT = Math.min(1.0, elapsed / DUR);
         const p = quintic(rawT);
 
         // Interpolate position

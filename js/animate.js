@@ -1,15 +1,15 @@
 // Render loop — calls all update functions each frame
 import * as THREE from 'three';
-import { state, SUN_WORLD_POSITION, OCEAN_LEVEL, OCEAN_RADIUS } from './config.js?v=real17';
-import { updateScene } from './lighting.js?v=real17';
-import { updateOcean } from './ocean.js?v=real17';
-import { updateGlassEnv } from './glass.js?v=real17';
-import { updateFly, updateDragPhysics } from './controls.js?v=real17';
-import { updateRain, updateVolcanicEffects } from './effects.js?v=real17';
-import { updateVolcano } from './volcano.js?v=real17';
-import { updateZones, isApproachActive } from './zones.js?v=real17';
-import { tickWeather } from './weather.js?v=real17';
-import { applyStormLighting } from './stormLighting.js?v=real17';
+import { state, SUN_WORLD_POSITION, OCEAN_LEVEL, OCEAN_RADIUS } from './config.js?v=real18';
+import { updateScene } from './lighting.js?v=real18';
+import { updateOcean } from './ocean.js?v=real18';
+import { updateGlassEnv } from './glass.js?v=real18';
+import { updateFly, updateDragPhysics } from './controls.js?v=real18';
+import { updateRain, updateVolcanicEffects } from './effects.js?v=real18';
+import { updateVolcano } from './volcano.js?v=real18';
+import { updateZones, isApproachActive } from './zones.js?v=real18';
+import { tickWeather } from './weather.js?v=real18';
+import { applyStormLighting } from './stormLighting.js?v=real18';
 
 // --- Weather cross-fade constants ---
 // Clear-weather anchors match the values set at cloud/fog init time.
