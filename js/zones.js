@@ -1,6 +1,6 @@
 // Zone system — scroll-driven navigation with smooth camera transitions
 import * as THREE from 'three';
-import { state } from './config.js?v=real9';
+import { state } from './config.js?v=real10';
 
 // --- Ordered zone sequence (scroll order) ---
 // EDITORIAL LAYOUT: Every non-home zone has a 40% right-side content

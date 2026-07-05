@@ -9,7 +9,7 @@
 import {
     isAudioAvailable, isMuted, subscribe as subscribeAudio,
     getCurrentTrack, getAnalyser, getCreditHTML, skipToNext,
-} from './audio.js?v=real9';
+} from './audio.js?v=real10';
 
 const WIDTH = 220;
 const HEIGHT = 28;
