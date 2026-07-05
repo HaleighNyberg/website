@@ -1,27 +1,27 @@
 // Main entry point
-import { state } from './config.js?v=real11';
-import { initScene } from './scene.js?v=real11';
-import { initLighting } from './lighting.js?v=real11';
-import { initTerrain } from './terrain.js?v=real11';
-import { initOcean } from './ocean.js?v=real11';
-import { initGlass } from './glass.js?v=real11';
-import { initEffects } from './effects.js?v=real11';
-import { initControls } from './controls.js?v=real11';
-import { initZones, setApproachActive } from './zones.js?v=real11';
-import { startAnimateLoop } from './animate.js?v=real11';
-import { startApproach } from './loadingApproach.js?v=real11';
-import { initEasterEggs } from './easterEggs.js?v=real11';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real11';
-import { FEATURES } from './features.js?v=real11';
-import { initAudio } from './audio.js?v=real11';
-import { initAudioViz } from './audioViz.js?v=real11';
-import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real11';
-import { initTerminal } from './terminal.js?v=real11';
-import { initWeatherUI } from './weather.js?v=real11';
-import { initVolcano } from './volcano.js?v=real11';
-import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real11';
-import { initChromePanel } from './chromePanel.js?v=real11';
-import { renderContent } from './content.js?v=real11';
+import { state } from './config.js?v=real12';
+import { initScene } from './scene.js?v=real12';
+import { initLighting } from './lighting.js?v=real12';
+import { initTerrain } from './terrain.js?v=real12';
+import { initOcean } from './ocean.js?v=real12';
+import { initGlass } from './glass.js?v=real12';
+import { initEffects } from './effects.js?v=real12';
+import { initControls } from './controls.js?v=real12';
+import { initZones, setApproachActive } from './zones.js?v=real12';
+import { startAnimateLoop } from './animate.js?v=real12';
+import { startApproach } from './loadingApproach.js?v=real12';
+import { initEasterEggs } from './easterEggs.js?v=real12';
+import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real12';
+import { FEATURES } from './features.js?v=real12';
+import { initAudio } from './audio.js?v=real12';
+import { initAudioViz } from './audioViz.js?v=real12';
+import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real12';
+import { initTerminal } from './terminal.js?v=real12';
+import { initWeatherUI } from './weather.js?v=real12';
+import { initVolcano } from './volcano.js?v=real12';
+import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real12';
+import { initChromePanel } from './chromePanel.js?v=real12';
+import { renderContent } from './content.js?v=real12';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the
@@ -73,6 +73,29 @@ initEffects();
 initVolcano();
 initControls();
 initZones();
+
+// Type the hero statement in character-by-character once the main layer
+// reveals. The $ prompt and blinking cursor are CSS pseudo-elements, so
+// this only drives the text between them; reduced-motion users get the
+// full line at once.
+function typeHeroStatement() {
+    const el = document.querySelector('.home-hero__statement');
+    if (!el || el.dataset.typed) return;
+    el.dataset.typed = '1';
+    const full = el.textContent;
+    const reduce = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    el.textContent = '';
+    let i = 0;
+    (function step() {
+        el.textContent = full.slice(0, i);
+        if (i++ < full.length) {
+            // Jittered cadence so it reads like typing, not a metronome.
+            setTimeout(step, 26 + Math.random() * 32);
+        }
+    })();
+}
 
 // --- Real-Scene Approach ---
 // Disable scroll navigation during approach. Camera starts at (0, 120, 600)
@@ -151,6 +174,8 @@ function beginApproach() {
                 try { renderDailyLabel(); } catch (e) { console.warn('daily label failed', e); }
             }
             initEasterEggs();
+            // Type the hero line in as the lockup fades up (600ms CSS delay).
+            setTimeout(typeHeroStatement, 700);
         }, 300);
 
         // Wave 2 — ACCENT: the bottom-left utility rail (audio, reader-view

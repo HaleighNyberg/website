@@ -265,6 +265,11 @@
     color: var(--text-primary);
     text-shadow: var(--text-shadow-strong);
     margin: 0 0 var(--space-4);
+    /* Narrow enough to break the statement across three lines, and
+       reserve those three lines up front so the typewriter fills in
+       without shoving the meta/seed lines around as it types. */
+    max-width: 32ch;
+    min-height: calc(3 * 1.75em);
 }
 .home-hero__statement::before {
     content: '$ ';

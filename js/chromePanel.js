@@ -3,7 +3,7 @@
 // popovers for tiles that have one. Muted-by-default audio means the
 // rail reads as four quiet tiles until the user opens one.
 
-import { isAudioAvailable, isMuted, setMuted, subscribe as subscribeAudio } from './audio.js?v=real11';
+import { isAudioAvailable, isMuted, setMuted, subscribe as subscribeAudio } from './audio.js?v=real12';
 
 function closeAllPops(panel, except) {
     panel.querySelectorAll('.chrome-tile[data-open="1"]').forEach(t => {

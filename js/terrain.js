@@ -3,8 +3,8 @@ import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, TERRAIN_HEIGHT, TERRAIN_SIZE, TERRAIN_SEGMENTS,
     BASE_DEPTH, FLOOR_Y, PEAK_Y,
     volcanoColor, seafloorColor, loadHeightmap, sampleHeight,
-} from './config.js?v=real11';
-import { HEIGHTMAP_URL, validateHeightmap } from './heightmap.js?v=real11';
+} from './config.js?v=real12';
+import { HEIGHTMAP_URL, validateHeightmap } from './heightmap.js?v=real12';
 
 export function initTerrain() {
     const { islandGroup, SUN_DIR } = state;

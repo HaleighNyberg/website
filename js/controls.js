@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // OrbitControls removed — scroll navigation only
-import { state, FLY_SPEED, LOOK_SPEED } from './config.js?v=real11';
+import { state, FLY_SPEED, LOOK_SPEED } from './config.js?v=real12';
 
 // Control mode: 'orbit' (default) or 'fly' (dev)
 let _mode = 'orbit';
