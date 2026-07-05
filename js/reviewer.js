@@ -11,7 +11,7 @@
 // localStorage-driven activation are always live so the WebGL-fail fallback
 // works even when the flag is off.
 
-import { FEATURES } from './features.js?v=real10';
+import { FEATURES } from './features.js?v=real11';
 
 const KEY = 'reviewer';
 

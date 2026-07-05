@@ -1,27 +1,27 @@
 // Main entry point
-import { state } from './config.js?v=real10';
-import { initScene } from './scene.js?v=real10';
-import { initLighting } from './lighting.js?v=real10';
-import { initTerrain } from './terrain.js?v=real10';
-import { initOcean } from './ocean.js?v=real10';
-import { initGlass } from './glass.js?v=real10';
-import { initEffects } from './effects.js?v=real10';
-import { initControls } from './controls.js?v=real10';
-import { initZones, setApproachActive } from './zones.js?v=real10';
-import { startAnimateLoop } from './animate.js?v=real10';
-import { startApproach } from './loadingApproach.js?v=real10';
-import { initEasterEggs } from './easterEggs.js?v=real10';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real10';
-import { FEATURES } from './features.js?v=real10';
-import { initAudio } from './audio.js?v=real10';
-import { initAudioViz } from './audioViz.js?v=real10';
-import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real10';
-import { initTerminal } from './terminal.js?v=real10';
-import { initWeatherUI } from './weather.js?v=real10';
-import { initVolcano } from './volcano.js?v=real10';
-import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real10';
-import { initChromePanel } from './chromePanel.js?v=real10';
-import { renderContent } from './content.js?v=real10';
+import { state } from './config.js?v=real11';
+import { initScene } from './scene.js?v=real11';
+import { initLighting } from './lighting.js?v=real11';
+import { initTerrain } from './terrain.js?v=real11';
+import { initOcean } from './ocean.js?v=real11';
+import { initGlass } from './glass.js?v=real11';
+import { initEffects } from './effects.js?v=real11';
+import { initControls } from './controls.js?v=real11';
+import { initZones, setApproachActive } from './zones.js?v=real11';
+import { startAnimateLoop } from './animate.js?v=real11';
+import { startApproach } from './loadingApproach.js?v=real11';
+import { initEasterEggs } from './easterEggs.js?v=real11';
+import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real11';
+import { FEATURES } from './features.js?v=real11';
+import { initAudio } from './audio.js?v=real11';
+import { initAudioViz } from './audioViz.js?v=real11';
+import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real11';
+import { initTerminal } from './terminal.js?v=real11';
+import { initWeatherUI } from './weather.js?v=real11';
+import { initVolcano } from './volcano.js?v=real11';
+import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real11';
+import { initChromePanel } from './chromePanel.js?v=real11';
+import { renderContent } from './content.js?v=real11';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the
@@ -80,18 +80,27 @@ initZones();
 // objects — everything visible is the actual scene geometry.
 setApproachActive(true);
 
-// Make the loading screen transparent so the real scene is visible behind
-// the title card during the approach.
-const loadingScreenInit = document.getElementById('loading-screen');
-if (loadingScreenInit) {
-    loadingScreenInit.classList.add('approach-active');
-}
-
-// Start the render loop BEFORE the approach so the scene draws while flying in
+// Start the render loop up front so the scene is already drawing (behind
+// the still-opaque loader) before the fly-in kicks off.
 startAnimateLoop();
 
-// Begin the approach animation on the real scene camera
-startApproach(state.camera, state.scene, () => {
+// Hold the fly-in until the water ripple map has decoded, so the ocean is
+// already rippled on the very first visible frame. Without it the water
+// shader samples an empty normal map for a beat and the surface catches
+// the reflection as a hard squarish slab before it settles into waves.
+// Never stall: a fallback starts the approach even if the texture is slow.
+let _approachStarted = false;
+function beginApproach() {
+    if (_approachStarted) return;
+    _approachStarted = true;
+
+    // Make the loading screen transparent so the real scene is visible
+    // behind the title card during the approach.
+    const loadingScreenInit = document.getElementById('loading-screen');
+    if (loadingScreenInit) loadingScreenInit.classList.add('approach-active');
+
+    // Begin the approach animation on the real scene camera
+    startApproach(state.camera, state.scene, () => {
     // --- Approach complete: verify scene readiness before revealing ---
     function sceneReady() {
         return !!(state.sunOrb && state.moonOrb && state.gateway && state.water);
@@ -126,28 +135,27 @@ startApproach(state.camera, state.scene, () => {
             }, 1200);
         }
 
-        // Masthead (name + nav) fades in 300ms after approach completion.
-        // The .revealed class triggers the per-char clip-path wipe on the
-        // wordmark.
+        // Reveal in two coordinated waves so the chrome doesn't trickle in
+        // element-by-element: the MAIN layer lands together, then the
+        // ACCENT utilities together a beat later.
+        //
+        // Wave 1 — MAIN: the masthead .revealed class fires the per-char
+        // wipe on the wordmark and brings in the nav, credential and hero
+        // lockup; the section dots and the specimen id come with it.
         setTimeout(() => {
             const header = document.getElementById('site-header');
             if (header) header.classList.add('revealed');
-            initEasterEggs();
-        }, 300);
-
-        // 2. Dots + CV button appear 1.5s after masthead
-        setTimeout(() => {
             const dots = document.getElementById('zone-dots');
             if (dots) dots.classList.add('revealed');
             if (FEATURES.dailyPlanet) {
                 try { renderDailyLabel(); } catch (e) { console.warn('daily label failed', e); }
             }
-        }, 1800);
+            initEasterEggs();
+        }, 300);
 
-        // 3. Audio + reviewer toggle fade in after the CV button has
-        //    finished its flicker-in, so the chrome builds up in a clean
-        //    left-column reveal instead of all four elements popping
-        //    simultaneously.
+        // Wave 2 — ACCENT: the bottom-left utility rail (audio, reader-view
+        // toggle, weather) and the unified chrome panel that adopts them,
+        // all together once the main layer has landed.
         setTimeout(() => {
             if (FEATURES.audio) {
                 // Mute toggle replaced by the audio tile in the chrome rail
@@ -165,9 +173,9 @@ startApproach(state.camera, state.scene, () => {
             // body. The MutationObserver inside also catches late
             // insertions (e.g. audio-viz unhides on first unmute).
             try { initChromePanel(); } catch (e) { console.warn('chrome panel init failed', e); }
-        }, 2800);
+        }, 1200);
 
-        // 4. The scanning text triggers from the dots reveal (inline script in index.html)
+        // The scanning text triggers from the dots reveal (inline script in index.html)
     }
 
     let revealed = false;
@@ -191,7 +199,17 @@ startApproach(state.camera, state.scene, () => {
         pollReady();
         setTimeout(revealOnce, 3000);
     }
-});
+    });
+}
+
+// Kick off the fly-in as soon as the ocean's ripple map is ready (or after
+// a short fallback so it never hangs on a slow texture fetch).
+if (state.waterNormalsReady) {
+    beginApproach();
+} else {
+    state._onWaterReady = beginApproach;
+    setTimeout(beginApproach, 1500);
+}
 
 }  // end of full-3D branch (top-of-file reviewer-mode short-circuit)
 

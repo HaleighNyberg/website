@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Water } from './Water.js?v=real10'; // local copy with reflection-layer hack
+import { Water } from './Water.js?v=real11'; // local copy with reflection-layer hack
 import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, BASE_DEPTH, FLOOR_Y,
-} from './config.js?v=real10';
+} from './config.js?v=real11';
 
 // ---------------------------------------------------------------------------
 // Procedural noise textures for the lava underside shader (no external files)
@@ -94,20 +94,13 @@ export function initOcean() {
     const { islandGroup, SUN_DIR } = state;
 
     // --- (A) Ocean surface — THREE.js Water addon for realistic reflections ---
-    // Flat-normal placeholder (128,128,255 = straight-up). Until
-    // waternormals.jpg decodes, the shader's getNoise() samples an empty
-    // texture: every tap reads 0, noise*0.5-1.0 = -1, and the whole sheet
-    // collapses to ONE uniform tilted normal — a hard mirror block that
-    // reads as a squarish slab for the first frames of the fly-in, then
-    // snaps into ripples when the map arrives. Seeding a valid up-normal
-    // keeps that opening frame a calm, correct surface; the ripple map
-    // swaps in below the moment it loads.
-    const flatNormalTex = new THREE.DataTexture(
-        new Uint8Array([128, 128, 255, 255]), 1, 1, THREE.RGBAFormat
-    );
-    flatNormalTex.needsUpdate = true;
-
-    new THREE.TextureLoader().load('waternormals.jpg', (tex) => {
+    // Ripple normal map. main.js holds the fly-in until this decodes
+    // (state.waterNormalsReady), so the water is already rippled on the
+    // first visible frame. Without it the shader's getNoise() samples an
+    // empty map for a beat — every tap reads 0, noise*0.5-1.0 = -1, and
+    // the whole sheet collapses to one uniform normal that catches the
+    // reflection as a hard squarish slab before it snaps into waves.
+    const waterNormalTex = new THREE.TextureLoader().load('waternormals.jpg', (tex) => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         // Anisotropic filtering: the water plane is viewed at grazing
         // angles in every side-on framing, where trilinear alone smears
@@ -115,7 +108,8 @@ export function initOcean() {
         if (state.renderer) {
             tex.anisotropy = Math.min(4, state.renderer.capabilities.getMaxAnisotropy());
         }
-        water.material.uniforms['normalSampler'].value = tex;
+        state.waterNormalsReady = true;
+        if (typeof state._onWaterReady === 'function') state._onWaterReady();
     });
 
     const waterGeometry = new THREE.CircleGeometry(OCEAN_RADIUS, 128);
@@ -131,7 +125,7 @@ export function initOcean() {
     const water = new Water(waterGeometry, {
         textureWidth: 1024,
         textureHeight: 1024,
-        waterNormals: flatNormalTex,
+        waterNormals: waterNormalTex,
         sunDirection: waterSunDir,
         // Full-strength cream sun glint (matches the sun's emission).
         // This was dimmed to 0x9c8e75 and the lobe broadened to dodge a

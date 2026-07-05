@@ -7,7 +7,7 @@
 // Does NOT touch fog, clouds, or rain — those are the main thread's job.
 
 import * as THREE from 'three';
-import { state, TERRAIN_HEIGHT, OCEAN_LEVEL } from './config.js?v=real10';
+import { state, TERRAIN_HEIGHT, OCEAN_LEVEL } from './config.js?v=real11';
 
 // --- Peak-storm targets. Clear-weather anchors are captured at runtime. ---
 const STORM_SUN_COLOR   = new THREE.Color(0.58, 0.62, 0.72); // cool grey-blue
