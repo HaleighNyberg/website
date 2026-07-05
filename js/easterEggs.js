@@ -1,6 +1,6 @@
 // easterEggs.js — hidden delights that reward curiosity
 import * as THREE from 'three';
-import { state } from './config.js?v=real12';
+import { state } from './config.js?v=real13';
 
 const _raycaster = new THREE.Raycaster();
 const _ndc = new THREE.Vector2();

@@ -9,8 +9,8 @@
 // can read without dragging in this module.
 
 import * as THREE from 'three';
-import { mulberry32, dayOfYearSeed, pick, lerp } from './prng.js?v=real12';
-import { FEATURES } from './features.js?v=real12';
+import { mulberry32, dayOfYearSeed, pick, lerp } from './prng.js?v=real13';
+import { FEATURES } from './features.js?v=real13';
 
 const RIM_PALETTE = [
     0xb4d2ee,

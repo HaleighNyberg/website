@@ -3,8 +3,8 @@ import {
     state, OCEAN_LEVEL, OCEAN_RADIUS, TERRAIN_HEIGHT, TERRAIN_SIZE, TERRAIN_SEGMENTS,
     BASE_DEPTH, FLOOR_Y, PEAK_Y,
     volcanoColor, seafloorColor, loadHeightmap, sampleHeight,
-} from './config.js?v=real12';
-import { HEIGHTMAP_URL, validateHeightmap } from './heightmap.js?v=real12';
+} from './config.js?v=real13';
+import { HEIGHTMAP_URL, validateHeightmap } from './heightmap.js?v=real13';
 
 export function initTerrain() {
     const { islandGroup, SUN_DIR } = state;
@@ -1256,7 +1256,7 @@ export function initTerrain() {
     islandGroup.add(seabedMesh);
 
     // Seabed: real NASA GEBCO bathymetry — single heightmap, no tiling
-    loadHeightmap('ocean_floor.png', (imgData, w, h) => {
+    loadHeightmap('ocean_floor.webp', (imgData, w, h) => {
         const pos = seabedGeo.attributes.position;
         const uv = seabedGeo.attributes.uv;
         const colors = new Float32Array(pos.count * 3);

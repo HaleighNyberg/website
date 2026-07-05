@@ -7,7 +7,7 @@
 // normalizes by /255, so any grayscale PNG with matching dimensions will
 // slot in without code changes.
 
-export const HEIGHTMAP_URL = 'mountain_height_8bit.png';
+export const HEIGHTMAP_URL = 'mountain_height_8bit.webp';
 
 // Soft validation: warn if the loaded image looks wrong (colormap instead
 // of grayscale, or aspect ratio wildly off). Called by terrain.js from

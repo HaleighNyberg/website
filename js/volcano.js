@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state } from './config.js?v=real12';
+import { state } from './config.js?v=real13';
 
 // Volcano eruption sequence. Palette-locked to the existing lava pool /
 // molten underside (0xff5020 family) so an eruption reads as the same
