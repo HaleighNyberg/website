@@ -218,7 +218,11 @@ export function initLighting() {
     //   npx @gltf-transform/cli optimize gateway.glb gateway.min.glb \
     //     --compress quantize --texture-compress webp --texture-size 256 \
     //     --simplify-error 0.001
-    new GLTFLoader().load('gateway.min.glb', (gltf) => {
+    // Deferred: this 2.8 MB station model is the heaviest single asset and it
+    // orbits the moon far off at the edge of frame. Loading it AFTER the
+    // critical scene assets keeps the initial download light; it then fades in
+    // so its arrival is never an abrupt pop, even off-screen.
+    const _loadGateway = () => new GLTFLoader().load('gateway.min.glb', (gltf) => {
         const gateway = gltf.scene;
         gateway.scale.set(0.03, 0.03, 0.03); // much smaller — like a real station vs a moon
         gateway.frustumCulled = false;
@@ -260,7 +264,35 @@ export function initLighting() {
         gwHit.name = '_gatewayHitSphere';
         gateway.add(gwHit);
         state._gatewayHitSphere = gwHit;
+
+        // Fade the station in so its deferred arrival isn't a hard pop.
+        // Record each material's original transparent flag / opacity, ramp
+        // opacity 0 → original over ~0.9s, then restore the original flags.
+        const _fadeMats = [];
+        gateway.traverse((c) => {
+            if (c.isMesh && c.material) {
+                _fadeMats.push({ m: c.material, t: c.material.transparent, o: (c.material.opacity ?? 1) });
+                c.material.transparent = true;
+                c.material.opacity = 0;
+            }
+        });
+        const _fadeStart = performance.now();
+        (function _fadeGateway() {
+            const k = Math.min(1, (performance.now() - _fadeStart) / 900);
+            for (const f of _fadeMats) f.m.opacity = k * f.o;
+            if (k < 1) requestAnimationFrame(_fadeGateway);
+            else for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
+        })();
     });
+
+    // Kick the deferred load once the browser is idle (after the initial
+    // paint / fly-in) so it never competes with the critical scene assets.
+    // Fallback timeout guarantees it loads even if idle never fires.
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(_loadGateway, { timeout: 4000 });
+    } else {
+        setTimeout(_loadGateway, 2500);
+    }
 
     // --- Sun orb (visual) — back-left on orbital plane, shader-based star surface ---
     // Distance ~607 from origin. Radius 10 gives a ~1.9° angular diameter —

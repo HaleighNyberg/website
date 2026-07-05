@@ -141,7 +141,9 @@ function beginApproach() {
     startApproach(state.camera, state.scene, () => {
     // --- Approach complete: verify scene readiness before revealing ---
     function sceneReady() {
-        return !!(state.sunOrb && state.moonOrb && state.gateway && state.water);
+        // Gateway is intentionally excluded — it's deferred and loads after
+        // the fly-in, so the reveal must not wait on it.
+        return !!(state.sunOrb && state.moonOrb && state.water);
     }
 
     function revealScene() {
