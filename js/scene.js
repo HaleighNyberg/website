@@ -335,7 +335,7 @@ export function initScene() {
     composer.addPass(new OutputPass());
 
     // --- Lens flare pass (ported from R3F Ultimate Lens Flare) ---
-    const lensDirtTex = new THREE.TextureLoader().load('lensDirtTexture.png');
+    const lensDirtTex = new THREE.TextureLoader().load('lensDirtTexture.webp');
     const lensFlarePass = new ShaderPass({
         uniforms: {
             tDiffuse: { value: null },

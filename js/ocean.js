@@ -100,7 +100,7 @@ export function initOcean() {
     // empty map for a beat — every tap reads 0, noise*0.5-1.0 = -1, and
     // the whole sheet collapses to one uniform normal that catches the
     // reflection as a hard squarish slab before it snaps into waves.
-    const waterNormalTex = new THREE.TextureLoader().load('waternormals.jpg', (tex) => {
+    const waterNormalTex = new THREE.TextureLoader().load('waternormals.webp', (tex) => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         // Anisotropic filtering: the water plane is viewed at grazing
         // angles in every side-on framing, where trilinear alone smears

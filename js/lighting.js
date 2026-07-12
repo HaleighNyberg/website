@@ -121,8 +121,8 @@ export function initLighting() {
     renderer.toneMappingExposure = 1.1;
 
     // --- Orbiting moon — always visible, phase-lit by the sun ---
-    const moonTex = new THREE.TextureLoader().load('moon.jpg');
-    // moon.jpg is an sRGB photo. Without tagging it, the renderer treats
+    const moonTex = new THREE.TextureLoader().load('moon.webp');
+    // moon.webp is an sRGB photo. Without tagging it, the renderer treats
     // the values as linear and the output transform double-brightens them
     // (the washed-out "gamey" look the moon had).
     moonTex.colorSpace = THREE.SRGBColorSpace;
