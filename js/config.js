@@ -169,14 +169,38 @@ export function seafloorColor(h, lavaAmount) {
 }
 
 export function loadHeightmap(src, cb) {
+    // Registered with the default loading manager so the loading-screen
+    // hold (main.js) counts heightmaps alongside every texture — without
+    // this the island geometry could still be missing when the screen
+    // lifts.
+    THREE.DefaultLoadingManager.itemStart(src);
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-        const c = document.createElement('canvas');
-        c.width = img.width; c.height = img.height;
-        const cx = c.getContext('2d');
-        cx.drawImage(img, 0, 0);
-        cb(cx.getImageData(0, 0, c.width, c.height), c.width, c.height);
+        // Decode off the main thread, then split the pixel copy and the
+        // geometry-building callback across two frames: as one
+        // synchronous block this was a ~230ms main-thread freeze at
+        // whatever moment the download landed — mid-cruise on a slow
+        // connection. The manager hold (itemEnd) still releases only
+        // after the callback, so nothing downstream sees a difference.
+        const go = () => {
+            const c = document.createElement('canvas');
+            c.width = img.width; c.height = img.height;
+            const cx = c.getContext('2d', { willReadFrequently: true });
+            cx.drawImage(img, 0, 0);
+            const data = cx.getImageData(0, 0, c.width, c.height);
+            requestAnimationFrame(() => {
+                cb(data, c.width, c.height);
+                THREE.DefaultLoadingManager.itemEnd(src);
+            });
+        };
+        if (typeof img.decode === 'function') img.decode().then(go, go);
+        else go();
+    };
+    img.onerror = () => {
+        // A failed fetch must release the hold rather than hang it; the
+        // wait cap in main.js is the backstop, this is the fast path.
+        THREE.DefaultLoadingManager.itemEnd(src);
     };
     img.src = src;
 }

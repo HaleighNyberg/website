@@ -1,4 +1,5 @@
 // Main entry point
+import * as THREE from 'three';
 import { state } from './config.js?v=real18';
 import { initScene } from './scene.js?v=real18';
 import { initLighting } from './lighting.js?v=real18';
@@ -11,7 +12,7 @@ import { initZones, setApproachActive } from './zones.js?v=real18';
 import { startAnimateLoop } from './animate.js?v=real18';
 import { startApproach } from './loadingApproach.js?v=real18';
 import { initEasterEggs } from './easterEggs.js?v=real18';
-import { isReviewerActive, initReviewerUI } from './reviewer.js?v=real18';
+import { isReviewerActive, initReviewerUI, setReviewerActive } from './reviewer.js?v=real18';
 import { FEATURES } from './features.js?v=real18';
 import { initAudio } from './audio.js?v=real18';
 import { initAudioViz } from './audioViz.js?v=real18';
@@ -97,165 +98,157 @@ function typeHeroStatement() {
     })();
 }
 
-// --- Real-Scene Approach ---
-// Disable scroll navigation during approach. Camera starts at (0, 120, 600)
-// inside the real scene and flies to the home zone over 5s. No temporary
-// objects — everything visible is the actual scene geometry.
+// --- No Man's Sky–style warp load-in ---
+// The intro holds far out in deep space at warp (js/warp.js star-streaks)
+// while textures download — the island never zooms until it's fully loaded.
+// A mono HUD readout shows real progress; on ready it drops out of warp and
+// swoops into the home framing over a complete world. (js/loadingApproach.js)
 setApproachActive(true);
-
-// Start the render loop up front so the scene is already drawing (behind
-// the still-opaque loader) before the fly-in kicks off.
+// Hide the content overlay (incl. the zone blueprint grid) during the flight
+// so no site UI leaks over the galaxy; revealScene() lifts it.
+document.documentElement.classList.add('intro-active');
 startAnimateLoop();
 
-// Hold the fly-in until the water ripple map has decoded, so the ocean is
-// already rippled on the very first visible frame. Without it the water
-// shader samples an empty normal map for a beat and the surface catches
-// the reflection as a hard squarish slab before it settles into waves.
-// Never stall: a fallback starts the approach even if the texture is slow.
-//
-// Returning visitors skip the intro fly-in: the first visit sets a flag and
-// every load after snaps straight to the home view. Replay the full cinematic
-// anytime with ?intro=1.
+// Real asset-ready signal. Every TextureLoader reports to the default
+// manager; loadHeightmap registers the heightmaps; the deferred gateway uses
+// a private manager so it can't hold this. onLoad fires once the first-view
+// assets are all in; onProgress drives the HUD percentage.
+let _assetsReady = false;
+let _loadPct = 0;
+THREE.DefaultLoadingManager.onProgress = (url, loaded, total) => {
+    if (total) _loadPct = Math.max(_loadPct, Math.min(99, Math.round((loaded / total) * 100)));
+};
+THREE.DefaultLoadingManager.onLoad = () => { _assetsReady = true; _loadPct = 100; };
+// Safety net: never wait past this even if a load never resolves.
+setTimeout(() => { _assetsReady = true; }, 24000);
+
+// Skip the flight (snap straight home) for returning visitors, reduced-motion
+// users, and data-saver connections; ?intro=1 forces the full flight.
 const _forceIntro = new URLSearchParams(location.search).get('intro') === '1';
 let _introSeen = false;
 try { _introSeen = localStorage.getItem('introSeen') === '1'; } catch (e) {}
-const _skipIntro = _introSeen && !_forceIntro;
+const _reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const _saveData = !!(navigator.connection && navigator.connection.saveData);
+const _skipIntro = _forceIntro ? false : (_introSeen || _reduceMotion || _saveData);
 
-let _approachStarted = false;
-function beginApproach() {
-    if (_approachStarted) return;
-    _approachStarted = true;
+// Reveal the finished site once the flight lands.
+function revealScene() {
+    // Deferred heavyweights (the gateway station) hold their scene
+    // insertion on this flag so their GPU uploads can never stutter the
+    // flight.
+    state._introDone = true;
+    setApproachActive(false);
+    document.documentElement.classList.remove('intro-active');
+    try { localStorage.setItem('introSeen', '1'); } catch (e) {}
+    // The far plane stays at 9000: the resting sky's star shell
+    // (starShell.js) is real geometry out to ~7000, so the deep-space
+    // frustum is now permanent, not intro-only.
+    state.camera.far = 9000;
+    state.camera.updateProjectionMatrix();
 
-    // Let the scene render behind the still-opaque loader for a beat first.
-    // The ocean/dish take a few frames to settle (water reflection populating,
-    // the brief load-in "square"); rendering them hidden means the viewer
-    // only ever sees the clean, settled scene when the fly-in reveals it.
-    setTimeout(function () {
-
-    // Make the loading screen transparent so the real scene is visible
-    // behind the title card during the approach.
-    const loadingScreenInit = document.getElementById('loading-screen');
-    if (loadingScreenInit) loadingScreenInit.classList.add('approach-active');
-
-    // Begin the approach animation on the real scene camera
-    startApproach(state.camera, state.scene, () => {
-    // --- Approach complete: verify scene readiness before revealing ---
-    function sceneReady() {
-        // Gateway is intentionally excluded — it's deferred and loads after
-        // the fly-in, so the reveal must not wait on it.
-        return !!(state.sunOrb && state.moonOrb && state.water);
-    }
-
-    function revealScene() {
-        // Re-enable scroll navigation
-        setApproachActive(false);
-
-        // Mark the intro as seen so subsequent visits skip straight in.
-        try { localStorage.setItem('introSeen', '1'); } catch (e) {}
-
-        // Approach over: restore the tight far plane. The 6000u frustum
-        // exists only so spaceEnv renders during the fly-in; leaving it
-        // active wastes depth precision at the glass/water/seabed
-        // contact rings (this reset was documented but never happened).
-        // 1600 (was 1000): the sister worlds orbit the star out to
-        // ~1450u from the origin and were hard-clipping out of existence
-        // on the far half of their orbits. near 0.5 -> 1600 is still a
-        // comfortable depth ratio for the contact rings.
-        state.camera.far = 1600;
-        state.camera.updateProjectionMatrix();
-
-        // Fade out the loading overlay container. The loading title already
-        // faded to 0 during the approach (3.2–3.8s), so this transition just
-        // drives the container's opacity for a clean DOM cleanup.
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.classList.add('fade-out');
-            loadingScreen.addEventListener('transitionend', () => {
-                loadingScreen.remove();
-            }, { once: true });
-            setTimeout(() => {
-                if (loadingScreen.parentNode) loadingScreen.remove();
-            }, 1200);
+    // MAIN wave: masthead wordmark wipe + nav + dots + hero + specimen id.
+    setTimeout(() => {
+        const header = document.getElementById('site-header');
+        if (header) header.classList.add('revealed');
+        const dots = document.getElementById('zone-dots');
+        if (dots) dots.classList.add('revealed');
+        if (FEATURES.dailyPlanet) {
+            try { renderDailyLabel(); } catch (e) { console.warn('daily label failed', e); }
         }
+        initEasterEggs();
+        setTimeout(typeHeroStatement, 700);
+    }, 300);
 
-        // Reveal in two coordinated waves so the chrome doesn't trickle in
-        // element-by-element: the MAIN layer lands together, then the
-        // ACCENT utilities together a beat later.
-        //
-        // Wave 1 — MAIN: the masthead .revealed class fires the per-char
-        // wipe on the wordmark and brings in the nav, credential and hero
-        // lockup; the section dots and the specimen id come with it.
-        setTimeout(() => {
-            const header = document.getElementById('site-header');
-            if (header) header.classList.add('revealed');
-            const dots = document.getElementById('zone-dots');
-            if (dots) dots.classList.add('revealed');
-            if (FEATURES.dailyPlanet) {
-                try { renderDailyLabel(); } catch (e) { console.warn('daily label failed', e); }
-            }
-            initEasterEggs();
-            // Type the hero line in as the lockup fades up (600ms CSS delay).
-            setTimeout(typeHeroStatement, 700);
-        }, 300);
-
-        // Wave 2 — ACCENT: the bottom-left utility rail (audio, reader-view
-        // toggle, weather) and the unified chrome panel that adopts them,
-        // all together once the main layer has landed.
-        setTimeout(() => {
-            if (FEATURES.audio) {
-                // Mute toggle replaced by the audio tile in the chrome rail
-                // (js/chromePanel.js drives setMuted directly).
-                try { initAudio(); initAudioViz(); } catch (e) { console.warn('audio init failed', e); }
-                // Terminal disabled — restore by uncommenting:
-                // try { initTerminal(); } catch (e) { console.warn('terminal init failed', e); }
-            }
-            // Discreet reader-view toggle (bottom-right) so the no-WebGL /
-            // one-page reading view is reachable as an intentional option.
-            try { initReviewerUI(); } catch (e) { console.warn('reviewer UI init failed', e); }
-            try { initWeatherUI(); } catch (e) { console.warn('weather UI init failed', e); }
-            // Adopt the dynamically-created chrome widgets into the
-            // unified panel AFTER their inits have appended them to
-            // body. The MutationObserver inside also catches late
-            // insertions (e.g. audio-viz unhides on first unmute).
-            try { initChromePanel(); } catch (e) { console.warn('chrome panel init failed', e); }
-        }, 1200);
-
-        // The scanning text triggers from the dots reveal (inline script in index.html)
-    }
-
-    let revealed = false;
-    function revealOnce() {
-        if (revealed) return;
-        revealed = true;
-        revealScene();
-    }
-
-    if (sceneReady()) {
-        revealOnce();
-    } else {
-        // Poll until all critical objects exist — but never stall forever.
-        // If a GLB load or other async init is slow, force reveal after 3s
-        // so the viewer isn't stuck staring at a dark screen.
-        function pollReady() {
-            if (revealed) return;
-            if (sceneReady()) revealOnce();
-            else requestAnimationFrame(pollReady);
+    // ACCENT wave: bottom-left utility rail + unified chrome panel.
+    setTimeout(() => {
+        if (FEATURES.audio) {
+            try { initAudio(); initAudioViz(); } catch (e) { console.warn('audio init failed', e); }
         }
-        pollReady();
-        setTimeout(revealOnce, 3000);
-    }
-    }, _skipIntro ? 1 : undefined);
-
-    }, _skipIntro ? 0 : 900);
+        try { initReviewerUI(); } catch (e) { console.warn('reviewer UI init failed', e); }
+        try { initWeatherUI(); } catch (e) { console.warn('weather UI init failed', e); }
+        try { initChromePanel(); } catch (e) { console.warn('chrome panel init failed', e); }
+    }, 1200);
 }
 
-// Kick off the fly-in as soon as the ocean's ripple map is ready (or after
-// a short fallback so it never hangs on a slow texture fetch).
-if (state.waterNormalsReady) {
-    beginApproach();
-} else {
-    state._onWaterReady = beginApproach;
-    setTimeout(beginApproach, 1500);
+// Mono HUD telemetry ("◦ loading N%") plus an escape hatch to the lightweight
+// text version. Both appear only if the load actually takes a beat (fast
+// connections never see them); driven by the real load percentage; retired
+// the moment we drop into the system.
+const _hud = document.getElementById('approach-telemetry');
+let _hudTick = null;
+let _liteLink = null;
+function startHud() {
+    if (_skipIntro) return;
+    setTimeout(() => {
+        if (_assetsReady) return;   // load already done — don't flash any UI
+        if (_hud) {
+            _hud.classList.add('on');
+            _hudTick = setInterval(() => {
+                if (_hud) _hud.textContent = '◦ loading ' + _loadPct + '%';
+            }, 90);
+        }
+        // Offer an immediate jump to the reduced text version — for a weak
+        // machine or an impatient visitor. It reloads into that view; the
+        // 3D never has to finish for them.
+        _liteLink = document.createElement('button');
+        _liteLink.id = 'skip-to-lite';
+        _liteLink.type = 'button';
+        _liteLink.textContent = 'skip to text view →';
+        _liteLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setReviewerActive(true);
+        });
+        document.body.appendChild(_liteLink);
+        requestAnimationFrame(() => { if (_liteLink) _liteLink.classList.add('on'); });
+    }, 700);
+}
+function stopHud() {
+    if (_hudTick) { clearInterval(_hudTick); _hudTick = null; }
+    if (_hud) {
+        _hud.classList.remove('on');
+        setTimeout(() => { if (_hud.parentNode) _hud.remove(); }, 600);
+    }
+    if (_liteLink) {
+        const l = _liteLink; _liteLink = null;
+        l.classList.remove('on');
+        setTimeout(() => { if (l.parentNode) l.remove(); }, 600);
+    }
+}
+startHud();
+
+// Kick off the flight (sets the camera to the deep-space start), then fade
+// the black cover out to reveal it already at warp.
+const _flight = startApproach(state.camera, state.scene, revealScene, {
+    isReady: () => _assetsReady,
+    skip: _skipIntro,
+    onDropout: stopHud,
+});
+
+// Skip on interaction — click / scroll / any key drops out of warp the moment
+// the assets are ready. Listeners self-remove after firing.
+if (!_skipIntro && _flight) {
+    const _skip = () => {
+        _flight.requestSkip();
+        window.removeEventListener('pointerdown', _skip);
+        window.removeEventListener('wheel', _skip);
+        window.removeEventListener('keydown', _skip);
+    };
+    window.addEventListener('pointerdown', _skip, { passive: true });
+    window.addEventListener('wheel', _skip, { passive: true });
+    window.addEventListener('keydown', _skip);
+}
+
+const _cover = document.getElementById('loading-screen');
+if (_cover) {
+    // Two chained rAFs: the first render compiles all the flight shaders
+    // and can block the main thread for over a second — but the CSS cover
+    // fade runs on the compositor and would sail through it, revealing a
+    // stale black canvas that then pops to the sky. Waiting for a
+    // genuinely painted frame keeps the fade over live pixels.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        _cover.classList.add('fade-out');
+        setTimeout(() => { if (_cover.parentNode) _cover.remove(); }, 1000);
+    }));
 }
 
 }  // end of full-3D branch (top-of-file reviewer-mode short-circuit)

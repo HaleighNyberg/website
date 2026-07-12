@@ -70,7 +70,7 @@ export function initReviewerUI() {
     const btn = document.createElement('button');
     btn.id = 'reviewer-toggle';
     btn.type = 'button';
-    btn.textContent = active ? 'exit reader view' : 'reader view';
+    btn.textContent = active ? 'exit text view' : 'text view';
     btn.addEventListener('click', () => setReviewerActive(!isReviewerActive()));
     btn.style.opacity = '0';
     document.body.appendChild(btn);

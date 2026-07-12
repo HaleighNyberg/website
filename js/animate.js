@@ -231,18 +231,23 @@ export function startAnimateLoop() {
         // Audio reactivity — sun halos + orb scale pulse with bass,
         // starfield brightness pulses with treble.
         sampleAudio();
+        // Sun-glow gate: 1 = resting look. The load-in flight
+        // (loadingApproach.js) ramps this 0 -> ~1.25 -> 1 so the sun's
+        // corona develops in as the camera brakes into the system instead
+        // of snapping on at the layer reveal.
+        const sunGate = state._sunGlowGate ?? 1;
         if (state._sunHaloMat) {
             // Outer corona: 0.06 baseline -> 0.55 peak. The low baseline
             // is load-bearing — it keeps the outer halo as a distinct
             // ring around the tighter inner halo around the photosphere
             // orb. Raising the baseline blurs the three layers into one
             // soft blob instead of three readable rings.
-            state._sunHaloMat.opacity = 0.06 + _audioBass * 0.55;
+            state._sunHaloMat.opacity = (0.06 + _audioBass * 0.55) * sunGate;
         }
         if (state._sunHaloInnerMat) {
             // Inner halo: 0.14 baseline -> 0.80 peak. Tight corona
             // sitting between the orb and the outer halo.
-            state._sunHaloInnerMat.opacity = 0.14 + _audioBass * 0.70;
+            state._sunHaloInnerMat.opacity = (0.14 + _audioBass * 0.70) * sunGate;
         }
         if (state.sunOrb) {
             // Orb scale pulses 1.0 -> 1.22 on bass hits — visibly breathes.
@@ -251,9 +256,34 @@ export function startAnimateLoop() {
         }
         if (state._spaceEnv && state._spaceEnv.material && state._spaceEnv.material.uniforms) {
             const u = state._spaceEnv.material.uniforms;
-            if (u.uStarPulse)   u.uStarPulse.value   = _audioTreble;
             if (u.uNebulaPulse) u.uNebulaPulse.value = _audioBass;
             if (u.uSkyPulse)    u.uSkyPulse.value    = _audioMid;
+        }
+        // The stars moved out of the skybox shader onto the 3D shell —
+        // the treble pulse (Hubble sonification breathing) moves with them.
+        if (state._starShellMat && state._starShellMat.uniforms.uPulse) {
+            state._starShellMat.uniforms.uPulse.value = _audioTreble;
+        }
+        // The nebula volume marches from the real camera every frame —
+        // it is the resting sky as much as the flight medium. The bass
+        // pulse that used to breathe the painted nebula breathes it now.
+        if (state._nebulaVol) {
+            state._nebulaVol.update(state.camera.position, state._nebulaOffset);
+            state._nebulaVol.setPulse(_audioBass);
+        }
+        // The layered star fields each carry a fraction of the real
+        // (splice-corrected) camera motion — everything in the sky must
+        // visibly move when we move (owner-locked), and the per-layer k
+        // builds a continuous parallax ramp down to the deepest field.
+        // Zone moves at rest shift even the fastest layer well under a
+        // degree: the resting sky stays the sky.
+        if (state._skyLayers && state._nebulaOffset) {
+            for (const L of state._skyLayers) {
+                L.points.material.uniforms.uEyeDrift.value
+                    .copy(state.camera.position)
+                    .sub(state._nebulaOffset)
+                    .multiplyScalar(L.k);
+            }
         }
 
         // Rotate island centerpiece — slow turntable about Y axis.
@@ -416,7 +446,12 @@ export function startAnimateLoop() {
                     // anchors the "atmospheric" feel in side-on poses.
                     u.enabled.value = true;
                     u.lensPosition.value.set(sunNDC.x, sunNDC.y);
-                    u.opacity.value = 1.0 - vis * 0.25;
+                    // The load-in scales the whole flare contribution
+                    // through its own gate (separate from the halo gate,
+                    // which leads it): 0 during the transit void, rising
+                    // over the last stretch of the brake — arrival glare —
+                    // and 1 at rest.
+                    u.opacity.value = 1.0 - vis * 0.25 * (state._flareGate ?? 1);
                     u.colorGain.value.set(35, 15, 6);
                     // Ghost/streak/glare lobes fade with onScreen — they
                     // are the physical lens artifacts that require the

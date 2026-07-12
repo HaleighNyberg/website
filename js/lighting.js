@@ -47,13 +47,14 @@ export function initLighting() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     sunLight.castShadow = true;
-    // 2048 (was 1024) + tighter frustum: the ridged crag geometry has
-    // high-frequency depth detail, and at 1024/±45 each shadow texel
-    // covered ~0.09u — sub-texel ridge shadows re-rolled per frame as
-    // the island turned (shadow twinkle) and leaked light under steep
-    // aretes. Doubling the map and shrinking the frustum quadruples
-    // effective shadow resolution.
-    sunLight.shadow.mapSize.set(2048, 2048);
+    // 4096 (was 1024 -> 2048) + tight frustum: the ridged crag geometry
+    // has high-frequency depth detail, and sub-texel ridge shadows
+    // re-roll per frame as the island turns (shadow twinkle) whenever a
+    // crease sits near shadow-texel scale. At 2048/±36 a texel still
+    // covered ~0.035u — the same pitch as the terrace risers — so a
+    // residual pixel-level twinkle survived on the lit slopes. 4096
+    // brings a texel to ~0.018u, under the feature pitch.
+    sunLight.shadow.mapSize.set(4096, 4096);
     sunLight.shadow.camera.near = 400;
     sunLight.shadow.camera.far = 900;
     sunLight.shadow.camera.left   = -36;
@@ -62,9 +63,12 @@ export function initLighting() {
     sunLight.shadow.camera.bottom = -36;
     // normalBias raised for the steep crag faces (acne there read as
     // dark speckle on the LIT side and as shadow fragments apparently
-    // on the night side).
+    // on the night side). 0.10 (was 0.06): with the finer 4096 map the
+    // self-shadow boundary sits closer to the surface, so the slightly
+    // larger normal offset costs no visible contact accuracy and buys
+    // extra margin against per-frame acne re-rolls on the ridges.
     sunLight.shadow.bias = -0.0002;
-    sunLight.shadow.normalBias = 0.06;
+    sunLight.shadow.normalBias = 0.10;
 
     sunLight.layers.enable(2);
     scene.add(sunLight);
@@ -222,12 +226,20 @@ export function initLighting() {
     // orbits the moon far off at the edge of frame. Loading it AFTER the
     // critical scene assets keeps the initial download light; it then fades in
     // so its arrival is never an abrupt pop, even off-screen.
-    const _loadGateway = () => new GLTFLoader().load('gateway.min.glb', (gltf) => {
+    // Private manager: the station must never register with the default
+    // loading manager, or the loading-screen hold (main.js) would wait on
+    // this deferred 2.8 MB download before lifting.
+    const _loadGateway = () => new GLTFLoader(new THREE.LoadingManager()).load('gateway.min.glb', (gltf) => {
         const gateway = gltf.scene;
         gateway.scale.set(0.03, 0.03, 0.03); // much smaller — like a real station vs a moon
         gateway.frustumCulled = false;
-        scene.add(gateway);
-        state.gateway = gateway;
+        // NOT added to the scene yet: on a slow connection this download
+        // lands mid-FLIGHT, and its first rendered frame pays the whole
+        // 2.8 MB geometry+texture upload in one stall — the "stutter
+        // between cruise and landing" the owner kept feeling. It attaches
+        // only after the intro has landed, and even then its meshes
+        // trickle in one per frame (invisible at opacity 0) so the
+        // uploads never bunch; the fade then plays as before.
 
         // Cache emissive meshes ONCE at load time so per-frame updates don't
         // need to walk the scene graph. The gateway GLB has many child meshes.
@@ -269,29 +281,68 @@ export function initLighting() {
         // Record each material's original transparent flag / opacity, ramp
         // opacity 0 → original over ~0.9s, then restore the original flags.
         const _fadeMats = [];
+        const _meshes = [];
         gateway.traverse((c) => {
             if (c.isMesh && c.material) {
                 _fadeMats.push({ m: c.material, t: c.material.transparent, o: (c.material.opacity ?? 1) });
                 c.material.transparent = true;
                 c.material.opacity = 0;
+                _meshes.push(c);
+                c.visible = false;
             }
         });
-        const _fadeStart = performance.now();
-        (function _fadeGateway() {
-            const k = Math.min(1, (performance.now() - _fadeStart) / 900);
-            for (const f of _fadeMats) f.m.opacity = k * f.o;
-            if (k < 1) requestAnimationFrame(_fadeGateway);
-            else for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
-        })();
+        const _startFade = () => {
+            const _fadeStart = performance.now();
+            (function _fadeGateway() {
+                const k = Math.min(1, (performance.now() - _fadeStart) / 900);
+                for (const f of _fadeMats) f.m.opacity = k * f.o;
+                if (k < 1) requestAnimationFrame(_fadeGateway);
+                else for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
+            })();
+        };
+        const _attach = () => {
+            scene.add(gateway);
+            state.gateway = gateway;
+            // Trickle the meshes visible one per frame: each frame uploads
+            // one mesh's buffers (they draw nothing at opacity 0), so no
+            // single frame ever pays the whole station.
+            (function _trickle() {
+                const m = _meshes.shift();
+                if (m) { m.visible = true; requestAnimationFrame(_trickle); }
+                else _startFade();
+            })();
+        };
+        if (state._introDone) {
+            _attach();
+        } else {
+            const _wait = setInterval(() => {
+                if (state._introDone) { clearInterval(_wait); _attach(); }
+            }, 400);
+        }
     });
 
-    // Kick the deferred load once the browser is idle (after the initial
-    // paint / fly-in) so it never competes with the critical scene assets.
-    // Fallback timeout guarantees it loads even if idle never fires.
-    if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(_loadGateway, { timeout: 4000 });
+    // Kick the deferred load only AFTER the intro has landed (plus a
+    // settling beat): the GLB PARSE alone is a 300-500ms main-thread
+    // freeze at arrival — kicked at idle it consistently landed mid-
+    // FLIGHT and was the last surviving cruise stutter. Post-landing,
+    // the parse hides in the site's reveal animations; the attach above
+    // then trickles the uploads.
+    const _kickGateway = () => {
+        if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(_loadGateway, { timeout: 4000 });
+        } else {
+            setTimeout(_loadGateway, 2500);
+        }
+    };
+    if (state._introDone) {
+        setTimeout(_kickGateway, 4000);
     } else {
-        setTimeout(_loadGateway, 2500);
+        const _gwWait = setInterval(() => {
+            if (state._introDone) {
+                clearInterval(_gwWait);
+                setTimeout(_kickGateway, 4000);
+            }
+        }, 500);
     }
 
     // --- Sun orb (visual) — back-left on orbital plane, shader-based star surface ---
@@ -306,8 +357,18 @@ export function initLighting() {
             uLimbCenter: { value: new THREE.Color(1.0, 0.97, 0.88) },
             uLimbMid:    { value: new THREE.Color(1.0, 0.78, 0.42) },
             uLimbEdge:   { value: new THREE.Color(0.95, 0.45, 0.15) },
+            // Vertex scale knob — permanently 1. (A growth animation was
+            // tried for the load-in and rejected by the owner: the sun
+            // must always be its complete, full-size self.)
+            uDiscScale:  { value: 1.0 },
+            // Distance extinction for the load-in approach: the disc dims
+            // toward the near-black sky in step with the halos and god
+            // rays (loadingApproach.js drives all three from ONE real
+            // camera→sun distance). 1 at rest and on the skip path.
+            uSunFade:    { value: 1.0 },
         },
         vertexShader: `
+            uniform float uDiscScale;
             varying vec2 vUv;
             varying vec3 vNormal;
             varying vec3 vViewNormal;
@@ -317,12 +378,15 @@ export function initLighting() {
                 vNormal = normal;
                 // View-space normal for proper limb darkening from any camera angle
                 vViewNormal = normalize(normalMatrix * normal);
+                // Object-space position stays unscaled so the granulation
+                // pattern is glued to the surface while the disc grows.
                 vPosition = position;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position * uDiscScale, 1.0);
             }
         `,
         fragmentShader: `
             uniform float uTime;
+            uniform float uSunFade;
             uniform vec3 uLimbCenter;
             uniform vec3 uLimbMid;
             uniform vec3 uLimbEdge;
@@ -398,6 +462,14 @@ export function initLighting() {
                 // relatively darker so the disc keeps its sphere read
                 // inside the glow.
                 col *= 2.2;
+
+                // Approach extinction (rest: 1). The disc is an OPAQUE
+                // body: multiplying toward black made it a growing BLACK
+                // occluder over the glowing nebula ("black sun", owner-
+                // caught). Instead it dims toward the ambient sky color —
+                // far out it is a nebula-lit body indistinguishable from
+                // the sky behind it, and it warms continuously inward.
+                col = mix(vec3(0.016, 0.036, 0.082), col, uSunFade);
 
                 gl_FragColor = vec4(col, 1.0);
             }
@@ -520,6 +592,12 @@ export function initLighting() {
     );
     const AU = Math.hypot(SUN_WORLD.x, SUN_WORLD.z);
 
+    // Staged sun world position, shared with the load-in flight
+    // (loadingApproach.js): the transit's destination beacon is anchored at
+    // this exact point, so the star flown toward and the scene's sun are
+    // the same world object — no separate "arrival sun" to pop in.
+    state._sunWorldPos = SUN_WORLD.clone();
+
     function _makeCircle(radius, material, center, segs) {
         const pts = [];
         const aProgress = [];
@@ -541,6 +619,8 @@ export function initLighting() {
     // half of the orbit vanishes into space instead of terminating at
     // the viewport edge. Fade starts close to the dish (40u) and is
     // fully transparent by 340u so only the near arc reads at all.
+    // (Full-circle variant tried 2026-07-11, owner: "looks silly" —
+    // reverted; keep the near arc.)
     const islandOrbitMat = new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,

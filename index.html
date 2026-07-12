@@ -4,6 +4,8 @@
 <head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="mountain_height_8bit.webp" rel="preload" as="image" type="image/webp" crossorigin="anonymous">
+<link href="ocean_floor.webp" rel="preload" as="image" type="image/webp" crossorigin="anonymous">
 <title>Haleigh Nyberg &middot; Astrobiology & Computational Science</title>
 <meta content="Haleigh Nyberg &middot; Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." name="description">
 <meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science" property="og:title">
@@ -20,9 +22,9 @@
 <meta content="https://haleighnyberg.com/assets/photos/og-image.png" name="twitter:image">
 <link href="https://haleighnyberg.com/" rel="canonical">
 <link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;circle cx='16' cy='16' r='14' fill='%23051525' stroke='%234A7FA5' stroke-width='1.5'/&gt;&lt;circle cx='16' cy='16' r='3' fill='%23ae7634'/&gt;&lt;/svg&gt;" rel="icon">
-<link href="css/style.css?v=real20" rel="stylesheet">
-<link href="css/brand.css?v=real20" rel="stylesheet">
-<link href="css/zones.css?v=real20" rel="stylesheet">
+<link href="css/style.css?v=real21" rel="stylesheet">
+<link href="css/brand.css?v=real21" rel="stylesheet">
+<link href="css/zones.css?v=real21" rel="stylesheet">
 <script>
         try {
             if (localStorage.getItem('reviewer') === '1') {
@@ -60,12 +62,12 @@
 <!-- Loading screen. Title and progress bar start fully transparent and
          are faded in by loadingApproach.js at scripted timestamps during
          the camera fly-in — no pre-JS flash of small letters. -->
-<div id="loading-screen">
-<div class="loading-content">
-<span class="loading-name">Haleigh Nyberg</span>
-</div>
-<div id="loading-progress"><div id="loading-progress-fill"></div></div>
-</div>
+<!-- Black cover only. It hides the very first pre-render frame, then fades
+         to reveal the live deep-space approach (js/loadingApproach.js). No
+         name, no bar, no spinner — the intro IS the flight. -->
+<div id="loading-screen"></div>
+<!-- Mono load telemetry, shown only during a slow warp hold (js/main.js). -->
+<div id="approach-telemetry" aria-hidden="true"></div>
 <!-- Content overlay — sits on top of canvas, pointer-events none -->
 <!-- Fixed header: name + tagline + section nav (always visible) -->
 <div id="site-header">
@@ -527,6 +529,6 @@
             }, { capture: true, passive: true });
         })();
     </script>
-<script src="./js/app.bundle.js?v=real20" type="module"></script>
+<script src="./js/app.bundle.js?v=real21" type="module"></script>
 </body>
 </html>

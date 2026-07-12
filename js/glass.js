@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { state, OCEAN_RADIUS, WALL_THICK } from './config.js?v=real18';
 
 export function initGlass() {
@@ -201,7 +202,19 @@ export function initGlass() {
     pts.push(new THREE.Vector2(28.5, IN_FLOOR_Y + 0.06));
     pts.push(new THREE.Vector2(14, IN_FLOOR_Y));
     pts.push(new THREE.Vector2(0.001, IN_FLOOR_Y));
-    const dishGeo = new THREE.LatheGeometry(pts, 192);
+    let dishGeo = new THREE.LatheGeometry(pts, 192);
+    // The lathe duplicates its phi=0 / phi=2π meridian as separate
+    // vertices. computeVertexNormals() averages face normals PER VERTEX,
+    // and each seam column only sees faces on one angular side — the two
+    // columns end up tilted ~1.9° apart, and on this near-mirror glass
+    // (roughness 0.025 + clearcoat + dispersion + live env) that kink
+    // showed as a bright SEAM down one azimuth of the rim at grazing
+    // light. Merging the wrap first gives the seam column two-sided
+    // averaging like every other column. The unused uv attribute must go
+    // first (seam uv.x is 0 vs 1, which blocks the merge; the material
+    // samples no uv maps — env is via reflection vector).
+    dishGeo.deleteAttribute('uv');
+    dishGeo = mergeVertices(dishGeo);
     dishGeo.computeVertexNormals();
     const dishMesh = new THREE.Mesh(dishGeo, glassMat);
     dishMesh.renderOrder = 10;

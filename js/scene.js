@@ -8,6 +8,8 @@ import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { state } from './config.js?v=real18';
 import { buildSpaceEnvironment } from './spaceEnv.js?v=real18';
+import { initStarShell, initDeepField } from './starShell.js';
+import { initCorridor } from './corridor.js';
 
 export function initScene() {
     // --- Scene setup ---
@@ -24,10 +26,12 @@ export function initScene() {
     // Initial camera pose: placed far out for the deep-space approach
     // animation (loadingApproach.js). The approach module moves the camera
     // from (0, 200, 5000) to the home zone at (155, 95, 220) over 3.5s.
-    // Far plane temporarily extended to 6000 so spaceEnv renders; the
-    // approach resets it to 1000 on completion.
+    // Far plane temporarily extended to 9000 so the whole braking run of
+    // the load-in (camera parked ~4,800 units out, destination star ~6,100
+    // beyond it) stays inside the frustum; the approach resets it on
+    // completion.
     camera.position.set(0, 200, 5000);
-    camera.far = 6000;
+    camera.far = 9000;
     // Without this the assignment above never reached the projection
     // matrix (still the constructor's far=1000), so distant objects
     // hard-clipped during the approach — and the first window RESIZE
@@ -76,6 +80,26 @@ export function initScene() {
     // bloom threshold and toneMapped=false so it never blooms or shifts
     // when ACES tonemapping is applied to the rest of the scene.
     state._spaceEnv = buildSpaceEnvironment(scene, undefined);
+    // The stars are real 3D points on a deterministic shell around the
+    // system (they used to live in the skybox shader): true parallax
+    // during the load-in approach and between zones at rest. Needs the
+    // 9000 far plane permanently — main.js no longer tightens it.
+    state._starShell = initStarShell(scene, renderer.getPixelRatio());
+    state._starShellMat = state._starShell.material;
+    // The far background as CRISP fixed-pixel points in THREE drift
+    // layers (view-locked, each carrying a fraction of the real camera
+    // motion by depth) — baked texture stars were rejected as
+    // magnification blur; stars are geometry only.
+    state._skyLayers = initDeepField(scene, renderer.getPixelRatio());
+    // The nebula is a PERMANENT raymarched volume — the resting sky as
+    // much as the flight medium. animate.js feeds it the camera position
+    // (minus the intro's splice offset) every frame; the system sits in a
+    // cleared cavity so no cloud can ever film over the island. Cheaper
+    // per frame than the old painted fBm skybox it replaces.
+    state._nebulaOffset = new THREE.Vector3();
+    state._nebulaVol = initCorridor(scene, { steps: state.lowPower ? 8 : 12 });
+    state._nebulaVol.setCavity(new THREE.Vector3(0, 0, 0));
+    state._nebulaVol.setCavityOn(1);
 
     // Island group (rotates as a unit)
     const islandGroup = new THREE.Group();
@@ -216,12 +240,17 @@ export function initScene() {
 
     // --- Post-processing: bloom ---
     const composer = new EffectComposer(renderer);
-    // 4x MSAA on the composer's ping-pong targets: antialias:true on the
+    // MSAA on the composer's ping-pong targets: antialias:true on the
     // renderer only multisamples the default framebuffer, which the scene
     // never draws into — every silhouette was aliased. WebGL2 resolves the
     // samples automatically whenever a pass reads the buffer.
-    composer.renderTarget1.samples = 4;
-    composer.renderTarget2.samples = 4;
+    // 8x (was 4x) on capable machines: the craggy island silhouette is the
+    // maximum-contrast edge in the frame, and at 4x its sub-pixel facets
+    // re-quantized per frame under the turntable rotation — a coverage
+    // twinkle along the rim that SMAA (shading-edge AA) cannot recover.
+    const msaa = state.lowPower ? 4 : 8;
+    composer.renderTarget1.samples = msaa;
+    composer.renderTarget2.samples = msaa;
     composer.addPass(new RenderPass(scene, camera));
 
     // --- Ambient occlusion (GTAO) ---
@@ -239,7 +268,12 @@ export function initScene() {
         render(renderer, writeBuffer, readBuffer, deltaTime, maskActive) {
             const hidden = [];
             this.scene.traverse((o) => {
-                if (o.isMesh && o.visible && !o.userData.aoInclude) {
+                // Sprites/points/lines must be filtered too, not just
+                // meshes: a glow sprite (sun halos, load-in beacon) that
+                // reaches the G-buffer stamps its whole quad as a false
+                // occluder and AO draws a dark BOX around the glow.
+                if ((o.isMesh || o.isSprite || o.isPoints || o.isLine)
+                    && o.visible && !o.userData.aoInclude) {
                     hidden.push(o);
                     o.visible = false;
                 }

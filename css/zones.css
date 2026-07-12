@@ -22,6 +22,11 @@
     overflow: hidden;
 }
 
+/* During the intro flight the whole content overlay (including each zone's
+   blueprint grid) is hidden so no site UI bleeds over the galaxy transit.
+   main.js removes .intro-active in revealScene(). */
+.intro-active #content-overlay { opacity: 0 !important; }
+
 /* ============================================
    Base zone — the holo panel
    ============================================ */
