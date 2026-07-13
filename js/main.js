@@ -118,9 +118,90 @@ let _loadPct = 0;
 THREE.DefaultLoadingManager.onProgress = (url, loaded, total) => {
     if (total) _loadPct = Math.max(_loadPct, Math.min(99, Math.round((loaded / total) * 100)));
 };
-THREE.DefaultLoadingManager.onLoad = () => { _assetsReady = true; _loadPct = 100; };
+THREE.DefaultLoadingManager.onLoad = () => {
+    _assetsReady = true;
+    _loadPct = 100;
+    // Releases the gateway download (lighting.js) — deferred only this far so it
+    // never competes with the first-view textures for bandwidth.
+    state._firstViewLoaded = true;
+    warmShaders();
+};
 // Safety net: never wait past this even if a load never resolves.
-setTimeout(() => { _assetsReady = true; }, 24000);
+setTimeout(() => {
+    if (!_assetsReady) {
+        _assetsReady = true;
+        state._firstViewLoaded = true;
+        warmShaders();
+    }
+}, 24000);
+
+// Shader-ready signal — the other half of "don't fly until the world is real".
+//
+// A material's program is not compiled when the object is created; it is
+// compiled the first time the object is actually RENDERED. During the deep-space
+// hold the island, dish and water are outside the frustum, so they compile at
+// the exact moment they come into view — three blocks on the driver
+// (getProgramParameter) and the swoop stutters just as the dish appears. The
+// warm render under the cover only ever warmed what was on screen at boot.
+//
+// compileAsync walks the whole graph and builds every program up front, using
+// KHR_parallel_shader_compile so the wait happens off the main thread. Then hold
+// the warp until it lands, exactly as we already do for textures.
+// The warm MUST run with the composer's render target bound. three keys a
+// program on, among other things, whether tone mapping is applied — and tone
+// mapping is skipped whenever the destination is a render target rather than the
+// canvas. The composer renders into a target and never to the canvas, so warming
+// with nothing bound compiles the SCREEN variant of every shader: a full set of
+// programs the renderer then never uses, while the real ones still compile the
+// moment the island swings into view. Bind the target the RenderPass will
+// actually use and the warmed programs are the ones we need.
+// Runs on asset-ready, NOT at boot: the island's geometry is built inside the
+// heightmap decode callback, so at boot those meshes are not in the graph yet
+// and there is nothing to compile for them.
+let _shadersReady = false;
+let _warmed = false;
+function warmShaders() {
+    if (_warmed) return;
+    _warmed = true;
+    const done = () => { _shadersReady = true; };
+    try {
+        const r = state.renderer;
+        const target = state.composer ? state.composer.renderTarget1 : null;
+        if (target) r.setRenderTarget(target);
+        // compile() builds the programs synchronously; compileAsync only defers
+        // the WAIT for the driver to finish linking, so the target only has to be
+        // bound across this call.
+        const pending = r.compileAsync
+            ? r.compileAsync(state.scene, state.camera)
+            : Promise.resolve(r.compile(state.scene, state.camera));
+        if (target) r.setRenderTarget(null);
+        pending.then(done, done);
+    } catch (e) {
+        console.warn('shader warm failed', e);
+        done();
+    }
+}
+// Safety net: a driver that never reports link completion must not strand the
+// visitor at warp forever.
+setTimeout(() => { _shadersReady = true; }, 30000);
+
+// The gateway (lighting.js) now attaches, uploads and compiles during the hold
+// rather than after the landing, and reports _gatewayWarm once its fade has
+// finished — the fade's last act restores `transparent`, which rebuilds every
+// one of its programs. Holding the warp for it keeps the swoop clean.
+//
+// But it is 2.8 MB, and nobody should sit at warp watching a station download.
+// Give it a bounded grace period past the first-view assets; if it misses that,
+// stop waiting and let the flight go. lighting.js then holds the station back
+// until the landing on its own, so a late arrival can never attach mid-swoop —
+// which would be worse than the stutter we are removing.
+const _gatewayGrace = () => setTimeout(() => { state._gatewayWarm = true; }, 5000);
+if (state._firstViewLoaded) _gatewayGrace();
+else {
+    const _g = setInterval(() => {
+        if (state._firstViewLoaded) { clearInterval(_g); _gatewayGrace(); }
+    }, 100);
+}
 
 // Skip the flight (snap straight home) for returning visitors, reduced-motion
 // users, and data-saver connections; ?intro=1 forces the full flight.
@@ -219,7 +300,13 @@ startHud();
 // Kick off the flight (sets the camera to the deep-space start), then fade
 // the black cover out to reveal it already at warp.
 const _flight = startApproach(state.camera, state.scene, revealScene, {
-    isReady: () => _assetsReady,
+    isReady: () => {
+        const ready = _assetsReady && _shadersReady && !!state._gatewayWarm;
+        // Tell lighting.js the flight has been let go, so a station that arrives
+        // from here on waits for the landing instead of attaching mid-sweep.
+        if (ready) state._introReleased = true;
+        return ready;
+    },
     skip: _skipIntro,
     onDropout: stopHud,
 });

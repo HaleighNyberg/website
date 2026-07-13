@@ -305,53 +305,100 @@ export function initLighting() {
             (function _fadeGateway() {
                 const k = Math.min(1, (performance.now() - _fadeStart) / 900);
                 for (const f of _fadeMats) f.m.opacity = k * f.o;
-                if (k < 1) requestAnimationFrame(_fadeGateway);
-                else for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
+                if (k < 1) { requestAnimationFrame(_fadeGateway); return; }
+                for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
+                // Restoring `transparent` rebuilds every one of these programs
+                // (it is the OPAQUE define), so the station is only truly warm
+                // one frame after this. Release the flight then, not before.
+                requestAnimationFrame(() => { state._gatewayWarm = true; });
             })();
         };
-        const _attach = () => {
+        // withFade=false is the warp-hold path: the camera is out in deep space,
+        // so nobody can see the station arrive and the fade buys nothing — while
+        // costing a second trip through every program (restoring `transparent`
+        // at the end of the fade is what rebuilds them). Put the materials in
+        // their FINAL state up front and only the final variant is ever built.
+        // Uploads can go 16 meshes a frame out there too; a hitch behind the
+        // loading HUD is free, and it keeps the hold short.
+        const _attach = (withFade) => {
             scene.add(gateway);
             state.gateway = gateway;
-            // Trickle the meshes visible one per frame: each frame uploads
-            // one mesh's buffers (they draw nothing at opacity 0), so no
-            // single frame ever pays the whole station.
+            if (!withFade) {
+                for (const f of _fadeMats) { f.m.transparent = f.t; f.m.opacity = f.o; }
+            }
+            const perFrame = withFade ? 1 : 16;
             (function _trickle() {
-                const m = _meshes.shift();
-                if (m) { m.visible = true; requestAnimationFrame(_trickle); }
-                else _startFade();
+                for (let i = 0; i < perFrame; i++) {
+                    const m = _meshes.shift();
+                    if (m) m.visible = true;
+                }
+                if (_meshes.length) { requestAnimationFrame(_trickle); return; }
+                if (withFade) { _startFade(); return; }
+                // One more frame so the last uploads/compiles are actually done,
+                // then release the flight.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { state._gatewayWarm = true; });
+                });
             })();
         };
-        if (state._introDone) {
-            _attach();
+        // Attach DURING the hold, not after the landing.
+        //
+        // A material's shader is built the first time its mesh is rendered, and
+        // the trickle above only spreads the BUFFER uploads — so trickling one
+        // mesh per frame also trickled one shader COMPILE per frame, each of
+        // which blocks the main thread on the driver. Attaching after the flight
+        // therefore stuttered the station in exactly where the sweep should be
+        // cleanest: arriving at the island. Step, stall, step, stall.
+        //
+        // Precompiling the programs from outside does not work: three keys them
+        // on flags this fade itself flips (transparent, which controls the OPAQUE
+        // define) and on side, and it builds six variants per material. Rather
+        // than chase every variant, pay the whole cost inside the warp HOLD,
+        // where the camera is parked behind the loading HUD; main.js keeps the
+        // flight there until _gatewayWarm, which is set once the fade completes
+        // (the fade's last act is the final recompile trigger).
+        //
+        // If the station misses the flight's grace period on a slow connection,
+        // main.js lets the flight go without it — and then it must NOT attach
+        // mid-sweep. In that case fall back to the old behaviour and wait for the
+        // landing.
+        if (state._introReleased && !state._introDone) {
+            const _late = setInterval(() => {
+                if (state._introDone) { clearInterval(_late); _attach(true); }
+            }, 200);
+        } else if (state._introDone) {
+            _attach(true);          // returning visitor / skipped intro: fade it in
         } else {
-            const _wait = setInterval(() => {
-                if (state._introDone) { clearInterval(_wait); _attach(); }
-            }, 400);
+            _attach(false);         // still at warp: pay for it out there
         }
     });
 
-    // Kick the deferred load only AFTER the intro has landed (plus a
-    // settling beat): the GLB PARSE alone is a 300-500ms main-thread
-    // freeze at arrival — kicked at idle it consistently landed mid-
-    // FLIGHT and was the last surviving cruise stutter. Post-landing,
-    // the parse hides in the site's reveal animations; the attach above
-    // then trickles the uploads.
-    const _kickGateway = () => {
-        if (typeof requestIdleCallback === 'function') {
-            requestIdleCallback(_loadGateway, { timeout: 4000 });
-        } else {
-            setTimeout(_loadGateway, 2500);
-        }
-    };
-    if (state._introDone) {
-        setTimeout(_kickGateway, 4000);
+    // Load it DURING the hold, not after the landing.
+    //
+    // The GLB parse is a 300-500ms main-thread freeze, and its materials each
+    // cost a blocked frame to compile. This used to be kicked post-landing so
+    // the parse could not land mid-flight — but that just moved the whole cost
+    // to the moment the station attaches, which is the moment the sweep arrives
+    // at the island. Stutter, inch forward, stutter.
+    //
+    // The hold exists precisely to absorb this: the camera is parked at warp
+    // behind the loading HUD. Kick it as soon as the first-view assets are in
+    // (so it never competes with them for bandwidth), let the parse, the
+    // uploads, the compiles and the fade all happen out there, and let main.js
+    // keep the flight at warp until _gatewayWarm. The swoop then runs on a
+    // fully built, fully compiled scene.
+    const _kickGateway = () => _loadGateway();
+    if (state._firstViewLoaded) {
+        _kickGateway();
     } else {
         const _gwWait = setInterval(() => {
-            if (state._introDone) {
+            if (state._firstViewLoaded) {
                 clearInterval(_gwWait);
-                setTimeout(_kickGateway, 4000);
+                _kickGateway();
             }
-        }, 500);
+        }, 100);
+        // Never strand the station if the asset signal never lands.
+        setTimeout(() => { clearInterval(_gwWait); _kickGateway(); }, 8000);
     }
 
     // --- Sun orb (visual) — back-left on orbital plane, shader-based star surface ---

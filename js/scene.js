@@ -257,11 +257,18 @@ export function initScene() {
     // low-power path takes none: a multisampled half-float target is exactly
     // what a weak GPU cannot afford.
     const msaa = state.lowPower ? 0 : 8;
+    const pr = renderer.getPixelRatio();
     const msaaTarget = new THREE.WebGLRenderTarget(
-        window.innerWidth, window.innerHeight,
+        window.innerWidth * pr, window.innerHeight * pr,
         { type: THREE.HalfFloatType, samples: msaa },
     );
     const composer = new EffectComposer(renderer, msaaTarget);
+    // MUST follow. Handed a target, EffectComposer takes ITS width as the CSS
+    // width and then sizes every pass at width * pixelRatio — so on any display
+    // where the ratio is not 1 the passes and the targets disagree and the whole
+    // scene renders at the wrong resolution. setSize re-derives both from CSS
+    // pixels and the real ratio. (setSize preserves the sample count.)
+    composer.setSize(window.innerWidth, window.innerHeight);
     composer.addPass(new RenderPass(scene, camera));
 
     // --- Ambient occlusion (GTAO) ---
