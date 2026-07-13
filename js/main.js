@@ -258,14 +258,29 @@ function revealScene() {
 const _hud = document.getElementById('approach-telemetry');
 let _hudTick = null;
 let _liteLink = null;
+// The flight now holds for three things, not one: the textures, the shader warm,
+// and the station. The readout has to span all three or it sits at "100%" while
+// the visitor is still parked at warp — and the HUD has to appear whenever ANY of
+// them is outstanding, not just the textures, or a fast connection gets a silent
+// hold with no indicator and no way out.
+function _overallPct() {
+    let p = Math.round(Math.min(100, _loadPct) * 0.75);   // textures are the bulk of it
+    if (_assetsReady) p = Math.max(p, 75);
+    if (_shadersReady) p = Math.max(p, 90);
+    if (state._gatewayWarm) p = 100;
+    return Math.min(p, 100);
+}
+function _stillHolding() {
+    return !(_assetsReady && _shadersReady && state._gatewayWarm);
+}
 function startHud() {
     if (_skipIntro) return;
     setTimeout(() => {
-        if (_assetsReady) return;   // load already done — don't flash any UI
+        if (!_stillHolding()) return;   // everything already in — don't flash any UI
         if (_hud) {
             _hud.classList.add('on');
             _hudTick = setInterval(() => {
-                if (_hud) _hud.textContent = '◦ loading ' + _loadPct + '%';
+                if (_hud) _hud.textContent = '◦ loading ' + _overallPct() + '%';
             }, 90);
         }
         // Offer an immediate jump to the reduced text version — for a weak
