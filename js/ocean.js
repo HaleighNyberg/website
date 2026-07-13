@@ -112,7 +112,7 @@ export function initOcean() {
         if (typeof state._onWaterReady === 'function') state._onWaterReady();
     });
 
-    const waterGeometry = new THREE.CircleGeometry(OCEAN_RADIUS, 128);
+    const waterGeometry = new THREE.CircleGeometry(OCEAN_RADIUS, 512);
     // The scene's SUN_DIR is horizon-level (y = 0), which starves the
     // water shader: reflect(-sun, normal) never aligns with an
     // above-horizon camera, so instead of a coherent sun path on the
@@ -157,7 +157,10 @@ export function initOcean() {
     // unchanged because the Water mesh draws first at y = +0.05 above this.
     // Underside disc — radial gradient: lighter at center (subsurface light),
     // darker at edges (deep water absorption). Shader-based for smooth falloff.
-    const undersideGeo = new THREE.CircleGeometry(OCEAN_RADIUS, 64);
+    // 512 (was 64): seen near edge-on from under the rim, a 64-gon shows a comb
+    // of straight facets along the bottom edge of the dish. Same for the edge
+    // column below. Free — these are flat discs.
+    const undersideGeo = new THREE.CircleGeometry(OCEAN_RADIUS, 512);
     undersideGeo.rotateX(Math.PI / 2); // faces DOWN
     const undersideMat = new THREE.ShaderMaterial({
         uniforms: {
@@ -221,7 +224,7 @@ export function initOcean() {
     const _noiseTex = _makeNoiseTex();
     const _lavaTileTex = _makeLavaTileTex();
 
-    const bottomGeo = new THREE.CircleGeometry(OCEAN_RADIUS, 128);
+    const bottomGeo = new THREE.CircleGeometry(OCEAN_RADIUS, 512);
     bottomGeo.rotateX(Math.PI / 2);
     const bottomMat = new THREE.ShaderMaterial({
         depthWrite: true,
@@ -376,7 +379,7 @@ export function initOcean() {
     // -2.35 bottom left the column's last 0.3u rendering inside the
     // glass wall thickness in below/edge-on framings.
     const edgeWcH = 2.8;
-    const edgeWcGeo = new THREE.CylinderGeometry(OCEAN_RADIUS, OCEAN_RADIUS, edgeWcH, 64, 8, true);
+    const edgeWcGeo = new THREE.CylinderGeometry(OCEAN_RADIUS, OCEAN_RADIUS, edgeWcH, 512, 8, true);
     // PHYSICAL water-body wall, fully STATIC by design (zero time input —
     // it cannot flicker, ever; owner requirement after the animated wisp
     // versions kept shimmering). Models what a real cross-section of deep

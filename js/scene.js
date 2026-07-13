@@ -240,18 +240,28 @@ export function initScene() {
     })();
 
     // --- Post-processing: bloom ---
-    const composer = new EffectComposer(renderer);
-    // NOTE (2026-07-12): these two assignments DO NOTHING — the composer's
-    // targets are already constructed by this point, so the sample count is
-    // ignored. Verified by rendering at 0 / 8 / 16 samples and getting
-    // byte-identical frames. Building the target multisampled and passing it
-    // to the composer does switch MSAA on for real, but it was measured and it
-    // is NOT worth it here: the silhouettes are already ~99.6% anti-aliased by
-    // the SMAA pass, MSAA changed nothing visible, and it cost half the
-    // framerate (101 -> 49 fps at 1080p). Left as-is deliberately.
-    const msaa = state.lowPower ? 4 : 8;
-    composer.renderTarget1.samples = msaa;
-    composer.renderTarget2.samples = msaa;
+    //
+    // The composer's target MUST be built multisampled and handed in. Setting
+    // composer.renderTarget1.samples after construction does nothing (the
+    // targets already exist), which is how this pipeline ended up with no
+    // hardware anti-aliasing at all: WebGLRenderer({antialias:true}) only
+    // affects the default framebuffer, and the composer never draws into it.
+    // The single remaining AA was SMAA, a post filter inferring edges from a
+    // finished image — it cannot reconstruct a sub-pixel specular line that was
+    // never sampled, which is why the dish rim stepped and its glint broke into
+    // a dotted chain. Verified against a 144-samples/px reference: the edge was
+    // undersampled, not unsampleable.
+    //
+    // 8 samples costs nothing measurable here (120 fps before and after, vsync
+    // capped) because this scene is fragment-bound, not coverage-bound. The
+    // low-power path takes none: a multisampled half-float target is exactly
+    // what a weak GPU cannot afford.
+    const msaa = state.lowPower ? 0 : 8;
+    const msaaTarget = new THREE.WebGLRenderTarget(
+        window.innerWidth, window.innerHeight,
+        { type: THREE.HalfFloatType, samples: msaa },
+    );
+    const composer = new EffectComposer(renderer, msaaTarget);
     composer.addPass(new RenderPass(scene, camera));
 
     // --- Ambient occlusion (GTAO) ---

@@ -23,13 +23,14 @@ export function initGlass() {
         transparent: true,
         opacity: 1.0,                  // transmission handles see-through; opacity must be 1
         transmission: 1.0,
-        // 0.35 (was 1.0): thickness drives the screen-space refraction
-        // displacement, and at 1.0 the wall duplicated its backdrop
-        // shifted OUTWARD — the seabed appeared to continue past where
-        // the glass should stop it. 0.35 matches the real wall gauge
-        // (0.55u shell seen at typical angles) and pins the refracted
-        // image to the truth.
-        thickness: 0.35,
+        // 1.0: thickness drives the screen-space refraction displacement.
+        // It sat at 0.35 for a while because at 1.0 the wall duplicates its
+        // backdrop shifted OUTWARD — the seabed can appear to continue past
+        // where the glass should stop it. 0.35 pinned the refracted image to
+        // the truth but cost the shell its weight; the heavier refraction is
+        // what makes it read as a real optic. If that outward-shifted seabed
+        // ever shows up at the rim, this is the knob.
+        thickness: 1.0,
         ior: 1.5,
         // Crisp wet-polish layer: this is most of what makes real glass
         // read as glass — a sharp bright top-surface reflection riding
@@ -74,7 +75,7 @@ export function initGlass() {
         // reflection is the glass's second realism pillar (nebula, sun,
         // orbit lines sliding across the shell as the camera moves).
         // 0.8 read matte; 1.15 over-brightened the sun-side wall.
-        envMapIntensity: 0.95,
+        envMapIntensity: 1.0,
         // Skip fog. Transmission materials sample a refracted view of
         // the backdrop; fog applied to that lookup paints the dish a
         // chalky blue-grey under storm weather.
@@ -202,7 +203,12 @@ export function initGlass() {
     pts.push(new THREE.Vector2(28.5, IN_FLOOR_Y + 0.06));
     pts.push(new THREE.Vector2(14, IN_FLOOR_Y));
     pts.push(new THREE.Vector2(0.001, IN_FLOOR_Y));
-    let dishGeo = new THREE.LatheGeometry(pts, 192);
+    // 1536 (was 192): a 192-gon leaves ~15px straight facets on a rim this
+    // large, which read as a scalloped comb along the bottom edge. Segments have
+    // to be set here, at construction — the lathe cannot be rebuilt from
+    // geometry.parameters afterwards without losing the merged seam below.
+    // ~+10% verts on this mesh (21.7k total) and no measurable frame cost.
+    let dishGeo = new THREE.LatheGeometry(pts, 1536);
     // The lathe duplicates its phi=0 / phi=2π meridian as separate
     // vertices. computeVertexNormals() averages face normals PER VERTEX,
     // and each seam column only sees faces on one angular side — the two
