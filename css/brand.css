@@ -274,7 +274,10 @@
     position: fixed;
     left: var(--space-8, 48px);
     bottom: var(--space-8, 48px);
-    z-index: 9998;
+    /* Above the loading cover (9999): on the skipped-intro path the cover is
+       held up until the world is actually there, and a readout underneath it
+       would be a black screen with no feedback. */
+    z-index: 10000;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -293,7 +296,8 @@
     position: fixed;
     right: var(--space-8, 48px);
     bottom: var(--space-8, 48px);
-    z-index: 9998;
+    /* Above the cover too — an escape hatch you cannot click is not one. */
+    z-index: 10000;
     background: transparent;
     border: 1px solid rgba(127, 212, 255, 0.28);
     border-radius: var(--radius-sm, 6px);

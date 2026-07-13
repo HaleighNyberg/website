@@ -263,6 +263,11 @@ function revealScene() {
 const _hud = document.getElementById('approach-telemetry');
 let _hudTick = null;
 let _liteLink = null;
+// Once the HUD has been retired it must never come back. Its 700ms timer can
+// fire LATE — the main thread stalls hard while the shaders compile — and land
+// after stopHud() has already run, building a fresh skip link that nothing is
+// left to remove. That is how it ended up pinned to the screen for good.
+let _hudRetired = false;
 // The flight now holds for three things, not one: the textures, the shader warm,
 // and the station. The readout has to span all three or it sits at "100%" while
 // the visitor is still parked at warp — and the HUD has to appear whenever ANY of
@@ -279,8 +284,8 @@ function _stillHolding() {
     return !(_assetsReady && _shadersReady && state._gatewayWarm);
 }
 function startHud() {
-    if (_skipIntro) return;
     setTimeout(() => {
+        if (_hudRetired) return;        // the world arrived while this timer was stuck
         if (!_stillHolding()) return;   // everything already in — don't flash any UI
         if (_hud) {
             _hud.classList.add('on');
@@ -304,6 +309,7 @@ function startHud() {
     }, 700);
 }
 function stopHud() {
+    _hudRetired = true;
     if (_hudTick) { clearInterval(_hudTick); _hudTick = null; }
     if (_hud) {
         _hud.classList.remove('on');
@@ -347,15 +353,49 @@ if (!_skipIntro && _flight) {
 
 const _cover = document.getElementById('loading-screen');
 if (_cover) {
-    // Two chained rAFs: the first render compiles all the flight shaders
-    // and can block the main thread for over a second — but the CSS cover
-    // fade runs on the compositor and would sail through it, revealing a
-    // stale black canvas that then pops to the sky. Waiting for a
-    // genuinely painted frame keeps the fade over live pixels.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-        _cover.classList.add('fade-out');
-        setTimeout(() => { if (_cover.parentNode) _cover.remove(); }, 1000);
-    }));
+    const _lift = () => {
+        // Two chained rAFs: the first render compiles shaders and can block the
+        // main thread for over a second — but the CSS cover fade runs on the
+        // compositor and would sail through it, revealing a stale black canvas
+        // that then pops. Waiting for a genuinely painted frame keeps the fade
+        // over live pixels.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            _cover.classList.add('fade-out');
+            setTimeout(() => { if (_cover.parentNode) _cover.remove(); }, 1000);
+        }));
+    };
+
+    if (!_skipIntro) {
+        // The flight is about to run: lift immediately, because the warp hold IS
+        // what the visitor is meant to be looking at while the world loads.
+        _lift();
+    } else {
+        // Nothing to hide behind. The camera is already parked at home, so
+        // lifting on frame two shows a black island on an empty sea for the beat
+        // it takes the heightmap to decode and the water normals to land. Hold
+        // the cover until the world is actually there. On a returning visitor —
+        // which is most of this path — the assets are cached and this is over
+        // before the fade could have finished anyway.
+        // The readout and its escape hatch are retired HERE. On this path the
+        // flight never drops out of warp, so onDropout — the only other thing
+        // that calls stopHud — never fires, and they would sit on screen for the
+        // rest of the visit.
+        // Wait for the ASSETS and nothing else. The black island and the empty sea
+        // are an asset problem — the heightmap has not decoded and the water
+        // normals have not landed. Shaders are a different failure (a stutter, not
+        // a hole) and the warm can block the main thread for seconds; nobody
+        // should watch a black rectangle while a compiler runs.
+        const _done = () => { stopHud(); _lift(); };
+        const _capped = setTimeout(_done, 3000);    // hard bound on the black
+        (function _waitForWorld() {
+            if (_assetsReady) {
+                clearTimeout(_capped);
+                _done();
+                return;
+            }
+            setTimeout(_waitForWorld, 50);
+        })();
+    }
 }
 
 }  // end of full-3D branch (top-of-file reviewer-mode short-circuit)
