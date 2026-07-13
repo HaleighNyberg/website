@@ -492,6 +492,19 @@ export function initOcean() {
                 bodyCol = mix(bodyCol, vec3(0.010, 0.016, 0.020), seam * 0.8);
                 alpha = max(alpha, seam * 0.55);
 
+                // FEATHER THE ENDS. This column is an open cylinder, so its top
+                // ring and its bottom ring are HARD alpha boundaries — and a
+                // hard boundary one pixel wide rasterizes as a dashed line,
+                // which is exactly the discrete seam seen where the water meets
+                // the glass (top) and where it meets the seabed (bottom). No AA
+                // can rescue an edge the geometry itself cuts dead; it has to
+                // not be an edge. Both ends now fade to nothing before they
+                // reach the geometry's rim, so there is no boundary left to
+                // alias — and the fade costs nothing visually, because these
+                // ends sit inside the glass and the seabed anyway.
+                alpha *= 1.0 - smoothstep(uSurfY + 0.02, uSurfY + 0.15, vWorld.y);
+                alpha *= smoothstep(-2.0, -1.72, vWorld.y);
+
                 gl_FragColor = vec4(bodyCol * (0.45 + 0.55 * light), alpha);
             }
         `,

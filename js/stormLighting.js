@@ -129,7 +129,16 @@ export function captureBaseline() {
             0xc0d8ff, 0, STRIKE_DISTANCE, STRIKE_DECAY
         );
         _strikeLight.position.set(0, CLOUD_Y_FALLBACK, 0);
-        _strikeLight.castShadow = false; // shadow map stays owned by sun
+        // The lamp CASTS. Without this it lit the far side of the peak straight
+        // through the rock — the "sun leaking into the night side" during a
+        // storm: a 1200-intensity light landing in directDiffuse, which the
+        // terrain's day/night gate never attenuates (it only touches indirect
+        // and specular). A flash needs no resolution, and castShadow is flipped
+        // on only while a bolt is actually firing (see applyStormLighting), so
+        // an idle storm pays nothing for the cube map.
+        _strikeLight.shadow.mapSize.set(512, 512);
+        _strikeLight.shadow.bias = -0.005;
+        _strikeLight.castShadow = false;
         scene.add(_strikeLight);
     }
 
@@ -489,8 +498,12 @@ export function applyStormLighting(t, dt) {
             }
             _strikeLight.color.copy(_cStrike);
             _strikeLight.intensity = pump * STRIKE_PEAK_INTENSITY;
+            // Shadow only while it burns: the cube map is rendered on the
+            // frames a bolt is actually lit, and never between strikes.
+            _strikeLight.castShadow = true;
         } else {
             _strikeLight.intensity = 0;
+            _strikeLight.castShadow = false;
         }
     }
 

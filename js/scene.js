@@ -6,6 +6,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { TemporalAAPass } from './temporalAA.js?v=real18';
 import { state } from './config.js?v=real18';
 import { buildSpaceEnvironment } from './spaceEnv.js?v=real18';
 import { initStarShell, initDeepField } from './starShell.js';
@@ -240,14 +241,14 @@ export function initScene() {
 
     // --- Post-processing: bloom ---
     const composer = new EffectComposer(renderer);
-    // MSAA on the composer's ping-pong targets: antialias:true on the
-    // renderer only multisamples the default framebuffer, which the scene
-    // never draws into — every silhouette was aliased. WebGL2 resolves the
-    // samples automatically whenever a pass reads the buffer.
-    // 8x (was 4x) on capable machines: the craggy island silhouette is the
-    // maximum-contrast edge in the frame, and at 4x its sub-pixel facets
-    // re-quantized per frame under the turntable rotation — a coverage
-    // twinkle along the rim that SMAA (shading-edge AA) cannot recover.
+    // NOTE (2026-07-12): these two assignments DO NOTHING — the composer's
+    // targets are already constructed by this point, so the sample count is
+    // ignored. Verified by rendering at 0 / 8 / 16 samples and getting
+    // byte-identical frames. Building the target multisampled and passing it
+    // to the composer does switch MSAA on for real, but it was measured and it
+    // is NOT worth it here: the silhouettes are already ~99.6% anti-aliased by
+    // the SMAA pass, MSAA changed nothing visible, and it cost half the
+    // framerate (101 -> 49 fps at 1080p). Left as-is deliberately.
     const msaa = state.lowPower ? 4 : 8;
     composer.renderTarget1.samples = msaa;
     composer.renderTarget2.samples = msaa;
@@ -677,6 +678,23 @@ export function initScene() {
     // Handle kept under the old name so the debug panel toggle and the
     // resize path stay wired without churn.
     state.fxaaPass = smaaPass;
+
+    // --- Temporal AA (last) ---
+    // The resting-view sparkle on the island is TEMPORAL: 263k verts inside
+    // ~150 px means a dozen micro-triangles fight over each pixel and the
+    // winner re-rolls as the dish turns. Nothing spatial sees it (SMAA and
+    // MSAA are both blind to it, and every material/AO/shadow knob was ruled
+    // out by measurement). This pass blends each pixel with its own clamped
+    // history, so a flickering pixel converges to its average while a still
+    // image passes through untouched — no projection jitter, so nothing is
+    // resampled and nothing softens. See temporalAA.js.
+    const taaPass = new TemporalAAPass(
+        window.innerWidth * smaaPR,
+        window.innerHeight * smaaPR,
+        camera
+    );
+    composer.addPass(taaPass);
+    state.taaPass = taaPass;
 
     state.composer = composer;
 

@@ -68,7 +68,16 @@ export function initLighting() {
     // larger normal offset costs no visible contact accuracy and buys
     // extra margin against per-frame acne re-rolls on the ridges.
     sunLight.shadow.bias = -0.0002;
-    sunLight.shadow.normalBias = 0.10;
+    // 0.10 -> 0.05: the sun sits ON THE HORIZON (SUN_WORLD_POSITION.y = 0), so
+    // it grazes every slope, and a normal offset that large pushes the lookup
+    // sideways along normals nearly perpendicular to the light — detaching
+    // contact shadows and letting light bleed past thin ridges onto faces that
+    // should be dark. Half the offset re-attaches them; the crag acne it was
+    // guarding against is now also handled by the softer storm radius below.
+    sunLight.shadow.normalBias = 0.05;
+    // Rest value; the weather block (animate.js) opens this up as the deck
+    // thickens, because sun shadows under heavy overcast are diffuse, not razor.
+    sunLight.shadow.radius = 1;
 
     sunLight.layers.enable(2);
     scene.add(sunLight);

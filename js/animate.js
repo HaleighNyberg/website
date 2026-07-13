@@ -132,7 +132,17 @@ function applyWeatherToScene(wt, ws) {
         // substantial (scattered puffs shroud nothing), and the deck's
         // current ambient color.
         if (window.__cloudBaseU && cm) {
-            window.__cloudBaseU.value = cm.position.y - cm.scale.y * 0.5;
+            // The VISIBLE cloud base, not the volume box floor. The march only
+            // starts producing density at its LCL — baseH = mix(0.02, 0.10,
+            // cell) in unit-cube height (effects.js) — so the cloud the eye
+            // sees begins ~0.06 * scale.y ABOVE the box bottom, and the box
+            // bottom itself dives under the summit at full storm. Feeding the
+            // box floor is what tinted the peak cloud-grey while it was still
+            // plainly below the deck. The +0.10 rides slightly high on purpose:
+            // erring toward "no tint" is always the right error — rock stays
+            // rock unless the cloud visibly reaches it.
+            const boxBottom = cm.position.y - cm.scale.y * 0.5;
+            window.__cloudBaseU.value = boxBottom + cm.scale.y * 0.06 + 0.10;
             window.__mistU.value = Math.min(1, Math.max(0, (u.coverage.value - 0.30) / 0.45));
             // Mist must carry the deck's own storm self-darkening or the
             // shrouded summit reads as glowing snow caps against the
@@ -153,10 +163,26 @@ function applyWeatherToScene(wt, ws) {
         // full-coverage shadow disc was the REAL reason the island went
         // too dark at peak storm — it multiplied the whole dish on top
         // of the already-dimmed lights.
-        if (su.uStrength) su.uStrength.value = 0.38 + ws * 0.18;
+        // Storm gain pulled back again (0.18 -> 0.07). The disc is a flat
+        // circle just above the waterline, so it can only darken the OCEAN and
+        // the skirt — the mountain slopes above it receive no cloud shadow at
+        // all. Ramping it hard under storm therefore had the water advertising
+        // a moving shadow the island never got, which is a large part of why
+        // the shadows read illogically. Keep it as a subtle sea-surface cue.
+        if (su.uStrength) su.uStrength.value = 0.38 + ws * 0.07;
         if (su.uCoverage && window._cloud) {
             su.uCoverage.value = window._cloud.mat.uniforms.coverage.value;
         }
+    }
+
+    // Sun shadows go SOFT as the deck thickens. Nothing in the weather path
+    // touched shadows before, so full storm rendered razor-crisp horizon-sun
+    // shadows and a hard terminator underneath a near-black overcast — the
+    // core of "the shadows behave illogically". Overcast light is diffuse;
+    // PCFSoftShadowMap's radius is the honest knob for that, and it costs the
+    // island none of its brightness (which she asked to keep).
+    if (state.sunLight && state.sunLight.shadow) {
+        state.sunLight.shadow.radius = 1 + ws * 5;
     }
 
     // --- Rain tint ---
@@ -347,7 +373,10 @@ export function startAnimateLoop() {
         // accumulates — dragging the slider changes VELOCITY smoothly
         // instead of teleporting the deck pattern.
         state._windT = (state._windT || 0) + Math.min(dt, 0.05) * (1.0 + ws * 3.0);
-        applyStormLighting(window._weather?.t ?? 0, dt);
+        // Lights ride the SMOOTHED weather, like everything else. Feeding them
+        // the raw target made the lighting snap ahead of the cloud deck, the
+        // mist band and the cloud shadow whenever the weather changed.
+        applyStormLighting(wt, dt);
         applyWeatherToScene(wt, ws);
 
         // Rain: bass adds a pulse, weather gates total amount. Below
