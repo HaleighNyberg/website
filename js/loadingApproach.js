@@ -307,10 +307,19 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     // (camera.position − rebaseOffset) so the field it renders is
     // continuous across the splice, exactly like the star corridor.
     const rebaseOffset = new THREE.Vector3();
-    const start = performance.now();
-    let last = start;
+    // The flight runs on its OWN clock, accumulated from clamped frame deltas —
+    // not on wall time. Boot compiles the shaders for everything on screen and
+    // blocks the main thread for seconds; with a wall clock the camera comes back
+    // from that stall having "flown" the whole time it was frozen, and teleports
+    // to wherever it should have been. Freeze, then snap. Clamping the delta means
+    // a stall costs the flight time, not distance: it resumes exactly where it
+    // stopped.
+    let last = 0;               // flight-clock ms
     let phase = 'cruise';
-    let phaseStart = start;
+    let clock = 0;              // ms of flight actually rendered
+    let lastNow = performance.now();
+    let phaseStart = 0;         // in flight-clock ms
+    const MAX_STEP = 50;        // one stalled frame can never advance more than this
     let skipRequested = false;
     let mainRevealed = false;
     let warmStarted = false;
@@ -361,10 +370,13 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     }
 
     function tick() {
-        const now = performance.now();
+        const wall = performance.now();
+        clock += Math.min(wall - lastNow, MAX_STEP);
+        lastNow = wall;
+        const now = clock;
         const dt = Math.min(0.05, (now - last) / 1000);
         last = now;
-        const elapsed = now - start;
+        const elapsed = now;
         const inPhase = now - phaseStart;
 
         if (phase === 'cruise') {
@@ -509,7 +521,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 // Fresh stamp (not `now`): any long frame in THIS tick
                 // must not count as elapsed brake time and fast-forward
                 // the camera on the first decel frame.
-                phaseStart = performance.now();
+                phaseStart = clock;
                 if (opts.onDropout) opts.onDropout();
             }
             requestAnimationFrame(tick);

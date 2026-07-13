@@ -94,7 +94,7 @@ function typeHeroStatement() {
         el.textContent = full.slice(0, i);
         if (i++ < full.length) {
             // Jittered cadence so it reads like typing, not a metronome.
-            setTimeout(step, 26 + Math.random() * 32);
+            setTimeout(step, 12 + Math.random() * 16);
         }
     })();
 }
@@ -366,9 +366,26 @@ if (_cover) {
     };
 
     if (!_skipIntro) {
-        // The flight is about to run: lift immediately, because the warp hold IS
-        // what the visitor is meant to be looking at while the world loads.
-        _lift();
+        // The warp hold IS what the visitor is meant to be looking at — but not a
+        // FROZEN one. Boot compiles every program in the scene (loadingApproach
+        // does it deliberately, "in the same covered window") and that blocks the
+        // main thread for seconds. Lifting after two frames closed the window long
+        // before the work finished, so the fade revealed a still image of the warp
+        // that sat there until the compiler let go.
+        //
+        // Wait for frames that are actually arriving: three in a row inside a
+        // sane budget means the main thread is ours again.
+        let healthy = 0;
+        let prev = performance.now();
+        (function _waitForMotion() {
+            requestAnimationFrame(() => {
+                const now = performance.now();
+                healthy = (now - prev) < 60 ? healthy + 1 : 0;
+                prev = now;
+                if (healthy >= 3) _lift();
+                else _waitForMotion();
+            });
+        })();
     } else {
         // Nothing to hide behind. The camera is already parked at home, so
         // lifting on frame two shows a black island on an empty sea for the beat
