@@ -480,18 +480,25 @@
     content: '> ';
     color: var(--blue-200);
 }
+/* A chevron, pointing where the cue is telling you to go. The breathing
+   hairline it replaces was ambiguous: a horizontal bar next to the word
+   "scroll" reads as a divider, not a direction. Drawn from two borders rather
+   than a glyph so it stays crisp at 7px and inherits the hairline colour. */
 .nav-hint::after {
     content: '';
     display: inline-block;
-    width: 28px;
-    height: 1px;
-    background: var(--blue-300);
-    animation: hintBreathe 3.2s ease-in-out infinite;
-    transform-origin: left;
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid var(--blue-300);
+    border-bottom: 1px solid var(--blue-300);
+    transform: rotate(45deg);
+    margin-bottom: 3px;
+    animation: hintChevron 2.4s ease-in-out infinite;
 }
-@keyframes hintBreathe {
-    0%, 100% { transform: scaleX(0.35); opacity: 0.4; }
-    50%      { transform: scaleX(1); opacity: 0.9; }
+/* translate inside the rotated frame: (2,2) at 45deg resolves to straight down. */
+@keyframes hintChevron {
+    0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.45; }
+    50%      { transform: rotate(45deg) translate(2px, 2px); opacity: 0.95; }
 }
 
 /* ============================================

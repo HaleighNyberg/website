@@ -138,7 +138,7 @@ export function renderDailyLabel() {
         btn.type = 'button';
         btn.tabIndex = -1;
         btn.title = 'regenerate island';
-        btn.textContent = '[ new island ]';
+        btn.textContent = '[ generate new island ]';
         btn.style.cssText = [
             'background:none', 'border:none', 'padding:0', 'margin-left:10px',
             'font:inherit', 'letter-spacing:inherit', 'text-transform:inherit',
