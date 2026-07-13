@@ -77,7 +77,7 @@ const PROJECTS = [
     },
     {
         title: 'ExoPlaSim origin-of-life pipeline',
-        blurb: 'My dissertation engine: 3D general circulation model parameter sweeps (1,500+ simulations) with a custom post-processing pipeline, building toward an Origin of Life Index that ranks worlds by their likelihood of starting life. (Model code is dissertation IP, not in the public repo.)',
+        blurb: 'My dissertation engine: 3D general circulation model parameter sweeps with a custom post-processing pipeline, building toward an Origin of Life Index that ranks worlds by their likelihood of starting life. (Model code is dissertation IP, not in the public repo.)',
         tags: ['Python', 'Fortran', 'HPC', 'NetCDF'],
         links: [],
     },

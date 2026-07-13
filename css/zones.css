@@ -270,11 +270,11 @@
     color: var(--text-primary);
     text-shadow: var(--text-shadow-strong);
     margin: 0 0 var(--space-4);
-    /* Narrow enough to break the statement across three lines, and
-       reserve those three lines up front so the typewriter fills in
-       without shoving the meta/seed lines around as it types. */
+    /* Reserve the full height the finished line will occupy, so the typewriter
+       fills into space that is already there instead of growing the block and
+       shoving the fellowship and seed lines down a row as it passes line three. */
     max-width: 32ch;
-    min-height: calc(3 * 1.75em);
+    min-height: calc(4 * 1.75em);
 }
 .home-hero__statement::before {
     content: '$ ';
@@ -466,20 +466,16 @@
     text-transform: lowercase;
     color: var(--blue-300);
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-3);
+    gap: 7px;
     opacity: 0;
     transition: opacity 600ms ease;
     pointer-events: none;
-    min-height: 1.2em;
     white-space: nowrap;
     text-shadow: var(--text-shadow);
 }
 .nav-hint.visible { opacity: 0.85; }
-.nav-hint::before {
-    content: '> ';
-    color: var(--blue-200);
-}
 /* A chevron, pointing where the cue is telling you to go. The breathing
    hairline it replaces was ambiguous: a horizontal bar next to the word
    "scroll" reads as a divider, not a direction. Drawn from two borders rather
