@@ -888,12 +888,18 @@ export function updateScene(elapsed) {
     // later in the same frame. Leaving a second writer here was a latent
     // conflicting-writes trap if animate.js ever reordered.)
 
-    // --- Light rays + caustics: fixed blend ---
+    // --- Light rays + caustics: day blend, dimmed under storm ---
+    // The underwater beam/caustic rig is direct-sun light; under a heavy
+    // deck it must die with the sun or the shallow pool keeps glowing
+    // storm-proof (clearly wrong from the top-down view). Quadratic ramp
+    // matches the water color/wave ramps so mid-slider stays sunny.
+    const _wsUW = (window._weather && window._weather.smoothed) || 0;
+    const _uwBlend = 0.7 * (1 - _wsUW * _wsUW * 0.75);
     if (window._lightRays) {
-        window._lightRays.uniforms.uDayBlend.value = 0.7;
+        window._lightRays.uniforms.uDayBlend.value = _uwBlend;
     }
     if (window._caustics) {
-        window._caustics.uniforms.uDayBlend.value = 0.7;
+        window._caustics.uniforms.uDayBlend.value = _uwBlend;
     }
 
     // --- Foam: fixed opacity (no dayBlend modulation) ---

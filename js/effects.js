@@ -744,6 +744,17 @@ export function initEffects() {
                 // across the sky instead of idling in place.
                 uWindMul:   { value: 1.0 },
                 uWindT:     { value: 0.0 },
+                // Lightning glow INSIDE the volume: strike position in
+                // unit-cube space, intensity = the strike pump envelope,
+                // color = the per-strike tint. stormLighting.js drives
+                // all three; the deck must light from within on a bolt,
+                // not just from the lamp below it.
+                uStrikeCube: { value: new THREE.Vector3(0, 0, 0) },
+                uStrikeI:    { value: 0.0 },
+                uStrikeColor:{ value: new THREE.Color(0.8, 0.9, 1.0) },
+                // Re-seeds the whole cloud layout (island re-roll): any
+                // offset works because the noise texture tiles.
+                uSeedOff:    { value: new THREE.Vector3(0, 0, 0) },
                 // Mesh scale of the volume box. Directions must be divided
                 // by this to go island-local -> unit-cube space, otherwise
                 // the shallow box flattens the sun elevation ~5x and the
@@ -794,6 +805,10 @@ export function initEffects() {
                 uniform float uWindMul;
                 uniform float uWindT;
                 uniform vec3  uVolScale;
+                uniform vec3  uStrikeCube;
+                uniform float uStrikeI;
+                uniform vec3  uStrikeColor;
+                uniform vec3  uSeedOff;
 
                 // Unit cube bound in object space (mesh is scaled to fill).
                 vec2 hitBox(vec3 orig, vec3 dir) {
@@ -820,6 +835,10 @@ export function initEffects() {
                 // the fine detail, so the edges shimmer while the body
                 // moves slower — reads as turbulent convection.
                 float sampleDensity(vec3 p) {
+                    // Noise-domain seed (island re-roll). Applied ONLY to
+                    // the texture taps — the geometric disc/height masks
+                    // must stay centred on the dish.
+                    vec3 ps = p + uSeedOff;
                     // Drift: body moves slow, detail moves faster but
                     // scaled down so the small-scale shimmer doesn't
                     // outrun the macro motion. Divergent direction per
@@ -831,17 +850,17 @@ export function initEffects() {
                     // deck TELEPORTED to a new phase — clouds raced,
                     // formed, and tore during the drag. Integrate, never
                     // multiply absolute time (the caustics lesson).
-                    vec3 qBase = p + vec3(uWindT * 0.0085, 0.0, uWindT * 0.0055);
-                    vec3 qDet  = p + vec3(uWindT * 0.022, uWindT * 0.006, uWindT * 0.018);
+                    vec3 qBase = ps + vec3(uWindT * 0.0085, 0.0, uWindT * 0.0055);
+                    vec3 qDet  = ps + vec3(uWindT * 0.022, uWindT * 0.006, uWindT * 0.018);
                     // Domain warp: bend the sample coordinates by a very
                     // low-frequency tap before the tiled lookups. From
                     // TOP-DOWN the raw tiling read as a square repeating
                     // grid — the warp shears every repeat differently so
                     // the pattern never lines up with itself.
                     vec3 warp = vec3(
-                        texture(map, p * 0.31 + vec3(0.13, 0.71, 0.37)).r - 0.5,
+                        texture(map, ps * 0.31 + vec3(0.13, 0.71, 0.37)).r - 0.5,
                         0.0,
-                        texture(map, p * 0.29 + vec3(0.83, 0.29, 0.61)).r - 0.5
+                        texture(map, ps * 0.29 + vec3(0.83, 0.29, 0.61)).r - 0.5
                     ) * 0.55;
                     qBase += warp;
                     qDet += warp * 1.4;
@@ -871,6 +890,10 @@ export function initEffects() {
                     float outerR = 0.96 * vertNarrow + outlineWarp;
                     float innerR = 0.50 * vertNarrow + outlineWarp;
                     float discMask = smoothstep(outerR, innerR, r);
+                    // Hard guard at the volume wall: the warped outline can
+                    // push density past r=1 where the march box clips it —
+                    // that flat cut is the one silhouette a cloud never has.
+                    discMask *= 1.0 - smoothstep(0.86, 0.99, r);
 
                     // Cumulus vertical profile: hard floor at the LCL
                     // (lifting condensation level) so the base reads
@@ -912,7 +935,15 @@ export function initEffects() {
                     // must be wide (0.30..1.15 through a steepened cell
                     // response) or the whole disc saturates into one
                     // merged cottonball with no gaps between cells.
-                    float cellW = smoothstep(0.40, 0.92, cell);
+                    // Coverage-dependent cell window: at low coverage only
+                    // the strongest cells condense (scattered fair-weather
+                    // cumulus with real gaps — clouds ARRIVE as patches);
+                    // as coverage climbs the window opens and cells merge
+                    // into a deck. A fixed window faded every cell in
+                    // simultaneously, which read as one global dimmer.
+                    float cLo = mix(0.58, 0.36, coverage);
+                    float cHi = mix(1.00, 0.88, coverage);
+                    float cellW = smoothstep(cLo, cHi, cell);
                     float localCov = coverage * mix(0.30, 1.15, cellW);
 
                     float d = base;
@@ -1040,6 +1071,18 @@ export function initEffects() {
                             // sunlit cream puff.
                             lit *= mix(vec3(1.0), vec3(0.20, 0.23, 0.28), uStormDark);
 
+                            // Lightning: the bolt channel lights the cell
+                            // from WITHIN — inverse-square glow around the
+                            // strike, added after the storm-darkening term
+                            // so the flash is never swallowed by it. The
+                            // offset maps to island-local units so the
+                            // falloff radius is physical, not cube-warped.
+                            if (uStrikeI > 0.001) {
+                                vec3 toS = (uStrikeCube - p) * uVolScale;
+                                float sd2 = dot(toS, toS);
+                                lit += uStrikeColor * (uStrikeI * 12.0 / (1.0 + sd2 * 0.35));
+                            }
+
                             // Integrate: scattered radiance over this
                             // interval (Sebastien Hillaire form).
                             vec3 integScatter = (lit - lit * stepTrans) / max(sigmaE, vec3(1e-4));
@@ -1078,6 +1121,10 @@ export function initEffects() {
         const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
         cloudMesh.scale.set(CLOUD_SIZE, CLOUD_HEIGHT, CLOUD_SIZE);
         cloudMesh.position.y = CLOUD_Y;
+        // Rest pose recorded so the weather driver (animate.js) can ride
+        // the deck lower/thicker under storm and return it exactly here.
+        cloudMesh.userData.baseY = CLOUD_Y;
+        cloudMesh.userData.baseSY = CLOUD_HEIGHT;
         cloudMesh.renderOrder = 16;
         cloudMesh.visible = true;
         // Layer 2 — matches glass dish. Keeps clouds out of Water.js's

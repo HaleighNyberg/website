@@ -91,7 +91,13 @@ class Water extends Mesh {
 					// path — this term IS the sun's reflection (see the
 					// clamp note at the mirror sample).
 					'uGlintShiny': { value: 110.0 },
-					'uGlintSpec': { value: 1.9 }
+					'uGlintSpec': { value: 1.9 },
+					// 0 clear .. 1 full storm. The shallow depth tint and
+					// shore boost are DIRECT-SUN color terms; under a
+					// heavy deck they must dim with the sun or the
+					// shallow pool glows storm-proof (animate.js drives
+					// this on the same quadratic ramp as the water color).
+					'uStormDim': { value: 0.0 }
 				}
 			] ),
 
@@ -136,6 +142,7 @@ class Water extends Mesh {
 				uniform float oceanRadius;  // for radial depth color variation
 				uniform float uGlintShiny;
 				uniform float uGlintSpec;
+				uniform float uStormDim;
 
 				varying vec4 mirrorCoord;
 				varying vec4 worldPosition;
@@ -245,7 +252,12 @@ class Water extends Mesh {
 					// in the mirror) while still bounding output at ~0.85
 					// so nothing feeds bloom.
 					vec3 reflRaw = vec3( texture2D( mirrorSampler, mirrorCoord.xy / mirrorCoord.w + distortion ) );
-					vec3 reflectionSample = reflRaw / ( vec3( 1.0 ) + reflRaw ) * 1.7;
+					// Storm deck occludes the sky the mirror reflects; the
+					// reflection render itself never sees the cloud volume,
+					// so the occlusion has to be applied here. Without it,
+					// per-facet fresnel on storm chop keeps bouncing the
+					// clear-sky glare and the sun-side pool glows storm-proof.
+					vec3 reflectionSample = reflRaw / ( vec3( 1.0 ) + reflRaw ) * 1.7 * ( 1.0 - uStormDim * 0.60 );
 
 					float theta = max( dot( eyeDirection, surfaceNormal ), 0.0 );
 					float rf0 = 0.04; // physically-based water IOR ~1.33
@@ -260,7 +272,12 @@ class Water extends Mesh {
 					vec2 fragDir2D = normalize(worldPosition.xz);
 					float sunFacing = dot(fragDir2D, sunDir2D) * 0.5 + 0.5; // 0=night, 1=day
 					sunFacing = mix(0.25, 1.0, sunFacing); // night side gets 25% of shallow brightness
-					vec3 shallowCol = vec3(0.05, 0.13, 0.18) * sunFacing;
+					// The shallow teal is DIRECT SUNLIGHT scattered out of
+					// clear shallow water — under a storm deck it dies with
+					// the sun. This constant is what made the sun-side pool
+					// glow storm-proof in top-down views (scatter runs it
+					// through a 1.6x gain, so dim it at the source).
+					vec3 shallowCol = vec3(0.05, 0.13, 0.18) * sunFacing * ( 1.0 - uStormDim * 0.70 );
 					vec3 deepCol    = waterColor;
 					vec3 localWaterColor = mix(shallowCol, deepCol, depthT);
 
@@ -295,7 +312,14 @@ class Water extends Mesh {
 					// Foam is a top-down phenomenon — kill it as the view
 					// flattens toward the surface plane.
 					float grazeView = pow(1.0 - abs(eyeDirection.y), 3.0);
-					vec3 crestCol = vec3(0.55, 0.62, 0.66) * crest * sunSide * 0.5 * (1.0 - grazeView * 0.9);
+					// Rim kill: at the glass boundary the flecks trace the
+					// dish edge as a chain of discrete bright dashes from
+					// low/under views (the grazing fade alone misses camera
+					// poses below the surface plane). Crests are a mid-ocean
+					// read — fade them out entirely over the last ~1.6u
+					// before the wall.
+					float crestRim = smoothstep(oceanRadius - 0.4, oceanRadius - 2.0, radialDist);
+					vec3 crestCol = vec3(0.55, 0.62, 0.66) * crest * sunSide * 0.5 * (1.0 - grazeView * 0.9) * crestRim;
 					// The reflected branch is capped as a WHOLE, and the cap
 					// must sit BELOW the 0.8 bloom threshold — at 0.82 the
 					// glint area still fed bloom and fuzzed into a white

@@ -27,11 +27,11 @@ const CLEAR_CLOUD_SKY      = new THREE.Color(0.30, 0.44, 0.66);
 // Mid-slate, not inky. Keeps enough brightness on the sky-lit side of
 // each cell so cumulonimbus volume reads — silver edges stay visible
 // instead of collapsing into a flat black lid.
-const STORM_CLOUD_SKY      = new THREE.Color(0.26, 0.30, 0.36);
+const STORM_CLOUD_SKY      = new THREE.Color(0.30, 0.35, 0.41);
 const CLEAR_CLOUD_GND      = new THREE.Color(0.06, 0.10, 0.16);
 // Ocean-navy under-shadow. Dark enough to read as storm base, cool
 // enough that rain-column undersides still tint blue instead of black.
-const STORM_CLOUD_GND      = new THREE.Color(0.04, 0.06, 0.10);
+const STORM_CLOUD_GND      = new THREE.Color(0.055, 0.08, 0.125);
 // Absorption: clear leaves blue surviving deepest (1.05) so bottoms read
 // cool. Storm still crushes transmission, but we back off from the
 // opaque-brick 2.35/2.55/2.75 so internal cell structure is visible
@@ -116,8 +116,31 @@ function applyWeatherToScene(wt, ws) {
         // the deck.
         if (u.uWindT) u.uWindT.value = (state._windT || 0) % 36000;
         // Storm decks swallow their own scattered light (dark bruised
-        // gray at full storm).
-        if (u.uStormDark) u.uStormDark.value = ws;
+        // gray at full storm). Held short of 1.0 — the full value read
+        // as a black lid rather than heavy weather.
+        if (u.uStormDark) u.uStormDark.value = ws * 0.85;
+        // The deck rides LOWER and thicker as weather builds (the
+        // condensation level drops in moist air) — with the living
+        // weather this makes the sky visibly press down before rain.
+        const cm = window._cloud.mesh;
+        if (cm && cm.userData.baseY) {
+            cm.position.y = cm.userData.baseY - ws * 0.9;
+            cm.scale.y = cm.userData.baseSY * (1.0 + ws * 0.22);
+        }
+        // Summit mist drivers (mountain material, terrain.js): the live
+        // deck base, a density weight that only engages once the deck is
+        // substantial (scattered puffs shroud nothing), and the deck's
+        // current ambient color.
+        if (window.__cloudBaseU && cm) {
+            window.__cloudBaseU.value = cm.position.y - cm.scale.y * 0.5;
+            window.__mistU.value = Math.min(1, Math.max(0, (u.coverage.value - 0.30) / 0.45));
+            // Mist must carry the deck's own storm self-darkening or the
+            // shrouded summit reads as glowing snow caps against the
+            // near-black storm deck (owner-caught). Same ramp as
+            // uStormDark's 0.20-0.28 crush at full storm.
+            window.__mistColU.value.copy(_weatherScratchSky)
+                .multiplyScalar(1.0 - ws * 0.66);
+        }
     }
 
     // --- Cloud shadow disc matches the cloud wind so the shadow pattern
@@ -162,6 +185,9 @@ function applyWeatherToScene(wt, ws) {
         }
         // Distortion: calmer at 3.2, choppier surface at 6.0 under storm.
         if (wu.distortionScale) wu.distortionScale.value = 3.2 + wsSea * 2.8;
+        // Shallow-pool / shore-glow dimmer: the depth tint is direct
+        // sunlight through clear shallows — it dies under the deck.
+        if (wu.uStormDim) wu.uStormDim.value = wsSea;
         // Do NOT touch wu.size — shrinking the normal tile reads as the
         // camera zooming in on the water (tighter wavelets = apparent
         // scene scale change), not as choppier waves.
@@ -296,7 +322,9 @@ export function startAnimateLoop() {
         // than halving it drops those beats from flicker range (~2.5 Hz)
         // to a slow living shimmer — and a more stately turn reads
         // BIGGER, which suits the massive-scale dish.
-        state.islandGroup.rotation.y += 0.008 * dtClamped;
+        // __dishSpin is a console multiplier (0 freezes the dish) — the
+        // handle for isolating rotation-gated shimmer.
+        state.islandGroup.rotation.y += 0.008 * dtClamped * (window.__dishSpin ?? 1);
 
         // World-space sun direction for materials whose varyings are in
         // world coordinates (islet underwater downwelling).
@@ -458,8 +486,16 @@ export function startAnimateLoop() {
                     // bright body to actually be in the optical path.
                     u.glareSize.value = 0.06 * vis * onScreen;
                     u.flareSize.value = 0.002 * vis * onScreen;
-                    u.secondaryGhosts.value = onScreen;
-                    u.aditionalStreaks.value = onScreen;
+                    // Ghosts/streaks sample the frame with per-channel
+                    // (chromatic) UV offsets — during a lightning flash
+                    // they ghost the thin HDR bolt into scattered
+                    // single-channel pixels (magenta/green pips at the
+                    // island, owner-caught; isolation-tested to track the
+                    // bolt). Suppress them for the flash; the main glare
+                    // doesn't chroma-sample and keeps the sun alive.
+                    const strikeSup = 1.0 - Math.min(1, (state._strikePump || 0) * 2.0);
+                    u.secondaryGhosts.value = onScreen * strikeSup;
+                    u.aditionalStreaks.value = onScreen * strikeSup;
 
                     // Occlusion fully kills the flare (sun behind mountain).
                     if (vis <= 0.0) {

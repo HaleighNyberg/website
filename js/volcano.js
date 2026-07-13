@@ -77,17 +77,25 @@ function makeSystem(count, texture, blending) {
     geo.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
     geo.setAttribute('aAlpha', new THREE.BufferAttribute(alpha, 1));
     const mat = new THREE.ShaderMaterial({
-        uniforms: { map: { value: texture } },
+        // uFarFade 1 = fade the particle out across 60→100u camera
+        // distance. Embers only: at the resting distance a hot additive
+        // ember is SUB-PIXEL, and sub-pixel hot pixels read as random
+        // red/magenta pips on the summit (green too on a 4K panel —
+        // subpixel structure). Ash stays 0: its puffs are large and
+        // soft, and the idle smoke column should read from anywhere.
+        uniforms: { map: { value: texture }, uFarFade: { value: 0.0 } },
         vertexShader: `
             attribute vec3 aColor;
             attribute float aSize;
             attribute float aAlpha;
+            uniform float uFarFade;
             varying vec3 vColor;
             varying float vAlpha;
             void main() {
                 vColor = aColor;
-                vAlpha = aAlpha;
                 vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                float far = clamp((100.0 - (-mv.z)) / 40.0, 0.0, 1.0);
+                vAlpha = aAlpha * mix(1.0, far, uFarFade);
                 gl_PointSize = aSize * (1300.0 / max(1.0, -mv.z));
                 gl_Position = projectionMatrix * mv;
             }`,
@@ -125,6 +133,7 @@ export function initVolcano() {
 
     _emberSys = makeSystem(EMBER_COUNT, makeSpriteTexture(0.25), THREE.AdditiveBlending);
     _ashSys   = makeSystem(ASH_COUNT, makeSpriteTexture(0.55), THREE.NormalBlending);
+    _emberSys.mesh.material.uniforms.uFarFade.value = 1.0;
     _emberSys.geo.getAttribute('aAlpha').array.fill(0);
     _ashSys.geo.getAttribute('aAlpha').array.fill(0);
     islandGroup.add(_emberSys.mesh);

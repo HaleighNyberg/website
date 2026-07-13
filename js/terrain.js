@@ -89,6 +89,12 @@ export function initTerrain() {
         shader.uniforms.uSandMap = sandUniforms.uSandMap;
         shader.uniforms.uSandNrm = sandUniforms.uSandNrm;
         shader.uniforms.uDeepLight = (window.__deepLightU = window.__deepLightU || { value: 0.0 });
+        // Summit mist (window-shared like __deepLightU): the cloud deck's
+        // live base height + a density weight + its ambient color, driven
+        // from the weather block in animate.js.
+        shader.uniforms.uCloudBase = (window.__cloudBaseU = window.__cloudBaseU || { value: 999.0 });
+        shader.uniforms.uMist = (window.__mistU = window.__mistU || { value: 0.0 });
+        shader.uniforms.uMistCol = (window.__mistColU = window.__mistColU || { value: new THREE.Color(0.30, 0.35, 0.41) });
         // Add aEmissive attribute and pulse uniform.
         // Fold them into vColor so the standard <color_vertex> chunk's
         // downstream usage in the fragment shader (vColor * diffuse) carries
@@ -200,6 +206,9 @@ export function initTerrain() {
                     'uniform sampler2D uSandNrm;',
                     'uniform float uDeepLight;',
                     'uniform vec3 uSunLocal;',
+                    'uniform float uCloudBase;',
+                    'uniform float uMist;',
+                    'uniform vec3 uMistCol;',
                 ].join('\n')
             )
             .replace(
@@ -331,6 +340,14 @@ export function initTerrain() {
                     'vec3 dtlN = texture2D( normalMap, vNormalMapUv * 4.3 ).xyz * 2.0 - 1.0;',
                     'normal = normalize( normal + tbn * vec3( dtlN.xy * 0.35 * dtlFade, 0.0 ) );',
                     '#endif',
+                    '// NOTE (twinkle hunt, 2026-07-12): the resting-view pixel',
+                    '// twinkle on lit flanks is VERTEX-facet temporal aliasing',
+                    '// gated purely on dish rotation (36 hot flips/frame at',
+                    '// spin on, 2 at spin off; shadows/clouds/specular ruled',
+                    '// out empirically). Distance-fading these map normals was',
+                    '// tried and made it WORSE (49 flips) — map noise dithers',
+                    '// the facet flips; do not re-try. Real fixes: slower spin',
+                    '// or TAA.',
                     '// Specular AA: widen roughness by per-pixel normal',
                     '// variance (screen derivatives) so sub-pixel normal',
                     '// detail can never flash single-pixel highlights — the',
@@ -376,6 +393,17 @@ export function initTerrain() {
                     '// on the lit faces while cutting bloom overshoot to 0.04.',
                     'vec3 kneeExcess = max(outgoingLight - vec3(0.62), vec3(0.0));',
                     'outgoingLight = min(outgoingLight, vec3(0.62)) + 0.22 * (vec3(1.0) - exp(-kneeExcess / 0.22));',
+                    '// Summit mist: the cloud volume cannot draw in FRONT of',
+                    '// opaque terrain (no depth-aware march in this pipeline),',
+                    '// so a peak poking into the deck showed crisp rock inside',
+                    '// cloud. Fade rock above the deck base into the cloud',
+                    '// ambient instead — a shrouded summit reads shrouded. The',
+                    '// noise breaks the band edge so it looks like drift, not a',
+                    '// waterline.',
+                    'float mistBand = smoothstep(uCloudBase - 0.7, uCloudBase + 1.2, vWorldHeight);',
+                    'float mistN = 0.78 + 0.22 * sin(vNormalMapUv.x * 41.0 + vNormalMapUv.y * 37.0);',
+                    'float mistT = min(0.92, mistBand * uMist * mistN);',
+                    'outgoingLight = mix(outgoingLight, uMistCol, mistT);',
                     '#include <opaque_fragment>',
                 ].join('\n')
             )
@@ -516,15 +544,40 @@ export function initTerrain() {
             { a: 3.05, r: 10.2, s: 0.24, squash: 0.5 },
             { a: 5.45, r: 11.0, s: 0.32, squash: 0.45 },
         ];
+        // Skerries are REBUILDABLE: the canonical pass (rng = null) ships
+        // the exact hand-placed layout above; an island re-roll passes an
+        // rng to jitter position/size/shape and occasionally sit a skerry
+        // out, while the size ladder (mountain -> skerry -> awash rock ->
+        // boulder) that sells the scale stays intact.
+        const _skerryMeshes = [];
+        function buildSkerries(rng) {
+        for (const old of _skerryMeshes) {
+            islandGroup.remove(old);
+            old.geometry.dispose();
+        }
+        _skerryMeshes.length = 0;
         for (let k = 0; k < islets.length; k++) {
-            const cfg = islets[k];
+            const tpl = islets[k];
+            let cfg = tpl, ph = 0;
+            if (rng) {
+                // The two biggest skerries always survive a roll — they
+                // anchor the scale read; the rest may sit one out.
+                if (k !== 0 && k !== 2 && rng() < 0.22) continue;
+                cfg = {
+                    a: tpl.a + (rng() - 0.5) * 0.9,
+                    r: Math.min(11.9, Math.max(8.2, tpl.r + (rng() - 0.5) * 1.6)),
+                    s: tpl.s * (0.72 + rng() * 0.6),
+                    squash: tpl.squash * (0.85 + rng() * 0.3),
+                };
+                ph = rng() * 19.0;
+            }
             const geo = new THREE.IcosahedronGeometry(1, 3);
             const p = geo.attributes.position;
             for (let i = 0; i < p.count; i++) {
                 const vx = p.getX(i), vy = p.getY(i), vz = p.getZ(i);
                 // Craggy radial displacement, seeded per islet.
-                const n = Math.sin(vx * 5.1 + k * 7.7) * Math.cos(vz * 4.3 + k * 3.1)
-                        + Math.sin(vy * 6.7 + k * 11.3) * 0.6;
+                const n = Math.sin(vx * 5.1 + k * 7.7 + ph) * Math.cos(vz * 4.3 + k * 3.1 + ph)
+                        + Math.sin(vy * 6.7 + k * 11.3 + ph * 1.7) * 0.6;
                 const d = 1.0 + n * 0.16;
                 p.setXYZ(i, vx * d, vy * d, vz * d);
             }
@@ -545,7 +598,7 @@ export function initTerrain() {
                 for (let i = 0; i < p.count; i++) {
                     const wy = p.getY(i) * scaleY + m.position.y;
                     const band = 1.0 - Math.min(1, Math.abs((wy - OCEAN_LEVEL - 0.06) / 0.14));
-                    const patch = Math.max(0, Math.sin(p.getX(i) * 9.0 + k * 5.0));
+                    const patch = Math.max(0, Math.sin(p.getX(i) * 9.0 + k * 5.0 + ph));
                     const sm = Math.max(0, band) * patch * 0.85;
                     cols[i*3]   = 1.0 + sm * 0.45;
                     cols[i*3+1] = 1.0 + sm * 0.32;
@@ -561,6 +614,7 @@ export function initTerrain() {
             m.castShadow = true;
             m.receiveShadow = true;
             islandGroup.add(m);
+            _skerryMeshes.push(m);
 
             // Scatter boulders on each skerry: small displaced rocks
             // half-buried around the waterline collar. The extra size rung
@@ -571,7 +625,7 @@ export function initTerrain() {
             // ~20fps in the per-frame shadow pass for no visible gain).
             const nRocks = k < 5 ? 2 : 0;
             for (let b = 0; b < nRocks; b++) {
-                const seed = k * 3.7 + b * 2.3;
+                const seed = k * 3.7 + b * 2.3 + ph;
                 const bGeo = new THREE.IcosahedronGeometry(1, 2);
                 const bp = bGeo.attributes.position;
                 for (let i = 0; i < bp.count; i++) {
@@ -600,8 +654,12 @@ export function initTerrain() {
                 rock.castShadow = false;
                 rock.receiveShadow = true;
                 islandGroup.add(rock);
+                _skerryMeshes.push(rock);
             }
         }
+        }
+        buildSkerries(null);
+        window.__rebuildSkerries = () => buildSkerries(Math.random);
     }
 
     // --- Lava pool at summit (embedded inside terrain) ---
@@ -793,7 +851,11 @@ export function initTerrain() {
             const vx = pos.getX(i), vz = pos.getZ(i);
             const dist = Math.sqrt(vx * vx + vz * vz);
 
-            let height = hVal * TERRAIN_HEIGHT;
+            // hMul: per-roll island stature (±~14%). The footprint radii
+            // (EDGE_R/FADE_R) stay fixed — camera framing, beach terrace
+            // and shore systems are authored against them — so a roll
+            // reads as a different VOLCANO, not a different dish.
+            let height = hVal * TERRAIN_HEIGHT * (SD.hMul || 1);
 
             // --- Crater depression at summit ---
             // Push vertices near the peak center DOWN to create a bowl
@@ -804,7 +866,7 @@ export function initTerrain() {
                 const craterT = Math.max(0, 1.0 - dist / CRATER_R);
                 // Smoothstep-like curve for a natural bowl
                 const bowl = craterT * craterT * (3 - 2 * craterT);
-                height -= bowl * CRATER_D;
+                height -= bowl * CRATER_D * (SD.crMul || 1);
                 // Slight rim bump just outside the crater
                 if (dist > CRATER_R * 0.8 && dist < CRATER_R * 1.4) {
                     const rimT = 1.0 - Math.abs(dist - CRATER_R) / (CRATER_R * 0.4);
@@ -1100,11 +1162,25 @@ export function initTerrain() {
         // recompute normals; color/sand/emissive re-set themselves).
         window.__regenIsland = () => {
             const T = Math.PI * 2;
-            _isleSD = { a: Math.random() * T, b: Math.random() * T, c: Math.random() * T, d: Math.random() * T };
+            _isleSD = {
+                a: Math.random() * T, b: Math.random() * T,
+                c: Math.random() * T, d: Math.random() * T,
+                // Stature + crater depth roll with the shape phases.
+                hMul: 0.86 + Math.random() * 0.30,
+                crMul: 0.70 + Math.random() * 0.70,
+            };
             try {
                 bakeIsland();
                 mtnGeo.attributes.position.needsUpdate = true;
                 mtnGeo.computeVertexNormals();
+                // Fresh satellite skerries + a new cloud layout to match.
+                // (Shore foam is shipped hidden — fPts.visible=false — so
+                // its stale shoreline positions are inert by design.)
+                if (window.__rebuildSkerries) window.__rebuildSkerries();
+                if (window._cloud && window._cloud.mat.uniforms.uSeedOff) {
+                    window._cloud.mat.uniforms.uSeedOff.value.set(
+                        Math.random() * 7, Math.random() * 7, Math.random() * 7);
+                }
             } catch (e) { console.warn('island regen failed', e); }
         };
         const pos = mtnGeo.attributes.position;

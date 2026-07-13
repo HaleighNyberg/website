@@ -84,7 +84,7 @@ const RAMP_MS        = 900;  // spool-up from rest at page-open
 // spends all its motion in under a second and the rest reads as sitting
 // still. 5.8s keeps the approach visibly closing the whole way down.
 const DECEL_MS       = 5800; // braking segment: cruise speed -> glide
-const ZOOM_MS        = 2700; // final approach into the home framing
+const ZOOM_MS        = 3100; // final approach into the home framing
 // The brake never reaches zero: it exits the establishing pose at this
 // carried speed and the zoom curve inherits it exactly, so the camera is
 // in continuous motion from the first frame to the landing at HOME. (The
@@ -129,6 +129,16 @@ const FLARE_FADE_NEAR = 1900;
 function quintic(t) {
     const t3 = t * t * t;
     return t3 * (6 * t * t - 15 * t + 10);
+}
+
+// 7th-order smootherstep for the FINAL settle only: same endpoints and
+// zero end-slopes as the quintic, but velocity concentrates mid-flight,
+// so the last fifth of the zoom glides in at a fraction of the speed.
+// Measured on the quintic, deceleration compressed into the final
+// ~quarter second and the arrival read as a stop rather than a settle.
+function septic(t) {
+    const t4 = t * t * t * t;
+    return t4 * (35 - 84 * t + 70 * t * t - 20 * t * t * t);
 }
 
 function smoothstep(a, b, x) {
@@ -597,7 +607,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
         // gently onto the home line, and still lands on the quintic's
         // soft settle — the journey's only true stop is at HOME itself.
         const k = Math.min(1, inPhase / ZOOM_MS);
-        const e = quintic(k);
+        const e = septic(k);
         const glide = k * (1 - k) * (1 - k) * LAND_SPEED * (ZOOM_MS / 1000);
         pos.lerpVectors(ESTABLISH_POS, HOME_POS, e).addScaledVector(DIR, glide);
         look.lerpVectors(ESTABLISH_LOOK, HOME_LOOK, e);

@@ -18,7 +18,7 @@ import { initAudio } from './audio.js?v=real18';
 import { initAudioViz } from './audioViz.js?v=real18';
 import { resolveDailyParams, renderDailyLabel } from './dailyPlanet.js?v=real18';
 import { initTerminal } from './terminal.js?v=real18';
-import { initWeatherUI } from './weather.js?v=real18';
+import { initWeather } from './weather.js?v=real18';
 import { initVolcano } from './volcano.js?v=real18';
 import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real18';
 import { initChromePanel } from './chromePanel.js?v=real18';
@@ -165,7 +165,7 @@ function revealScene() {
             try { initAudio(); initAudioViz(); } catch (e) { console.warn('audio init failed', e); }
         }
         try { initReviewerUI(); } catch (e) { console.warn('reviewer UI init failed', e); }
-        try { initWeatherUI(); } catch (e) { console.warn('weather UI init failed', e); }
+        try { initWeather(); } catch (e) { console.warn('weather init failed', e); }
         try { initChromePanel(); } catch (e) { console.warn('chrome panel init failed', e); }
     }, 1200);
 }

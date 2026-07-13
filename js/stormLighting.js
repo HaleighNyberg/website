@@ -12,7 +12,7 @@ import { state, TERRAIN_HEIGHT, OCEAN_LEVEL } from './config.js?v=real18';
 // --- Peak-storm targets. Clear-weather anchors are captured at runtime. ---
 const STORM_SUN_COLOR   = new THREE.Color(0.58, 0.62, 0.72); // cool grey-blue
 const STORM_HEMI_SKY    = new THREE.Color(0.18, 0.21, 0.27); // slate
-const STORM_HEMI_GROUND = new THREE.Color(0.008, 0.012, 0.02); // inky
+const STORM_HEMI_GROUND = new THREE.Color(0.016, 0.022, 0.034); // dark slate — was inky (0.008/0.012/0.02) but the night side fell unreadable
 const STORM_AMB_COLOR   = new THREE.Color(0.10, 0.13, 0.20); // deep blue shift
 const STORM_RIM_COLOR   = new THREE.Color(0.28, 0.34, 0.44); // cool steel
 
@@ -27,8 +27,8 @@ const STORM_RIM_COLOR   = new THREE.Color(0.28, 0.34, 0.44); // cool steel
 // should come from the near-black deck overhead, not from starving
 // the terrain lights.
 const STORM_SUN_MUL  = 0.80;
-const STORM_HEMI_MUL = 0.82;
-const STORM_AMB_MUL  = 0.82;
+const STORM_HEMI_MUL = 0.90;
+const STORM_AMB_MUL  = 0.90;
 const STORM_RIM_MUL  = 0.72;
 
 // Cloud geometry — used to place the strike inside the cloud volume.
@@ -67,14 +67,19 @@ let _strikeLight = null;
 // channels fork off partway down. Two LineSegments share the buffer —
 // a thin hot core stacked with a wider glow for the two-tone look;
 // UnrealBloom turns the core into a visible streak.
-const BOLT_MAX_VERTS = 220; // main (32 segs) + up to 3 branches
+const BOLT_MAX_VERTS = 220;        // main channel (fractal, 32+ segs)
+const BOLT_BRANCH_VERTS = 128;     // branch forks, own buffer
 let _boltGeo = null;
+let _boltBranchGeo = null;
 let _boltCoreMat = null;
 let _boltGlowMat = null;
+let _boltBranchMat = null;
 let _boltCore = null;
 let _boltGlow = null;
+let _boltBranch = null;
 const _boltStart = new THREE.Vector3();
 const _boltEnd = new THREE.Vector3();
+const _strikeCube = new THREE.Vector3();
 
 // Lightning state machine. `flashQueue` holds scheduled sub-flash times in
 // seconds from now; `decayUntil` is the tail where we ease back to zero.
@@ -150,24 +155,53 @@ export function captureBaseline() {
         _boltGlow.frustumCulled = false;
 
         _boltCoreMat = new THREE.LineBasicMaterial({
-            color: 0xf4f8ff,
             transparent: true,
             opacity: 0,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
         });
+        // HDR-hot core: past the 0.8 bloom knee so the UnrealBloom halo
+        // does the "plasma channel" widening. Held to ~1.2 — at 1.6-1.95
+        // the 1-px line's HDR energy came out of the post chain as
+        // scattered zero-channel garbage pixels (magenta/green pips,
+        // owner-caught; isolation-tested: pips track the bolt, not the
+        // island, and vanish with the bolt layer-masked).
+        _boltCoreMat.color.setRGB(1.15, 1.2, 1.35);
         _boltCore = new THREE.LineSegments(_boltGeo, _boltCoreMat);
         _boltCore.renderOrder = 15;
         _boltCore.frustumCulled = false;
 
+        // Branches on their OWN buffer so they render dimmer than the
+        // main channel — a real strike's forks are decaying side leaders,
+        // not copies of the return stroke. Glow only, no hot core.
+        const bpos = new Float32Array(BOLT_BRANCH_VERTS * 3);
+        _boltBranchGeo = new THREE.BufferGeometry();
+        _boltBranchGeo.setAttribute('position', new THREE.BufferAttribute(bpos, 3));
+        _boltBranchGeo.setDrawRange(0, 0);
+        _boltBranchMat = new THREE.LineBasicMaterial({
+            color: 0x5c96e8,
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        _boltBranch = new THREE.LineSegments(_boltBranchGeo, _boltBranchMat);
+        _boltBranch.renderOrder = 13;
+        _boltBranch.frustumCulled = false;
+
         scene.add(_boltGlow);
         scene.add(_boltCore);
+        scene.add(_boltBranch);
     }
 
     if (window.matchMedia) {
         _prefersReducedMotion =
             window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
+
+    // Debug: fire a strike on the next frame (weather must be ≥0.7 for
+    // the sim to accept it — the panel sets that first).
+    window.__forceStrike = () => { _lightning.nextStrikeIn = 0; };
 }
 
 /** Smoothstep 0..1 for gentler shoulder at both ends of the fade. */
@@ -234,22 +268,31 @@ function _regenBoltPath(start, end) {
         branches.push(bPts);
     }
 
-    // --- Pack polylines into the LineSegments pair buffer ---
-    let v = 0;
-    function pushPolyline(pts) {
-        for (let i = 0; i < pts.length - 1 && v + 2 <= BOLT_MAX_VERTS; i++) {
-            pos[v * 3] = pts[i].x; pos[v * 3 + 1] = pts[i].y; pos[v * 3 + 2] = pts[i].z;
+    // --- Pack: main channel and branches into their OWN buffers so the
+    //     branches can render dimmer (decaying side leaders). ---
+    function pushPolyline(arr, cap, v0, pts) {
+        let v = v0;
+        for (let i = 0; i < pts.length - 1 && v + 2 <= cap; i++) {
+            arr[v * 3] = pts[i].x; arr[v * 3 + 1] = pts[i].y; arr[v * 3 + 2] = pts[i].z;
             v++;
-            pos[v * 3] = pts[i + 1].x; pos[v * 3 + 1] = pts[i + 1].y; pos[v * 3 + 2] = pts[i + 1].z;
+            arr[v * 3] = pts[i + 1].x; arr[v * 3 + 1] = pts[i + 1].y; arr[v * 3 + 2] = pts[i + 1].z;
             v++;
         }
+        return v;
     }
-    pushPolyline(mainPts);
-    for (const bPts of branches) pushPolyline(bPts);
-
-    _boltGeo.setDrawRange(0, v);
+    const vMain = pushPolyline(pos, BOLT_MAX_VERTS, 0, mainPts);
+    _boltGeo.setDrawRange(0, vMain);
     _boltGeo.attributes.position.needsUpdate = true;
     _boltGeo.computeBoundingSphere();
+
+    if (_boltBranchGeo) {
+        const bpos = _boltBranchGeo.attributes.position.array;
+        let vb = 0;
+        for (const bPts of branches) vb = pushPolyline(bpos, BOLT_BRANCH_VERTS, vb, bPts);
+        _boltBranchGeo.setDrawRange(0, vb);
+        _boltBranchGeo.attributes.position.needsUpdate = true;
+        _boltBranchGeo.computeBoundingSphere();
+    }
 }
 
 /** Pick a tint for this strike. Mostly cool-blue, sometimes near-white
@@ -311,16 +354,31 @@ function _scheduleStrike(t) {
         const ty = land ? (tr < 2.5 ? 2.6 : 1.1) : OCEAN_LEVEL;
         _boltEnd.set(tx, ty, tz);
 
-        const cloudY = (window._cloud && window._cloud.mesh)
-            ? window._cloud.mesh.position.y
-            : CLOUD_Y_FALLBACK;
+        const cm = window._cloud && window._cloud.mesh;
+        const cloudY = cm ? cm.position.y : CLOUD_Y_FALLBACK;
+        const cloudH = cm ? cm.scale.y : CLOUD_HEIGHT;
+        // Channel origin rides the UPPER deck (owner call): the bolt
+        // reads as coming down out of the cell top, its first stretch
+        // veiled by the volume. Track the LIVE mesh height — the deck
+        // rides lower/thicker under storm.
         _boltStart.set(
             tx + (Math.random() * 2 - 1) * 2.2,
-            cloudY + CLOUD_HEIGHT * (Math.random() * 0.20 - 0.05),
+            cloudY + cloudH * (0.28 + Math.random() * 0.14),
             tz + (Math.random() * 2 - 1) * 2.2
         );
         _strikeLight.position.copy(_boltStart);
         _regenBoltPath(_boltStart, _boltEnd);
+
+        // Hand the strike to the cloud volume so the deck lights from
+        // WITHIN around the channel (not just from the lamp below).
+        // worldToLocal on the unit-box mesh includes its scale, which
+        // IS the shader's march (cube) space.
+        if (window._cloud && window._cloud.mesh &&
+            window._cloud.mat.uniforms.uStrikeCube) {
+            _strikeCube.copy(_boltStart);
+            window._cloud.mesh.worldToLocal(_strikeCube);
+            window._cloud.mat.uniforms.uStrikeCube.value.copy(_strikeCube);
+        }
     }
 }
 
@@ -385,6 +443,9 @@ export function applyStormLighting(t, dt) {
     // not brighten on a real lightning strike (sun is behind the deck,
     // rim is a backside fill).
     const pump = _advanceLightning(t, dt || 0);
+    // Published for animate.js: the lens-flare ghosts chroma-sample the
+    // frame and must not see the bolt (see the flare block there).
+    state._strikePump = pump;
 
     // Sun: pure storm lerp. No flash component.
     sunLight.color.copy(_cSun);
@@ -447,9 +508,25 @@ export function applyStormLighting(t, dt) {
             _boltCoreMat.opacity = Math.min(1.0, 0.65 + pump * 0.55);
             _boltGlowMat.opacity = Math.min(0.95, 0.35 + pump * 0.60);
             _boltGlowMat.color.copy(_lightning.strikeColor);
+            if (_boltBranch) {
+                // Side leaders: dimmer, and they die FASTER than the
+                // return stroke (pump² tail) — uniform-brightness forks
+                // were the big "drawn, not physical" tell.
+                _boltBranch.visible = true;
+                _boltBranchMat.opacity = Math.min(0.6, pump * pump * 0.55);
+            }
         } else {
             _boltCore.visible = false;
             _boltGlow.visible = false;
+            if (_boltBranch) _boltBranch.visible = false;
         }
+    }
+
+    // Cloud volume strike glow — same pump envelope + tint as the lamp.
+    if (window._cloud && window._cloud.mat &&
+        window._cloud.mat.uniforms.uStrikeI) {
+        const cu = window._cloud.mat.uniforms;
+        cu.uStrikeI.value = pump;
+        if (pump > 0.001) cu.uStrikeColor.value.copy(_cStrike);
     }
 }

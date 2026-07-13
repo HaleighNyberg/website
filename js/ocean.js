@@ -387,9 +387,9 @@ export function initOcean() {
     //  - Path-length opacity: a horizontal sight-line crosses ~60 units of
     //    water (opaque); only the top half-metre stays translucent.
     //  - Sun-side response matches the island terminator.
-    // Shared deep-water brightness dial: the debug panel writes this and
+    // Shared deep-water brightness dial: written from the console, and
     // both the wall scatter floor and the seabed absorption floor scale
-    // by it, so the owner can dial the final basin brightness live.
+    // by it, so the final basin brightness can be dialed live.
     window.__deepLightU = window.__deepLightU || { value: 0.0 };
     const edgeWcMat = new THREE.ShaderMaterial({
         uniforms: {
@@ -595,12 +595,12 @@ export function updateOcean() {
     const tw = t % 600.0;
 
     // --- Water addon time update (wave animation is handled internally) ---
-    // Clear-weather speed 0.13 (from the original 0.35): the surface
-    // chop was scrolling visibly faster than anything else in the
-    // scene moves. Storm adds ~3x through a quadratic ramp (matching
+    // Clear-weather speed 0.085 (walked down from 0.35 → 0.13 → here):
+    // the surface chop still scrolled faster than anything else in the
+    // scene moves. Storm adds ~2.5x through a quadratic ramp (matching
     // the water-color ramp in animate.js) so mid-slider stays calm.
     const _ws = (window._weather && window._weather.smoothed) || 0;
-    const _waveSpeed = 0.13 + _ws * _ws * 0.30;
+    const _waveSpeed = 0.085 + _ws * _ws * 0.13;
     water.material.uniforms['time'].value += _waveSpeed / 60.0;
 
     // Sync the wave field to the dish spin. The shader samples its

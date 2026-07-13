@@ -1,9 +1,14 @@
-// Weather system: cross-fades the scene from clear/sunny (t=0) to
-// peak-storm (t=1). Clouds, rain, fog, and the storm-lighting module
-// all read window._weather.t each frame. The slider UI writes it.
+// Living weather: the island runs its own slow meteorology instead of a
+// user slider. A calm-biased epoch machine (clear → hazy → overcast →
+// storm and back, no teleports) picks targets; t ramps toward them at
+// weather-front speeds, with a small two-period gust wander inside each
+// epoch so nothing ever sits mathematically still. Clouds, rain, water
+// and the storm-lighting module all keep reading window._weather each
+// frame exactly as before.
 //
-// Defaults are clear/sunny so the island's shipping look is untouched
-// on first visit; the user opts into weather via the slider.
+// First epoch is always CLEAR and holds ≥ 90 s — a first-time visitor
+// judges the island in its shipping look before any weather moves in.
+// Reduced-motion visitors stay clear permanently.
 
 const PRM = typeof window !== 'undefined' &&
             window.matchMedia &&
@@ -15,14 +20,58 @@ window._weather = {
     suppressLightning: !!PRM,      // true under reduced-motion
 };
 
-const STORAGE_KEY = 'weather:v1';
+// --- Epoch definitions ---------------------------------------------------
+// base: centre of the band. spread: gust wander half-width. dwell in s.
+const EPOCHS = {
+    clear:    { base: 0.04, spread: 0.03, dwell: [70, 160] },
+    hazy:     { base: 0.28, spread: 0.06, dwell: [45, 100] },
+    overcast: { base: 0.55, spread: 0.06, dwell: [40, 90]  },
+    storm:    { base: 0.90, spread: 0.07, dwell: [50, 110] },
+};
+// Neighbour transitions only — weather fronts, not channel surfing.
+const NEXT = {
+    clear:    [['hazy', 1.0]],
+    hazy:     [['clear', 0.6], ['overcast', 0.4]],
+    overcast: [['hazy', 0.55], ['storm', 0.45]],
+    storm:    [['overcast', 1.0]],
+};
+// Ramp rates (t units per second). Fronts roll in faster than they clear.
+const RATE_BUILD = 0.020;   // toward a stormier target (~45 s clear→storm)
+const RATE_DECAY = 0.011;   // toward a calmer target (~80 s storm→clear)
+let _rateBoost = 1;         // re-roll uses a temporary faster front
 
-export function setWeather(t, opts = {}) {
+const _state = {
+    epoch: 'clear',
+    dwellLeft: 90 + Math.random() * 70,  // first epoch: never below 90 s
+    target: EPOCHS.clear.base,
+    phase1: Math.random() * Math.PI * 2, // gust oscillator phases
+    phase2: Math.random() * Math.PI * 2,
+    elapsed: 0,
+};
+
+function _pickNext(from) {
+    const opts = NEXT[from];
+    let r = Math.random();
+    for (const [name, w] of opts) {
+        if (r < w) return name;
+        r -= w;
+    }
+    return opts[opts.length - 1][0];
+}
+
+function _enterEpoch(name) {
+    const e = EPOCHS[name];
+    _state.epoch = name;
+    _state.dwellLeft = e.dwell[0] + Math.random() * (e.dwell[1] - e.dwell[0]);
+    _state.target = Math.max(0, Math.min(1,
+        e.base + (Math.random() * 2 - 1) * e.spread));
+}
+
+export function setWeather(t) {
+    // Manual override (easter eggs / console). The living process resumes
+    // from wherever this puts it — the next epoch change re-targets.
     const clamped = Math.max(0, Math.min(1, +t || 0));
     window._weather.t = clamped;
-    if (opts.persist !== false) {
-        try { localStorage.setItem(STORAGE_KEY, String(clamped)); } catch {}
-    }
     window.dispatchEvent(new CustomEvent('weather:change', { detail: { t: clamped } }));
 }
 
@@ -34,118 +83,72 @@ export function setSuppressLightning(on) {
     window._weather.suppressLightning = !!on;
 }
 
-// Frame update: eases smoothed value toward t so cross-fades don't
-// snap when the slider jumps. Called from the render loop.
+/** Re-seed the sky alongside an island re-roll: jump the machine to a
+ *  weighted-random epoch and let the front move in visibly faster than
+ *  natural weather (the click deserves a response), then settle back to
+ *  normal pacing. Calm states stay the most likely draw. */
+export function rerollWeather() {
+    if (PRM) return 'clear';
+    const r = Math.random();
+    const name = r < 0.35 ? 'clear' : r < 0.65 ? 'hazy' : r < 0.85 ? 'overcast' : 'storm';
+    _enterEpoch(name);
+    _rateBoost = 3.2;
+    return name;
+}
+
+/** Debug: jump straight to a named epoch at boosted front speed. */
+export function forceEpoch(name) {
+    if (!EPOCHS[name]) return;
+    _enterEpoch(name);
+    _rateBoost = 3.2;
+}
+window.__forceEpoch = forceEpoch;
+window.__weatherEpoch = () => _state.epoch;
+window.__rerollWeather = rerollWeather;
+
+// Frame update: advance the epoch machine, ramp t toward the epoch
+// target at front speed, ease `smoothed` after it. Called every frame
+// from the render loop.
 export function tickWeather(dt) {
     const w = window._weather;
-    const target = w.t;
-    // 0.8s time constant — fast enough to feel responsive, slow
-    // enough that dragging the slider doesn't flicker bloom/fog.
-    const k = 1.0 - Math.exp(-dt * 1.25);
-    w.smoothed += (target - w.smoothed) * k;
-}
-
-export function initWeatherUI() {
-    let slider = document.getElementById('weather-slider');
-    let label  = document.getElementById('weather-label');
-    // No static markup ships for this control — build it into the
-    // bottom-left chrome tile bar so the user can drive the weather.
-    if (!slider) {
-        const built = buildWeatherControl();
-        if (!built) return;
-        slider = built.slider;
-        label = built.label;
+    // Debug hooks: `manual` freezes the epoch machine (a panel slider
+    // owns t), `speed` fast-forwards the whole process for review.
+    if (w.manual) {
+        const km = 1.0 - Math.exp(-dt * 1.25);
+        w.smoothed += (w.t - w.smoothed) * km;
+        return;
     }
+    dt *= (w.speed || 1);
+    if (!PRM && dt > 0) {
+        const s = _state;
+        s.elapsed += dt;
+        s.dwellLeft -= dt;
+        if (s.dwellLeft <= 0) _enterEpoch(_pickNext(s.epoch));
 
-    // Every visit opens CLEAR. Weather changes only when the user moves
-    // the slider in THIS session — restoring a persisted storm across
-    // visits read as the site changing weather on its own.
-    const initial = 0;
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    slider.value = String(initial);
-    setWeather(initial, { persist: false });
-    updateLabel(label, initial);
+        // Gust wander: two incommensurate slow sines, so the value
+        // breathes inside the band without ever looping visibly.
+        const e = EPOCHS[s.epoch];
+        const gust = e.spread *
+            (Math.sin(s.elapsed * 0.48 + s.phase1) * 0.6 +
+             Math.sin(s.elapsed * 0.211 + s.phase2) * 0.4);
+        const goal = Math.max(0, Math.min(1, s.target + gust));
 
-    slider.addEventListener('input', () => {
-        const v = parseFloat(slider.value);
-        setWeather(v);
-        updateLabel(label, v);
-    });
+        const rate = (goal > w.t ? RATE_BUILD : RATE_DECAY) * _rateBoost;
+        const step = rate * dt;
+        w.t += Math.max(-step, Math.min(step, goal - w.t));
+        // Re-roll boost relaxes once the front has arrived.
+        if (_rateBoost > 1 && Math.abs(goal - w.t) < 0.02) _rateBoost = 1;
+    }
+    // 0.8s time constant — keeps per-frame consumers snap-free.
+    const k = 1.0 - Math.exp(-dt * 1.25);
+    w.smoothed += (w.t - w.smoothed) * k;
 }
 
-// Builds a weather tile matching the existing chrome tiles (mute /
-// resources / mail) plus a small popover holding the slider. All
-// nodes are created here so the shipped HTML stays untouched.
-function buildWeatherControl() {
-    const anyTile = document.querySelector('.chrome-tile');
-    if (!anyTile || !anyTile.parentElement) return null;
-    const bar = anyTile.parentElement;
-
-    const tile = document.createElement('div');
-    tile.className = 'chrome-tile';
-    tile.style.position = 'relative';
-
-    const btn = document.createElement('button');
-    btn.className = 'chrome-tile__btn';
-    btn.setAttribute('aria-label', 'Weather control');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.innerHTML =
-        '<svg aria-hidden="true" class="chrome-tile__icon" fill="none" height="16" ' +
-        'stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ' +
-        'stroke-width="2" viewBox="0 0 24 24" width="16">' +
-        '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>';
-    tile.appendChild(btn);
-
-    const pop = document.createElement('div');
-    pop.id = 'weather-pop';
-    pop.style.cssText = [
-        'position:absolute', 'bottom:calc(100% + 12px)', 'left:0',
-        'display:none', 'align-items:center', 'gap:10px',
-        'padding:10px 14px', 'width:200px', 'box-sizing:border-box',
-        'background:rgba(7,9,14,0.94)',
-        'border:1px solid rgba(236,231,219,0.26)', 'border-radius:0',
-        'z-index:30',
-    ].join(';');
-
-    const slider = document.createElement('input');
-    slider.id = 'weather-slider';
-    slider.type = 'range';
-    slider.min = '0';
-    slider.max = '1';
-    slider.step = '0.01';
-    slider.setAttribute('aria-label', 'Weather intensity');
-    slider.style.cssText = 'flex:1;accent-color:#d9a441;cursor:pointer;min-width:0';
-    pop.appendChild(slider);
-
-    const label = document.createElement('span');
-    label.id = 'weather-label';
-    label.style.cssText = [
-        'font-family:Inter,system-ui,sans-serif', 'font-weight:500',
-        'font-size:10px', 'letter-spacing:0.18em', 'text-transform:uppercase',
-        'color:#c9c3b4', 'min-width:62px', 'text-align:right', 'white-space:nowrap',
-    ].join(';');
-    pop.appendChild(label);
-
-    tile.appendChild(pop);
-    bar.appendChild(tile);
-
-    btn.addEventListener('click', () => {
-        const open = pop.style.display !== 'none' && pop.style.display !== '';
-        pop.style.display = open ? 'none' : 'flex';
-        btn.setAttribute('aria-expanded', String(!open));
-    });
-
-    return { slider, label };
-}
-
-function updateLabel(label, v) {
-    if (!label) return;
-    // Named bands so the slider feels meaningful, not just a number.
-    let name;
-    if (v < 0.08) name = 'clear';
-    else if (v < 0.30) name = 'hazy';
-    else if (v < 0.55) name = 'overcast';
-    else if (v < 0.80) name = 'raining';
-    else name = 'storm';
-    label.textContent = name;
+/** The living process needs no DOM — this exists so main.js has one
+ *  explicit init point (and a place to pin reduced-motion clear). */
+export function initWeather() {
+    if (PRM) {
+        window._weather.t = 0;
+        window._weather.smoothed = 0;
+    }
 }

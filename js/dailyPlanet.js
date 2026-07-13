@@ -98,10 +98,56 @@ export function renderDailyLabel() {
     inline.title = 'regenerate island';
     if (!inline.dataset.regenWired) {
         inline.dataset.regenWired = '1';
-        inline.addEventListener('click', () => {
+        // Re-roll feedback: the specimen id itself scrambles through a
+        // few random catalogue numbers before settling on the new one —
+        // the readout IS the animation, same instrument-panel voice as
+        // the rest of the chrome. Reduced motion skips straight to the
+        // final id.
+        const prm = window.matchMedia &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let scrambling = false;
+        const reroll = () => {
+            if (scrambling) return;
+            // One action, whole specimen: island shape + stature,
+            // skerries, cloud layout, and a fresh weather epoch.
             try { if (window.__regenIsland) window.__regenIsland(); } catch {}
+            try { if (window.__rerollWeather) window.__rerollWeather(); } catch {}
             p.label = specimenId();
-            inline.textContent = p.label;
-        });
+            if (prm) { inline.textContent = p.label; return; }
+            scrambling = true;
+            let ticks = 0;
+            const iv = setInterval(() => {
+                ticks += 1;
+                if (ticks >= 9) {
+                    clearInterval(iv);
+                    inline.textContent = p.label;
+                    scrambling = false;
+                    return;
+                }
+                inline.textContent =
+                    'G2026' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            }, 42);
+        };
+        inline.addEventListener('click', reroll);
+
+        // The discoverable handle: a bracketed mono verb in the same
+        // voice as the "text view" toggle and the ~/zone path labels.
+        // tabindex -1 — the hero seed line is decorative (aria-hidden),
+        // so this must not become a focus stop inside a hidden subtree.
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.tabIndex = -1;
+        btn.title = 'regenerate island';
+        btn.textContent = '[ new island ]';
+        btn.style.cssText = [
+            'background:none', 'border:none', 'padding:0', 'margin-left:10px',
+            'font:inherit', 'letter-spacing:inherit', 'text-transform:inherit',
+            'color:inherit', 'opacity:0.4', 'cursor:pointer',
+            'pointer-events:auto', 'transition:opacity 0.25s ease',
+        ].join(';');
+        btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.9'; });
+        btn.addEventListener('mouseleave', () => { btn.style.opacity = '0.4'; });
+        btn.addEventListener('click', (e) => { e.stopPropagation(); reroll(); });
+        inline.parentElement.appendChild(btn);
     }
 }
