@@ -387,7 +387,15 @@ export function initLighting() {
     // uploads, the compiles and the fade all happen out there, and let main.js
     // keep the flight at warp until _gatewayWarm. The swoop then runs on a
     // fully built, fully compiled scene.
-    const _kickGateway = () => _loadGateway();
+    // Exactly once. The backstop below fires on a timer whether or not the
+    // asset signal already kicked it, and without this guard that loads and
+    // attaches a SECOND station.
+    let _kicked = false;
+    const _kickGateway = () => {
+        if (_kicked) return;
+        _kicked = true;
+        _loadGateway();
+    };
     if (state._firstViewLoaded) {
         _kickGateway();
     } else {
