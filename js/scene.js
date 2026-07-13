@@ -58,7 +58,7 @@ export function initScene() {
     // EVERYTHING in the scene (island, dish, orbit lines) read as blurry /
     // low-res while the HTML text stayed crisp. 3.0 covers every common
     // Windows scaling factor at true native.
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3.0));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     // Applied by the OutputPass at the END of the composer chain (three
     // r152+ skips tone mapping when rendering into a render target, so
@@ -256,7 +256,7 @@ export function initScene() {
     // capped) because this scene is fragment-bound, not coverage-bound. The
     // low-power path takes none: a multisampled half-float target is exactly
     // what a weak GPU cannot afford.
-    const msaa = state.lowPower ? 0 : 8;
+    const msaa = state.lowPower ? 0 : 4;
     const pr = renderer.getPixelRatio();
     const msaaTarget = new THREE.WebGLRenderTarget(
         window.innerWidth * pr, window.innerHeight * pr,
@@ -322,9 +322,13 @@ export function initScene() {
     // can carry more contact-shadow weight again. The wide Poisson
     // denoise stays as the moiré guard.
     gtaoPass.blendIntensity = 0.62;
+    // Half resolution: this is an occlusion buffer, not an image. At full res
+    // (times a pixel ratio of up to 3) it was re-rendering the scene's geometry
+    // into a G-buffer the size of the screen, every frame, for a soft shadow term
+    // nobody can resolve at that detail.
     gtaoPass.setSize(
-        window.innerWidth * Math.min(window.devicePixelRatio, 3.0),
-        window.innerHeight * Math.min(window.devicePixelRatio, 3.0)
+        window.innerWidth * Math.min(window.devicePixelRatio, 2.0) * 0.5,
+        window.innerHeight * Math.min(window.devicePixelRatio, 2.0) * 0.5
     );
     composer.addPass(gtaoPass);
     state.gtaoPass = gtaoPass;
@@ -686,7 +690,7 @@ export function initScene() {
     // whole frame (live-bisected by the owner: FXAA on = the global
     // blur). SMAA does the same edge job with real edge detection, so
     // flat texture areas keep full sharpness.
-    const smaaPR = Math.min(window.devicePixelRatio, 3.0);
+    const smaaPR = Math.min(window.devicePixelRatio, 2.0);
     const smaaPass = new SMAAPass(
         window.innerWidth * smaaPR,
         window.innerHeight * smaaPR
@@ -778,9 +782,9 @@ export function initScene() {
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3.0));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setPixelRatio(Math.min(window.devicePixelRatio, 3.0));
+        composer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
         composer.setSize(window.innerWidth, window.innerHeight);
         dofPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
         if (state.lensFlarePass) state.lensFlarePass.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight);

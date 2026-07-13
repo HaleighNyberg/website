@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { state, SUN_WORLD_POSITION, OCEAN_LEVEL, OCEAN_RADIUS } from './config.js?v=real18';
 import { updateScene } from './lighting.js?v=real18';
+import { tickShadows } from './quality.js?v=real18';
 import { updateOcean } from './ocean.js?v=real18';
 import { updateGlassEnv } from './glass.js?v=real18';
 import { updateFly, updateDragPhysics } from './controls.js?v=real18';
@@ -271,6 +272,7 @@ function sampleAudio() {
 }
 
 export function startAnimateLoop() {
+    let _qFrame = 0;
     function animate() {
         requestAnimationFrame(animate);
         const dt = globalClock.getDelta();
@@ -585,6 +587,11 @@ export function startAnimateLoop() {
 
         // Update film grain time
         if (state.grainPass) state.grainPass.uniforms.time.value = elapsed;
+
+        // The shadow map runs on its own clock once adaptive quality has taken
+        // it off autoUpdate — the sun is static, so re-rendering the whole scene
+        // into a depth map every single frame buys nothing.
+        tickShadows(_qFrame++);
 
         state.composer.render();
     }

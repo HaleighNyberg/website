@@ -23,6 +23,7 @@ import { initVolcano } from './volcano.js?v=real18';
 import { captureBaseline as captureStormBaseline } from './stormLighting.js?v=real18';
 import { initChromePanel } from './chromePanel.js?v=real18';
 import { renderContent } from './content.js?v=real18';
+import { initAdaptiveQuality } from './quality.js?v=real18';
 
 // Populate the publications and projects lists before any zone activates,
 // so the staggered reveal sees fully-built mount points. Runs in both the
@@ -248,6 +249,10 @@ function revealScene() {
         try { initReviewerUI(); } catch (e) { console.warn('reviewer UI init failed', e); }
         try { initWeather(); } catch (e) { console.warn('weather init failed', e); }
         try { initChromePanel(); } catch (e) { console.warn('chrome panel init failed', e); }
+        // Measure the frame rate on the machine actually in front of us and
+        // throttle the repeat passes if it is struggling. Never fires on a
+        // machine that is coping.
+        try { initAdaptiveQuality(); } catch (e) { console.warn('adaptive quality failed', e); }
     }, 1200);
 }
 
