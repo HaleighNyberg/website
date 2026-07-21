@@ -895,9 +895,21 @@
 .cv-download-cta__icon { flex-shrink: 0; }
 
 .cv-section { margin-bottom: var(--space-6); }
+/* The embed is fit-to-width, so the sheet lands edge to edge on the frame
+   and the plugin's grey surround has nothing left to fill. Frame width is
+   therefore the zoom control: the reader column runs ~740px against a US
+   Letter page's 816px at 100%, which puts the document at about 91%.
+   Asking for a literal 100% costs sideways scrolling inside the frame,
+   which reads worse than the missing 9%. The 848 cap is the page plus the
+   plugin's own gutter - past that the grey would come back. Five pages
+   means the frame stays full of paper at any height, so it carries no
+   single-page aspect ratio. The plugin's page chrome cannot be styled;
+   this shapes the hole it draws into. */
 .cv-viewer {
     position: relative;
-    width: 100%;
+    width: min(100%, 848px);
+    height: clamp(520px, 82vh, 1040px);
+    margin-inline: auto;
     border: 1px solid var(--hairline);
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -906,8 +918,7 @@
 .cv-viewer iframe {
     display: block;
     width: 100%;
-    height: 78vh;
-    min-height: 520px;
+    height: 100%;
     border: 0;
     background: #fff;
 }

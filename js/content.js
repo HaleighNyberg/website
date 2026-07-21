@@ -48,7 +48,7 @@ const WORKS = [
         venue: 'IEEE SMC-IT/SCC, 6th AR/VR Workshop (co-author)',
     },
     {
-        year: '2024',
+        year: '2025',
         authors: 'Brown, H. E. et al.',
         title: 'Strengthening Community Across Artists and Scientists in Astrobiology',
         venue: 'NASA DARES report',
@@ -71,9 +71,9 @@ const PROJECTS = [
         title: 'NASA Artemis Gateway visualization',
         blurb: 'Scrum master for two 16-member, multi-university teams building an Unreal Engine VR visualization and mission-planning tool for NASA\'s Lunar Gateway, in partnership with Barrios Technology and NASA\'s Johnson Space Center (two semesters, through Purdue\'s Data Mine).',
         tags: ['Unreal Engine', 'VR', 'Agile / Scrum'],
-        links: [
-            { label: 'Backing publication (IEEE SMC-IT/SCC 2025)', href: 'https://github.com/HaleighNyberg' },
-        ],
+        // The backing IEEE SMC-IT/SCC paper has no public DOI yet, so it is
+        // credited in the Research proceedings list rather than linked here.
+        links: [],
     },
     {
         title: 'ExoPlaSim origin-of-life pipeline',
