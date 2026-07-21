@@ -1,7 +1,7 @@
-// shaderChunks.js — GLSL shared by the sky and flight shaders.
+// shaderChunks.js - GLSL shared by the sky and flight shaders.
 //
 // The nebula skybox (spaceEnv.js), the interstellar medium (corridor.js)
-// and the star shell (starShell.js) are all authored in display sRGB —
+// and the star shell (starShell.js) are all authored in display sRGB -
 // their palettes were graded against the final screen. The composer ends
 // in an OutputPass (three's ACES filmic at the renderer exposure, then a
 // linear->sRGB encode), so each of them runs the exact inverse of that
@@ -14,7 +14,7 @@
 // lighting.js).
 
 // The empty-space backdrop: ONE static gradient (deep-blue void floor with
-// a gentle vertical lift — the floor keeps non-OLED panels from crushing to
+// a gentle vertical lift - the floor keeps non-OLED panels from crushing to
 // black). Everything else in the sky is real geometry: the star shell and
 // the raymarched nebula volume. Returns display-sRGB; callers run it
 // through displayToSceneLinear like every other authored color.

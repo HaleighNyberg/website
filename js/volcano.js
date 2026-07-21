@@ -4,7 +4,7 @@ import { state } from './config.js?v=real18';
 // Volcano eruption sequence. Palette-locked to the existing lava pool /
 // molten underside (0xff5020 family) so an eruption reads as the same
 // magma system waking up, not a bolted-on particle demo. Restraint is
-// the design goal: one eruption is a ~17 s arc — a slow crater-glow
+// the design goal: one eruption is a ~17 s arc - a slow crater-glow
 // buildup, a burst of incandescent ejecta with a dark ash column, then
 // a long cooling tail. No screen shake, no global light pump; the sun
 // and the rest of the scene are untouched.
@@ -38,7 +38,7 @@ let _flashLight = null;
 let _phase = PHASE_IDLE;
 let _phaseT = 0;
 let _autoTimer = 200 + Math.random() * 200; // first auto eruption in 3-7 min
-let _particlesLive = false; // any ember/ash alive — gates idle work
+let _particlesLive = false; // any ember/ash alive - gates idle work
 let _craterY = 4.8;
 let _spawnCarryE = 0, _spawnCarryA = 0;
 const _scratchColor = new THREE.Color();
@@ -80,7 +80,7 @@ function makeSystem(count, texture, blending) {
         // uFarFade 1 = fade the particle out across 60→100u camera
         // distance. Embers only: at the resting distance a hot additive
         // ember is SUB-PIXEL, and sub-pixel hot pixels read as random
-        // red/magenta pips on the summit (green too on a 4K panel —
+        // red/magenta pips on the summit (green too on a 4K panel -
         // subpixel structure). Ash stays 0: its puffs are large and
         // soft, and the idle smoke column should read from anywhere.
         uniforms: { map: { value: texture }, uFarFade: { value: 0.0 } },
@@ -141,7 +141,7 @@ export function initVolcano() {
 
     // Eruption lamp: same hue family as the pool light but with reach,
     // so the burst paints the upper cone + nearby water. Kept INVISIBLE
-    // while idle — a visible PointLight is evaluated per-fragment by
+    // while idle - a visible PointLight is evaluated per-fragment by
     // every lit material in range even at intensity 0, and this one
     // covers most of the dish. The visibility flip costs one shader
     // permutation swap at eruption start, masked by the slow buildup.
@@ -265,7 +265,7 @@ export function updateVolcano(dt) {
     while (_spawnCarryA >= 1) { spawnAsh(_ashSys); _spawnCarryA -= 1; _particlesLive = true; }
 
     // Idle short-circuit: with no phase running and no particle alive
-    // there is nothing to integrate — and, more importantly, nothing to
+    // there is nothing to integrate - and, more importantly, nothing to
     // re-upload. The unconditional needsUpdate below was pushing all 8
     // attribute buffers to the GPU every frame for a dormant system.
     if (_phase === PHASE_IDLE && !_particlesLive) return;

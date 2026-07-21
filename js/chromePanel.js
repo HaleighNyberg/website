@@ -28,7 +28,7 @@ export function initChromePanel() {
     const panel = document.getElementById('chrome-panel');
     if (!panel) return;
 
-    // Mobile uses different chrome — the rail is display:none at 768px.
+    // Mobile uses different chrome - the rail is display:none at 768px.
     const desktop = window.matchMedia &&
                     window.matchMedia('(min-width: 769px) and (pointer: fine)').matches;
     if (!desktop) return;
@@ -69,7 +69,7 @@ export function initChromePanel() {
             if (kind === 'mute') setTilePlayingState(audioTile);
         });
     } else if (audioTile) {
-        // Audio not available — hide the tile entirely.
+        // Audio not available - hide the tile entirely.
         audioTile.style.display = 'none';
     }
 

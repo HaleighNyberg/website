@@ -1,4 +1,4 @@
-// Render loop — calls all update functions each frame
+// Render loop - calls all update functions each frame
 import * as THREE from 'three';
 import { state, SUN_WORLD_POSITION, OCEAN_LEVEL, OCEAN_RADIUS } from './config.js?v=real18';
 import { updateScene } from './lighting.js?v=real18';
@@ -17,7 +17,7 @@ import { applyStormLighting } from './stormLighting.js?v=real18';
 // Storm targets push the deck toward inky overcast: coverage maxes out,
 // cells fatten, sun punch through the canopy collapses, sky/ground
 // ambient flattens to cold slate + near-black, absorption flattens so
-// the base doesn't stay blue — it actually goes dark.
+// the base doesn't stay blue - it actually goes dark.
 const _weatherScratchSky    = new THREE.Color();
 const _weatherScratchGnd    = new THREE.Color();
 const _weatherScratchAbs    = new THREE.Vector3();
@@ -26,7 +26,7 @@ const _weatherScratchWaterS = new THREE.Color();
 const _weatherScratchWaterW = new THREE.Color();
 const CLEAR_CLOUD_SKY      = new THREE.Color(0.30, 0.44, 0.66);
 // Mid-slate, not inky. Keeps enough brightness on the sky-lit side of
-// each cell so cumulonimbus volume reads — silver edges stay visible
+// each cell so cumulonimbus volume reads - silver edges stay visible
 // instead of collapsing into a flat black lid.
 const STORM_CLOUD_SKY      = new THREE.Color(0.30, 0.35, 0.41);
 const CLEAR_CLOUD_GND      = new THREE.Color(0.06, 0.10, 0.16);
@@ -43,7 +43,7 @@ const STORM_ABSORPTION     = new THREE.Vector3(1.25, 1.40, 1.70);
 // against the dark deck without veering toward "snow white".
 const CLEAR_RAIN_COLOR     = new THREE.Color(0x9fb6d4);
 const STORM_RAIN_COLOR     = new THREE.Color(0x708aa6);
-// Water.js specular/diffuse "sun color" — cooling kills the warm
+// Water.js specular/diffuse "sun color" - cooling kills the warm
 // highlight on the chop so the ocean reads overcast.
 // Was (1.0, 1.0, 1.0). The pure-white reflection of the sun on the
 // water surface, transmitted through the glass dish at grazing angles,
@@ -52,7 +52,7 @@ const STORM_RAIN_COLOR     = new THREE.Color(0x708aa6);
 // initial sunColor.
 const CLEAR_WATER_SUN      = new THREE.Color(0.612, 0.557, 0.459);
 const STORM_WATER_SUN      = new THREE.Color(0.34, 0.40, 0.50);
-// Water body color — clear dish is near-black navy; storm pulls it to a
+// Water body color - clear dish is near-black navy; storm pulls it to a
 // darker slate so the surface reads heavier under the dim deck.
 const CLEAR_WATER_COLOR    = new THREE.Color(0x061e2e);
 const STORM_WATER_COLOR    = new THREE.Color(0x041018);
@@ -66,7 +66,7 @@ function _wSmooth(t) {
 
 // Clear-baseline snapshots: we capture init-time values from the cloud
 // uniforms the first frame they exist. Any other module that tunes phase
-// or sun-intensity at init gets respected — we only lerp between the
+// or sun-intensity at init gets respected - we only lerp between the
 // captured baseline and the storm target, never stomp clear-weather.
 let _cloudBaseline = null;
 
@@ -117,11 +117,11 @@ function applyWeatherToScene(wt, ws) {
         // the deck.
         if (u.uWindT) u.uWindT.value = (state._windT || 0) % 36000;
         // Storm decks swallow their own scattered light (dark bruised
-        // gray at full storm). Held short of 1.0 — the full value read
+        // gray at full storm). Held short of 1.0 - the full value read
         // as a black lid rather than heavy weather.
         if (u.uStormDark) u.uStormDark.value = ws * 0.85;
         // The deck rides LOWER and thicker as weather builds (the
-        // condensation level drops in moist air) — with the living
+        // condensation level drops in moist air) - with the living
         // weather this makes the sky visibly press down before rain.
         const cm = window._cloud.mesh;
         if (cm && cm.userData.baseY) {
@@ -134,13 +134,13 @@ function applyWeatherToScene(wt, ws) {
         // current ambient color.
         if (window.__cloudBaseU && cm) {
             // The VISIBLE cloud base, not the volume box floor. The march only
-            // starts producing density at its LCL — baseH = mix(0.02, 0.10,
-            // cell) in unit-cube height (effects.js) — so the cloud the eye
+            // starts producing density at its LCL - baseH = mix(0.02, 0.10,
+            // cell) in unit-cube height (effects.js) - so the cloud the eye
             // sees begins ~0.06 * scale.y ABOVE the box bottom, and the box
             // bottom itself dives under the summit at full storm. Feeding the
             // box floor is what tinted the peak cloud-grey while it was still
             // plainly below the deck. The +0.10 rides slightly high on purpose:
-            // erring toward "no tint" is always the right error — rock stays
+            // erring toward "no tint" is always the right error - rock stays
             // rock unless the cloud visibly reaches it.
             const boxBottom = cm.position.y - cm.scale.y * 0.5;
             window.__cloudBaseU.value = boxBottom + cm.scale.y * 0.06 + 0.10;
@@ -162,11 +162,11 @@ function applyWeatherToScene(wt, ws) {
         // Storm darkens the shadow so the terrain + water read visibly
         // shaded, not just tinted. Storm gain cut (0.38 -> 0.18): the
         // full-coverage shadow disc was the REAL reason the island went
-        // too dark at peak storm — it multiplied the whole dish on top
+        // too dark at peak storm - it multiplied the whole dish on top
         // of the already-dimmed lights.
         // Storm gain pulled back again (0.18 -> 0.07). The disc is a flat
         // circle just above the waterline, so it can only darken the OCEAN and
-        // the skirt — the mountain slopes above it receive no cloud shadow at
+        // the skirt - the mountain slopes above it receive no cloud shadow at
         // all. Ramping it hard under storm therefore had the water advertising
         // a moving shadow the island never got, which is a large part of why
         // the shadows read illogically. Keep it as a subtle sea-surface cue.
@@ -178,7 +178,7 @@ function applyWeatherToScene(wt, ws) {
 
     // Sun shadows go SOFT as the deck thickens. Nothing in the weather path
     // touched shadows before, so full storm rendered razor-crisp horizon-sun
-    // shadows and a hard terminator underneath a near-black overcast — the
+    // shadows and a hard terminator underneath a near-black overcast - the
     // core of "the shadows behave illogically". Overcast light is diffuse;
     // PCFSoftShadowMap's radius is the honest knob for that, and it costs the
     // island none of its brightness (which she asked to keep).
@@ -213,9 +213,9 @@ function applyWeatherToScene(wt, ws) {
         // Distortion: calmer at 3.2, choppier surface at 6.0 under storm.
         if (wu.distortionScale) wu.distortionScale.value = 3.2 + wsSea * 2.8;
         // Shallow-pool / shore-glow dimmer: the depth tint is direct
-        // sunlight through clear shallows — it dies under the deck.
+        // sunlight through clear shallows - it dies under the deck.
         if (wu.uStormDim) wu.uStormDim.value = wsSea;
-        // Do NOT touch wu.size — shrinking the normal tile reads as the
+        // Do NOT touch wu.size - shrinking the normal tile reads as the
         // camera zooming in on the water (tighter wavelets = apparent
         // scene scale change), not as choppier waves.
     }
@@ -239,7 +239,7 @@ function applyWeatherToScene(wt, ws) {
 const globalClock = new THREE.Clock();
 
 // Reusable scratch vectors for the sun lens-flare occlusion test. Values
-// are undefined outside the current frame — do NOT read across frames.
+// are undefined outside the current frame - do NOT read across frames.
 // Moon lens flare was removed (god rays are now a sun-only effect).
 const _sunNDC = new THREE.Vector3();
 // Golden-hour grade scratches.
@@ -250,7 +250,7 @@ const _v3b = new THREE.Vector3();
 const _islandQInv = new THREE.Quaternion();
 
 // Audio reactivity: when a sonification is playing the AnalyserNode
-// (js/audio.js) gets sampled each frame and split into three bands —
+// (js/audio.js) gets sampled each frame and split into three bands -
 // bass (sun halos + nebula filaments), mids (sky brightness swell),
 // treble (starfield shimmer). Smoothed with fast-attack slow-release
 // envelopes so the visuals feel breathing-responsive, not jittery.
@@ -260,14 +260,14 @@ let _audioTreble = 0;
 const _freqBins = new Uint8Array(128);
 
 function sampleAudio() {
-    // Scene-wide audio reactivity disabled — visualizer bars in
+    // Scene-wide audio reactivity disabled - visualizer bars in
     // js/audioViz.js still read the analyser directly. Holding the
     // band values at 0 leaves halos/orb/space-env/clouds/rain at
     // their static baselines.
     _audioBass = 0;
     _audioMid = 0;
     _audioTreble = 0;
-    // (Per-frame __audioBandsProbe object allocation removed — nothing
+    // (Per-frame __audioBandsProbe object allocation removed - nothing
     // ever read it; it was a debug probe left in the hot path.)
 }
 
@@ -282,7 +282,7 @@ export function startAnimateLoop() {
         // Static sun, orbiting moon, water, effects
         updateScene(elapsed);
 
-        // Audio reactivity — sun halos + orb scale pulse with bass,
+        // Audio reactivity - sun halos + orb scale pulse with bass,
         // starfield brightness pulses with treble.
         sampleAudio();
         // Sun-glow gate: 1 = resting look. The load-in flight
@@ -292,7 +292,7 @@ export function startAnimateLoop() {
         const sunGate = state._sunGlowGate ?? 1;
         if (state._sunHaloMat) {
             // Outer corona: 0.06 baseline -> 0.55 peak. The low baseline
-            // is load-bearing — it keeps the outer halo as a distinct
+            // is load-bearing - it keeps the outer halo as a distinct
             // ring around the tighter inner halo around the photosphere
             // orb. Raising the baseline blurs the three layers into one
             // soft blob instead of three readable rings.
@@ -304,7 +304,7 @@ export function startAnimateLoop() {
             state._sunHaloInnerMat.opacity = (0.14 + _audioBass * 0.70) * sunGate;
         }
         if (state.sunOrb) {
-            // Orb scale pulses 1.0 -> 1.22 on bass hits — visibly breathes.
+            // Orb scale pulses 1.0 -> 1.22 on bass hits - visibly breathes.
             const s = 1.0 + _audioBass * 0.22;
             state.sunOrb.scale.setScalar(s);
         }
@@ -313,12 +313,12 @@ export function startAnimateLoop() {
             if (u.uNebulaPulse) u.uNebulaPulse.value = _audioBass;
             if (u.uSkyPulse)    u.uSkyPulse.value    = _audioMid;
         }
-        // The stars moved out of the skybox shader onto the 3D shell —
+        // The stars moved out of the skybox shader onto the 3D shell -
         // the treble pulse (Hubble sonification breathing) moves with them.
         if (state._starShellMat && state._starShellMat.uniforms.uPulse) {
             state._starShellMat.uniforms.uPulse.value = _audioTreble;
         }
-        // The nebula volume marches from the real camera every frame —
+        // The nebula volume marches from the real camera every frame -
         // it is the resting sky as much as the flight medium. The bass
         // pulse that used to breathe the painted nebula breathes it now.
         if (state._nebulaVol) {
@@ -326,7 +326,7 @@ export function startAnimateLoop() {
             state._nebulaVol.setPulse(_audioBass);
         }
         // The layered star fields each carry a fraction of the real
-        // (splice-corrected) camera motion — everything in the sky must
+        // (splice-corrected) camera motion - everything in the sky must
         // visibly move when we move (owner-locked), and the per-layer k
         // builds a continuous parallax ramp down to the deepest field.
         // Zone moves at rest shift even the fastest layer well under a
@@ -340,7 +340,7 @@ export function startAnimateLoop() {
             }
         }
 
-        // Rotate island centerpiece — slow turntable about Y axis.
+        // Rotate island centerpiece - slow turntable about Y axis.
         // Clamp dt to avoid visible jumps from frame-time spikes (tab
         // switch, GC pause, compositor stall). 0.05 = 20fps floor.
         const dtClamped = Math.min(dt, 0.05);
@@ -348,9 +348,9 @@ export function startAnimateLoop() {
         // of every rotation-driven shading beat (grid facets, AO moiré,
         // glint twinkle all pulse at rotation x feature-pitch). Slower
         // than halving it drops those beats from flicker range (~2.5 Hz)
-        // to a slow living shimmer — and a more stately turn reads
+        // to a slow living shimmer - and a more stately turn reads
         // BIGGER, which suits the massive-scale dish.
-        // __dishSpin is a console multiplier (0 freezes the dish) — the
+        // __dishSpin is a console multiplier (0 freezes the dish) - the
         // handle for isolating rotation-gated shimmer.
         state.islandGroup.rotation.y += 0.008 * dtClamped * (window.__dishSpin ?? 1);
 
@@ -372,7 +372,7 @@ export function startAnimateLoop() {
         const wt = (window._weather && window._weather.smoothed) || 0;
         const ws = _wSmooth(wt);
         // Integrated cloud wind phase: speed scales with storm, phase
-        // accumulates — dragging the slider changes VELOCITY smoothly
+        // accumulates - dragging the slider changes VELOCITY smoothly
         // instead of teleporting the deck pattern.
         state._windT = (state._windT || 0) + Math.min(dt, 0.05) * (1.0 + ws * 3.0);
         // Lights ride the SMOOTHED weather, like everything else. Feeding them
@@ -383,7 +383,7 @@ export function startAnimateLoop() {
 
         // Rain: bass adds a pulse, weather gates total amount. Below
         // wt≈0.10 the rain dies entirely so a sunny slider reads as
-        // actually sunny — no stray drops under clear sky. Intensity
+        // actually sunny - no stray drops under clear sky. Intensity
         // climbs past 1.0 at peak storm so streaks really saturate.
         if (window._rain) {
             const rainGate = Math.max(0, (wt - 0.08) / 0.92);
@@ -395,7 +395,7 @@ export function startAnimateLoop() {
         updateVolcanicEffects(dt);
         updateVolcano(dt);
 
-        // Zone detection — spatial content based on camera position
+        // Zone detection - spatial content based on camera position
         updateZones(state.camera);
 
         // --- Underwater bloom dampening ---
@@ -407,10 +407,10 @@ export function startAnimateLoop() {
         // scene reads the same as before.
         if (state.bloomPass) {
             // Underwater halves bloom (see above). Storm weather also
-            // pulls it down — a heavy cloud deck shouldn't read as a
+            // pulls it down - a heavy cloud deck shouldn't read as a
             // bright hemisphere. ws is the smoothed weather fade.
             const wsBloom = _wSmooth((window._weather && window._weather.smoothed) || 0);
-            // Base 0.24 (was 0.6): owner-tuned to a restrained glow —
+            // Base 0.24 (was 0.6): owner-tuned to a restrained glow -
             // this is the shipped look.
             const above = 0.24 * (1 - wsBloom * 0.55);
             state.bloomPass.strength = state.camera.position.y < OCEAN_LEVEL ? 0.072 : above;
@@ -430,8 +430,8 @@ export function startAnimateLoop() {
         // fade out as the sun crosses the NDC overscan edge.
         if (state.lensFlarePass) {
             const u = state.lensFlarePass.uniforms;
-            // FROZEN clock: the flare shader animates on iTime — rotating
-            // ghost wheels, hue-cycling lobes, a swinging starburst — and
+            // FROZEN clock: the flare shader animates on iTime - rotating
+            // ghost wheels, hue-cycling lobes, a swinging starburst - and
             // those sweeps crossing the dish read as an oscillating blue
             // pulse over the island/ocean (A/B: disabling this pass
             // stabilized consecutive frames completely). A real camera's
@@ -501,24 +501,24 @@ export function startAnimateLoop() {
                     // Pass stays enabled whenever the sun is in front of
                     // the camera. The screen-wide warm wash (f1..f6 in
                     // mLs) reads even when the sun is well off-screen,
-                    // which is the whole point of this fix — it's what
+                    // which is the whole point of this fix - it's what
                     // anchors the "atmospheric" feel in side-on poses.
                     u.enabled.value = true;
                     u.lensPosition.value.set(sunNDC.x, sunNDC.y);
                     // The load-in scales the whole flare contribution
                     // through its own gate (separate from the halo gate,
                     // which leads it): 0 during the transit void, rising
-                    // over the last stretch of the brake — arrival glare —
+                    // over the last stretch of the brake - arrival glare -
                     // and 1 at rest.
                     u.opacity.value = 1.0 - vis * 0.25 * (state._flareGate ?? 1);
                     u.colorGain.value.set(35, 15, 6);
-                    // Ghost/streak/glare lobes fade with onScreen — they
+                    // Ghost/streak/glare lobes fade with onScreen - they
                     // are the physical lens artifacts that require the
                     // bright body to actually be in the optical path.
                     u.glareSize.value = 0.06 * vis * onScreen;
                     u.flareSize.value = 0.002 * vis * onScreen;
                     // Ghosts/streaks sample the frame with per-channel
-                    // (chromatic) UV offsets — during a lightning flash
+                    // (chromatic) UV offsets - during a lightning flash
                     // they ghost the thin HDR bolt into scattered
                     // single-channel pixels (magenta/green pips at the
                     // island, owner-caught; isolation-tested to track the
@@ -538,7 +538,7 @@ export function startAnimateLoop() {
             }
         }
 
-        // Cloud volume update — camera-relative origin each frame, sun
+        // Cloud volume update - camera-relative origin each frame, sun
         // direction transformed into islandGroup local space (the group
         // slowly spins around Y so a world-space sun would swim across
         // the clouds), drift time, and audio density bump so the deck
@@ -589,7 +589,7 @@ export function startAnimateLoop() {
         if (state.grainPass) state.grainPass.uniforms.time.value = elapsed;
 
         // The shadow map runs on its own clock once adaptive quality has taken
-        // it off autoUpdate — the sun is static, so re-rendering the whole scene
+        // it off autoUpdate - the sun is static, so re-rendering the whole scene
         // into a depth map every single frame buys nothing.
         tickShadows(_qFrame++);
 

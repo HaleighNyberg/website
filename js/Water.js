@@ -88,7 +88,7 @@ class Water extends Mesh {
 					'oceanRadius': { value: 31.5 },
 					// Sun-glint character (scene picker presets):
 					// lobe tightness and strength of the analytic sun
-					// path — this term IS the sun's reflection (see the
+					// path - this term IS the sun's reflection (see the
 					// clamp note at the mirror sample).
 					'uGlintShiny': { value: 110.0 },
 					'uGlintSpec': { value: 1.9 },
@@ -138,7 +138,7 @@ class Water extends Mesh {
 				uniform vec3 sunDirection;
 				uniform vec3 eye;
 				uniform vec3 waterColor;
-				uniform float dishRotation; // angle of dish rotation — syncs wave scroll
+				uniform float dishRotation; // angle of dish rotation - syncs wave scroll
 				uniform float oceanRadius;  // for radial depth color variation
 				uniform float uGlintShiny;
 				uniform float uGlintSpec;
@@ -164,10 +164,10 @@ class Water extends Mesh {
 					// Fine detail layer (original)
 					vec2 uv0 = ( uv / 103.0 ) + vec2(time / 17.0, time / 29.0);
 					vec2 uv1 = uv / 107.0-vec2( time / -19.0, time / 31.0 ) + vec2( 0.23, 0.71 );
-					// Large-scale wave layer — visible from orbital distance
+					// Large-scale wave layer - visible from orbital distance
 					vec2 uv2 = uv / vec2( 17.0, 19.0 ) + vec2( time / 101.0, time / 97.0 ) + vec2( 0.51, 0.13 );
 					vec2 uv3 = uv / vec2( 23.0, 21.0 ) - vec2( time / 109.0, time / -113.0 ) + vec2( 0.88, 0.37 );
-					// (A 5th micro-ripple tap lived here briefly — cut: the
+					// (A 5th micro-ripple tap lived here briefly - cut: the
 					// water shader covers a huge screen area and renders
 					// twice via the mirror pass, and the extra fetch cost
 					// ~6fps. The four offset taps carry the detail.)
@@ -202,7 +202,7 @@ class Water extends Mesh {
 
 					// Distance-based normal flattening (ocean LOD): far
 					// from the camera the wave normals are SUB-PIXEL, and
-					// their moving speculars strobe — the persistent
+					// their moving speculars strobe - the persistent
 					// shimmer along the dish rim. Flattening toward the
 					// up-vector with distance keeps full chop up close
 					// (water-level views) and a calm, stable sheen at
@@ -210,13 +210,13 @@ class Water extends Mesh {
 					// post-AA can fix on moving sub-pixel detail.
 					// Fade starts at 150u (was 60): the flicker floor is
 					// structurally fixed elsewhere, so mid-range water
-					// keeps its living chop — only the far rim (where
+					// keeps its living chop - only the far rim (where
 					// wavelets are genuinely sub-pixel) flattens.
 					float camDist = length( eye - worldPosition.xyz );
 					// Cap dropped again 0.65 -> 0.35: the flattening zone is
 					// exactly where the sun's mirror trail lives (the far
 					// half of the disc), and flat normals collapse what
-					// should be a long shimmering COLUMN into a small pool —
+					// should be a long shimmering COLUMN into a small pool -
 					// the reason the glint presets read as doing nothing.
 					// SMAA + specular caps now carry the strobe protection.
 					float lodFade = clamp( ( camDist - 150.0 ) / 300.0, 0.0, 0.35 );
@@ -273,7 +273,7 @@ class Water extends Mesh {
 					float sunFacing = dot(fragDir2D, sunDir2D) * 0.5 + 0.5; // 0=night, 1=day
 					sunFacing = mix(0.25, 1.0, sunFacing); // night side gets 25% of shallow brightness
 					// The shallow teal is DIRECT SUNLIGHT scattered out of
-					// clear shallow water — under a storm deck it dies with
+					// clear shallow water - under a storm deck it dies with
 					// the sun. This constant is what made the sun-side pool
 					// glow storm-proof in top-down views (scatter runs it
 					// through a 1.6x gain, so dim it at the source).
@@ -281,14 +281,14 @@ class Water extends Mesh {
 					vec3 deepCol    = waterColor;
 					vec3 localWaterColor = mix(shallowCol, deepCol, depthT);
 
-					// Subsurface scatter — weaker on the night side. Raised
+					// Subsurface scatter - weaker on the night side. Raised
 					// 1.2 -> 1.6 to hand back the brightness the diffuse cut
 					// removed, but as WATER-COLORED light instead of grey.
 					float sss = pow( max( 0.0, dot( surfaceNormal, eyeDirection ) ), 1.5 );
 					vec3 scatter = sss * localWaterColor * 1.6 * sunFacing;
-					// Depth-tinted ambient — darker water absorbs more red
+					// Depth-tinted ambient - darker water absorbs more red
 					vec3 depthTint = localWaterColor * 0.15;
-					// Shore proximity brightening — subtle lightening near island.
+					// Shore proximity brightening - subtle lightening near island.
 					// Was (1.0 - depthT) * 0.08: a flat white lift that spanned
 					// from the island out to ~85% of the dish radius, which in
 					// the top-down framing washed the whole inner ocean up to
@@ -309,19 +309,19 @@ class Water extends Mesh {
 					// Grazing-view fade: seen edge-on (the rim band from
 					// outside the dish), the crest flecks line up into a
 					// chain of DISCRETE white dashes along the waterline.
-					// Foam is a top-down phenomenon — kill it as the view
+					// Foam is a top-down phenomenon - kill it as the view
 					// flattens toward the surface plane.
 					float grazeView = pow(1.0 - abs(eyeDirection.y), 3.0);
 					// Rim kill: at the glass boundary the flecks trace the
 					// dish edge as a chain of discrete bright dashes from
 					// low/under views (the grazing fade alone misses camera
 					// poses below the surface plane). Crests are a mid-ocean
-					// read — fade them out entirely over the last ~1.6u
+					// read - fade them out entirely over the last ~1.6u
 					// before the wall.
 					float crestRim = smoothstep(oceanRadius - 0.4, oceanRadius - 2.0, radialDist);
 					vec3 crestCol = vec3(0.55, 0.62, 0.66) * crest * sunSide * 0.5 * (1.0 - grazeView * 0.9) * crestRim;
 					// The reflected branch is capped as a WHOLE, and the cap
-					// must sit BELOW the 0.8 bloom threshold — at 0.82 the
+					// must sit BELOW the 0.8 bloom threshold - at 0.82 the
 					// glint area still fed bloom and fuzzed into a white
 					// patch. 0.74 renders as a crisp bright trail with zero
 					// bloom contribution.
@@ -337,7 +337,7 @@ class Water extends Mesh {
 					// The sun's glitter path gets its OWN additive channel.
 					// Buried inside reflBranch it is multiplied by the
 					// mirror sample (near-black space, ~0.1) and then by
-					// mean-surface fresnel (~0.05 at steep angles) — a
+					// mean-surface fresnel (~0.05 at steep angles) - a
 					// 30-60x crush that reduced every glint preset to one
 					// blob at the horizon. Real sun glitter is per-facet:
 					// wave faces tilted into the mirror geometry reflect

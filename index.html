@@ -6,6 +6,15 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <link href="mountain_height_8bit.webp" rel="preload" as="image" type="image/webp" crossorigin="anonymous">
 <link href="ocean_floor.webp" rel="preload" as="image" type="image/webp" crossorigin="anonymous">
+<!-- The bundle is the last thing the parser reaches but the first thing the
+         scene needs; start it with the stylesheets instead. The token must match
+         the <script> at the end of <body> exactly or the file is fetched twice. -->
+<link href="./js/app.bundle.js?v=real49" rel="modulepreload" crossorigin="anonymous">
+<!-- The three faces the header and hero paint with. Without these they are
+         discovered only after the CSS parses, and the first reveal swaps faces. -->
+<link href="assets/fonts/Nasalization Rg.otf" rel="preload" as="font" type="font/otf" crossorigin="anonymous">
+<link href="assets/fonts/JetBrainsMono-Regular.woff2" rel="preload" as="font" type="font/woff2" crossorigin="anonymous">
+<link href="assets/fonts/Inter-Light.woff2" rel="preload" as="font" type="font/woff2" crossorigin="anonymous">
 <title>Haleigh Nyberg &middot; Astrobiology & Computational Science</title>
 <meta content="Haleigh Nyberg &middot; Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." name="description">
 <meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science" property="og:title">
@@ -15,16 +24,17 @@
 <meta content="summary_large_image" name="twitter:card">
 <meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science" name="twitter:title">
 <meta content="Astrobiology PhD candidate at Purdue University. Computational modeling of exoplanetary habitability and origin of life conditions." name="twitter:description">
-<meta content="https://haleighnyberg.com/assets/photos/og-image.png" property="og:image">
+<meta content="https://haleighnyberg.com/assets/photos/og-image.jpg" property="og:image">
+<meta content="image/jpeg" property="og:image:type">
 <meta content="1440" property="og:image:width">
 <meta content="900" property="og:image:height">
 <meta content="Haleigh Nyberg &middot; Astrobiology & Computational Science portfolio" property="og:image:alt">
-<meta content="https://haleighnyberg.com/assets/photos/og-image.png" name="twitter:image">
+<meta content="https://haleighnyberg.com/assets/photos/og-image.jpg" name="twitter:image">
 <link href="https://haleighnyberg.com/" rel="canonical">
 <link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;circle cx='16' cy='16' r='14' fill='%23051525' stroke='%234A7FA5' stroke-width='1.5'/&gt;&lt;circle cx='16' cy='16' r='3' fill='%23ae7634'/&gt;&lt;/svg&gt;" rel="icon">
 <link href="css/style.css?v=real44" rel="stylesheet">
 <link href="css/brand.css?v=real44" rel="stylesheet">
-<link href="css/zones.css?v=real47" rel="stylesheet">
+<link href="css/zones.css?v=real49" rel="stylesheet">
 <script>
         try {
             if (localStorage.getItem('reviewer') === '1') {
@@ -61,14 +71,60 @@
 <a class="skip-link" href="#content-overlay">Skip to content</a>
 <!-- Loading screen. Title and progress bar start fully transparent and
          are faded in by loadingApproach.js at scripted timestamps during
-         the camera fly-in — no pre-JS flash of small letters. -->
+         the camera fly-in - no pre-JS flash of small letters. -->
 <!-- Black cover only. It hides the very first pre-render frame, then fades
          to reveal the live deep-space approach (js/loadingApproach.js). No
-         name, no bar, no spinner — the intro IS the flight. -->
+         name, no bar, no spinner - the intro IS the flight. -->
 <div id="loading-screen"></div>
 <!-- Mono load telemetry, shown only during a slow warp hold (js/main.js). -->
 <div id="approach-telemetry" aria-hidden="true"></div>
-<!-- Content overlay — sits on top of canvas, pointer-events none -->
+<!-- Without scripting the black cover never lifts and every zone stays at
+         opacity 0, so the page would read as broken. Lift the cover and stand
+         in with the same facts in plain markup. -->
+<noscript>
+<style>
+        #loading-screen, #approach-telemetry { display: none !important; }
+        .no-js-card {
+            position: relative;
+            z-index: 50;
+            max-width: 46rem;
+            margin: 0 auto;
+            padding: 12vh 1.75rem 4rem;
+            font-family: var(--font-mono, ui-monospace, monospace);
+            color: var(--text-secondary, #b8c7d9);
+            line-height: 1.6;
+        }
+        .no-js-card h1 {
+            font-family: var(--font-display, var(--font-mono, monospace));
+            font-size: 1.9rem;
+            letter-spacing: 0.08em;
+            color: var(--text-primary, #eaf1f8);
+            margin: 0 0 0.35rem;
+        }
+        .no-js-card .no-js-sub { font-size: 0.78rem; color: var(--ink-300, #7d93ab); margin: 0 0 2rem; }
+        .no-js-card p { margin: 0 0 1.15rem; }
+        .no-js-card .no-js-lead { color: var(--text-primary, #eaf1f8); font-size: 1.05rem; }
+        .no-js-card ul { list-style: none; padding: 0; margin: 2rem 0 0; }
+        .no-js-card li { padding: 0.4rem 0; border-top: 1px solid var(--hairline, rgba(120,160,200,0.18)); }
+        .no-js-card a { color: var(--blue-400, #6fa8d6); }
+    </style>
+<div class="no-js-card">
+<h1>Haleigh Nyberg</h1>
+<p class="no-js-sub">~$ phd candidate (abd) &middot; astrobiology &middot; purdue eaps</p>
+<p class="no-js-lead">Hi! I'm Haleigh and I build island worlds to see if they could host an origin of life.</p>
+<p>The island on this page is simulated in your browser as you watch it, so the visual half of this site needs JavaScript switched on. The written half is all here.</p>
+<p>I run ExoPlaSim (a 3D general circulation model) across obliquity, rotation rate, and host star to find which planets allow the wet-dry cycling that warm little ponds need. NSF Graduate Research Fellow and Zonta Amelia Earhart Fellow, in Dr. Stephanie Olson's PHAB Lab at Purdue.</p>
+<ul>
+<li><a href="assets/Nyberg_CV.pdf" download>Curriculum vitae (PDF)</a></li>
+<li><a href="mailto:haleigh@purdue.edu">haleigh@purdue.edu</a></li>
+<li><a href="https://scholar.google.com/citations?user=5SRk2uIAAAAJ" rel="noopener" target="_blank">Google Scholar</a></li>
+<li><a href="https://orcid.org/0009-0000-8593-9188" rel="noopener" target="_blank">ORCID 0009-0000-8593-9188</a></li>
+<li><a href="https://github.com/HaleighNyberg" rel="noopener" target="_blank">GitHub</a></li>
+<li><a href="https://www.linkedin.com/in/haleighnyberg/" rel="noopener" target="_blank">LinkedIn</a></li>
+</ul>
+</div>
+</noscript>
+<!-- Content overlay - sits on top of canvas, pointer-events none -->
 <!-- Fixed header: name + tagline + section nav (always visible) -->
 <div id="site-header">
 <h1 class="display display--hero">Haleigh Nyberg</h1>
@@ -95,7 +151,7 @@
 <!-- ZONE: Default (hero / landing) -->
 <div class="zone zone--default" id="zone-default">
 <div class="zone__body">
-<!-- Hero statement — bottom-left lockup over the full-bleed scene.
+<!-- Hero statement - bottom-left lockup over the full-bleed scene.
                      Reveal is gated on #site-header.revealed so it never shows
                      during the fly-in approach. -->
 <div class="home-hero">
@@ -120,14 +176,14 @@
                      and removing the style="display:none" on #home-typed-msg. -->
 </div>
 </div>
-<!-- ZONE: About (top-down view — looking down at the island = looking at who studies it) -->
+<!-- ZONE: About (top-down view - looking down at the island = looking at who studies it) -->
 <div class="zone zone--about" id="zone-about">
 <p aria-hidden="true" class="zone__no">02 <span class="zone__path">~/about</span></p>
 <h2 class="display display--zone">About</h2>
 <div class="zone__body">
-<img loading="lazy" decoding="async" alt="Haleigh Nyberg" class="about-headshot" src="assets/photos/headshot.jpg">
-<p class="body">Liquid water is the usual test for habitability, and it is a weak one. It tells you a planet could <em>keep</em> life alive &mdash; not that life could ever have <em>started</em> there. That second question is what my doctoral work is for: which planetary conditions actually favour an origin of life, and how to point missions like NASA's Habitable Worlds Observatory and ESA's PLATO at the planets where one plausibly happened.</p>
-<p class="body">In Dr. Stephanie Olson's PHAB Lab at Purdue, I use ExoPlaSim and a custom post-processing pipeline to simulate volcanic island worlds across obliquity, rotation rate, and stellar host, tracking the wet-dry cycling and prebiotic-organic accumulation that prefigure abiogenesis. The deliverable is an Origin of Life Index (a pre-computed ranking of exoplanet targets by their likelihood of originating, not just sustaining, life).</p>
+<img width="300" height="300" loading="lazy" decoding="async" alt="Haleigh Nyberg" class="about-headshot" src="assets/photos/headshot.jpg">
+<p class="body">Liquid water is the usual test for habitability. It tells you a planet could <em>keep</em> life alive, not that life could ever have <em>started</em> there. That second question is what my doctoral work is for: which planetary conditions actually favor an origin of life, and how to inform target prioritization for direct-imaging missions like NASA's Habitable Worlds Observatory.</p>
+<p class="body">In Dr. Stephanie Olson's PHAB Lab at Purdue, I use ExoPlaSim and a custom post-processing pipeline to simulate volcanic island worlds across obliquity, rotation rate, and stellar host, tracking the wet-dry cycling and prebiotic-organic accumulation that prefigure abiogenesis. The deliverable is an Origin of Life Index, ranking exoplanet targets by their potential for the wet-dry cycling an origin of life is thought to need, rather than by whether they could merely sustain it.</p>
 <ul class="about-recognition" aria-label="Fellowships and recognition">
 <li class="cred-chip">NSF Graduate Research Fellow</li>
 <li class="cred-chip">Zonta Amelia Earhart Fellow</li>
@@ -135,41 +191,41 @@
 <li class="cred-chip">Summa Cum Laude</li>
 <li class="cred-chip">NASA Space Grant (INSGC)</li>
 <li class="cred-chip">AGU Invited Speaker (2025)</li>
-<li class="cred-chip">Session Chair, Goldschmidt 2026 (upcoming)</li>
+<li class="cred-chip">Session Co-convener, Goldschmidt 2025 and 2026</li>
 </ul>
 <figure class="photo-figure">
-<img loading="lazy" decoding="async" alt="Gateway visualization team — Spring 2025 cohort at Purdue" class="about-talk-photo about-talk-photo--hero" src="assets/photos/gateway-sem1/20250429_140624.webp">
+<img width="1200" height="900" loading="lazy" decoding="async" alt="Gateway visualization team - Spring 2025 cohort at Purdue" class="about-talk-photo about-talk-photo--hero" src="assets/photos/gateway-sem1/20250429_140624.webp">
 <figcaption class="label">Artemis Gateway visualization team at the Purdue Data Mine, Spring 2025 (with Barrios Technology &amp; NASA Johnson)</figcaption>
 </figure>
 <figure class="photo-figure">
-<img loading="lazy" decoding="async" alt="Haleigh beside an ISS module mockup and mission-patch wall at NASA's Johnson Space Center in Houston" class="about-talk-photo" src="assets/photos/nasa-module-selfie.webp">
+<img width="1000" height="750" loading="lazy" decoding="async" alt="Haleigh beside an ISS module mockup and mission-patch wall at NASA's Johnson Space Center in Houston" class="about-talk-photo" src="assets/photos/nasa-module-selfie.webp">
 <figcaption class="label">ISS module mockup &amp; mission-patch wall, NASA Johnson Space Center (Houston)</figcaption>
 </figure>
 
 <div class="about-photo-pair about-photo-pair--trio">
 <figure class="photo-figure">
-<img loading="lazy" decoding="async" alt="Haleigh presenting at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0375.webp">
+<img width="1200" height="900" loading="lazy" decoding="async" alt="Haleigh presenting at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0375.webp">
 <figcaption class="label">AGU 2025: "Planetary Obliquity and Origin of Life Potential" (invited)</figcaption>
 </figure>
 <figure class="photo-figure">
-<img loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0390.webp">
+<img width="900" height="1200" loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AGU 2025" class="about-talk-photo" src="assets/photos/agu-2025/img_0390.webp">
 <figcaption class="label">PALLAS poster at AGU 2025</figcaption>
 </figure>
 <figure class="photo-figure">
-<img loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AbSciCon 2026" class="about-talk-photo" src="assets/photos/abscicon-2026/pallas-poster-2026.webp">
+<img width="900" height="1200" loading="lazy" decoding="async" alt="Haleigh presenting the PALLAS poster at AbSciCon 2026" class="about-talk-photo" src="assets/photos/abscicon-2026/pallas-poster-2026.webp">
 <figcaption class="label">PALLAS poster at AbSciCon 2026</figcaption>
 </figure>
 </div>
-<p class="body">As an NSF Graduate Research Fellow, I serve as Executive Secretary on NASA's Habitable Worlds and Exoplanet Research Program review panels, peer-review for the Planetary Science Journal, and coach incoming GRFP applicants through Purdue's Office of Graduate School and Professional Studies after winning my own.</p>
-<!-- Selected projects — rendered from js/content.js into #project-grid. -->
+<p class="body">As an NSF Graduate Research Fellow, I have served as Executive Secretary on NASA review panels for Habitable Worlds and the Exoplanets Research Program, I peer-review for the Planetary Science Journal, and I coach incoming GRFP applicants through Purdue's OGSPS fellowships office after winning my own.</p>
+<!-- Selected projects - rendered from js/content.js into #project-grid. -->
 <section class="about-projects">
 <p class="pub-section-title">Selected Projects</p>
 <div class="project-grid" id="project-grid"></div>
 </section>
 </div>
 </div>
-<!-- ZONE: Resume/CV (edge view — cross-section = layers of experience) -->
-<!-- ZONE: Research (close-up — zoomed into the island = zoomed into the science) -->
+<!-- ZONE: Resume/CV (edge view - cross-section = layers of experience) -->
+<!-- ZONE: Research (close-up - zoomed into the island = zoomed into the science) -->
 <div class="zone zone--research" id="zone-research">
 <p aria-hidden="true" class="zone__no">03 <span class="zone__path">~/research</span></p>
 <h2 class="display display--zone">Research</h2>
@@ -179,24 +235,24 @@
 <p class="body">Chapter 1 (in prep for PNAS): where a planet cycles wet and dry follows where its star puts the light &mdash; and high obliquity opens that cycling up across the whole globe. Whether the organics survive is a separate fight: haze has to deliver them, and the ponds have to hold them through the wet phase.</p>
 <div class="research-figure-pair">
 <figure class="research-figure-item">
-<img loading="lazy" decoding="async" alt="Warm little pond in wet phase: rain, HCN aqueous chemistry, meteorite delivery, seepage" class="research-figure" src="assets/photos/research-illustrations/pool-wet.webp">
+<img width="1200" height="1194" loading="lazy" decoding="async" alt="Warm little pond in wet phase: rain, HCN aqueous chemistry, meteorite delivery, seepage" class="research-figure" src="assets/photos/research-illustrations/pool-wet.webp">
 <figcaption class="label">Wet phase (precipitation delivers organics)</figcaption>
 </figure>
 <figure class="research-figure-item">
-<img loading="lazy" decoding="async" alt="Warm little pond in dry phase: UV photolysis, evaporative concentration" class="research-figure" src="assets/photos/research-illustrations/pool-dry.webp">
+<img width="1174" height="1200" loading="lazy" decoding="async" alt="Warm little pond in dry phase: UV photolysis, evaporative concentration" class="research-figure" src="assets/photos/research-illustrations/pool-dry.webp">
 <figcaption class="label">Dry phase (UV drives polymerization)</figcaption>
 </figure>
 </div>
 <figure class="research-figure-item">
-<img loading="lazy" decoding="async" alt="Dissertation overview: C1 Obliquity, C2 Rotation, C3 Host Star" class="research-figure" src="assets/photos/research-illustrations/chapter-cartoon.webp">
+<img width="1200" height="426" loading="lazy" decoding="async" alt="Dissertation overview: C1 Obliquity, C2 Rotation, C3 Host Star" class="research-figure" src="assets/photos/research-illustrations/chapter-cartoon.webp">
 <figcaption class="label">Fig. 1: Dissertation overview of obliquity, rotation, and host star effects on wet-dry cycling</figcaption>
 </figure>
 <figure class="research-figure-item">
-<img loading="lazy" decoding="async" alt="Hadley cell circulation and wet-dry zone distribution across latitudes for 24hr modern Earth rotation" class="research-figure" src="assets/photos/research-illustrations/rotation-cartoon.webp">
+<img width="911" height="565" loading="lazy" decoding="async" alt="Hadley cell circulation and wet-dry zone distribution across latitudes for 24hr modern Earth rotation" class="research-figure" src="assets/photos/research-illustrations/rotation-cartoon.webp">
 <figcaption class="label">Fig. 2: Atmospheric circulation drives precipitation patterns that control pond wet-dry cycling</figcaption>
 </figure>
 <figure class="research-figure-item">
-<img loading="lazy" decoding="async" alt="Two surface-temperature maps of the same Earth-like world: a 0-degree-tilt planet warm in an equatorial band, a 90-degree-tilt planet warm at its summer pole" class="research-figure" src="assets/photos/research-illustrations/obliquity-climate-0-90.png">
+<img width="1650" height="645" loading="lazy" decoding="async" alt="Two surface-temperature maps of the same Earth-like world: a 0-degree-tilt planet warm in an equatorial band, a 90-degree-tilt planet warm at its summer pole" class="research-figure" src="assets/photos/research-illustrations/obliquity-climate-0-90.png">
 <figcaption class="label">Axial tilt rewrites a planet's climate. Two ExoPlaSim runs of the same Earth-like world (no tilt on the left, a steep 90&deg; tilt on the right, at northern summer). A flat planet warms in a band at the equator, but a tilted one turns its summer pole into the hottest place on the map, and that seasonal swing is what drives warm little ponds to fill and dry.</figcaption>
 </figure>
 <p class="body">The island you see here is what I simulate (a volcanic hotspot where sea-land breeze circulation drives evaporation and precipitation through warm little ponds).</p>
@@ -224,7 +280,7 @@
     <span>1-page Resume (PDF)</span>
 </a>
 </div>
-<!-- Full academic CV — embedded PDF. On wide screens the viewer
+<!-- Full academic CV - embedded PDF. On wide screens the viewer
                      renders inline. On narrow viewports the iframe collapses to
                      a download prompt (see .cv-viewer CSS). -->
 <div class="cv-section">
@@ -240,7 +296,7 @@
 <p aria-hidden="true" class="zone__no">05 <span class="zone__path">~/connect</span></p>
 <h2 class="display display--zone">Connect</h2>
 <div class="zone__body">
-<img loading="lazy" decoding="async" alt="Haleigh Nyberg" class="connect-portrait" src="assets/photos/headshot-ivy.webp">
+<img width="1000" height="565" loading="lazy" decoding="async" alt="Haleigh Nyberg" class="connect-portrait" src="assets/photos/headshot-ivy.webp">
 <p class="body body--lede">
     Happy to talk about exoplanet climates, prebiotic chemistry, or GCM development.
 </p>
@@ -423,7 +479,7 @@
 </aside>
 <script>
         /* CV reveal handled by chrome rail's panel.classList.add('revealed')
-           in js/chromePanel.js — see initChromePanel(). */
+           in js/chromePanel.js - see initChromePanel(). */
 
         /* Quiet "Scroll" cue under the nav. Appears 2.5s after the dots
            reveal IF the user hasn't navigated yet; the first
@@ -472,7 +528,7 @@
             }
         })();
 
-        /* Zone dots — click to navigate + sync active state from nav */
+        /* Zone dots - click to navigate + sync active state from nav */
         (function() {
             const dots = document.querySelectorAll('.zone-dot');
             const navItems = document.querySelectorAll('.section-nav__item');
@@ -500,7 +556,7 @@
             }, 100);
         })();
 
-        /* Keyboard activation for the role="button" nav items —
+        /* Keyboard activation for the role="button" nav items -
            Enter/Space must fire the same handler as click. */
         (function() {
             document.querySelectorAll('.section-nav__item').forEach(function(item) {
@@ -530,6 +586,6 @@
             }, { capture: true, passive: true });
         })();
     </script>
-<script src="./js/app.bundle.js?v=real48" type="module"></script>
+<script src="./js/app.bundle.js?v=real49" type="module"></script>
 </body>
 </html>

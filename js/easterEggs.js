@@ -1,4 +1,4 @@
-// easterEggs.js — hidden delights that reward curiosity
+// easterEggs.js - hidden delights that reward curiosity
 import * as THREE from 'three';
 import { state } from './config.js?v=real18';
 
@@ -12,7 +12,7 @@ export function initEasterEggs() {
     const dom = renderer.domElement;
     // The moon (and its hit sphere) live on layer 4 so they don't reflect in
     // the water. The raycaster must opt into every layer or moon clicks never
-    // register (only the layer-0 gateway would) — this is why the moon easter
+    // register (only the layer-0 gateway would) - this is why the moon easter
     // egg silently never fired.
     _raycaster.layers.enableAll();
     let moonCooldown = false;

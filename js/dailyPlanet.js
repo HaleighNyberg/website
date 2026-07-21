@@ -1,6 +1,6 @@
 // Daily planet: deterministic per-day variations to non-load-bearing scene
 // parameters. The audit-constrained scope (see plan §Feature 7) excludes
-// everything that would break zone camera composition — sun position,
+// everything that would break zone camera composition - sun position,
 // moon orbit, shadow frustum, ORB_RADIUS, SUN_DIR, any camera pose.
 //
 // Within those limits we tint rim/hemisphere light, vary corona opacity
@@ -59,7 +59,7 @@ export function resolveDailyParams() {
     return params;
 }
 
-// Specimen id shown in the hero — a G-catalogue style tag, rolled fresh
+// Specimen id shown in the hero - a G-catalogue style tag, rolled fresh
 // each time the island is regenerated.
 function specimenId() {
     return 'G2026' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
@@ -86,7 +86,7 @@ export function getDailyScalar(kind, fallback = 1) {
 export function renderDailyLabel() {
     const p = window.__DAILY_PARAMS;
     if (!p) return;
-    // Only populate the inline slot inside the masthead credential — if
+    // Only populate the inline slot inside the masthead credential - if
     // that slot isn't present, do nothing. The fallback floating chip
     // used to collide with the audio visualizer, so it's gone.
     const inline = document.getElementById('daily-label-inline');
@@ -99,7 +99,7 @@ export function renderDailyLabel() {
     if (!inline.dataset.regenWired) {
         inline.dataset.regenWired = '1';
         // Re-roll feedback: the specimen id itself scrambles through a
-        // few random catalogue numbers before settling on the new one —
+        // few random catalogue numbers before settling on the new one -
         // the readout IS the animation, same instrument-panel voice as
         // the rest of the chrome. Reduced motion skips straight to the
         // final id.
@@ -132,7 +132,7 @@ export function renderDailyLabel() {
 
         // The discoverable handle: a bracketed mono verb in the same
         // voice as the "text view" toggle and the ~/zone path labels.
-        // tabindex -1 — the hero seed line is decorative (aria-hidden),
+        // tabindex -1 - the hero seed line is decorative (aria-hidden),
         // so this must not become a focus stop inside a hidden subtree.
         const btn = document.createElement('button');
         btn.type = 'button';

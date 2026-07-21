@@ -1,11 +1,11 @@
-// Reviewer mode — press R (or click the bottom-right toggle) to collapse the
+// Reviewer mode - press R (or click the bottom-right toggle) to collapse the
 // 3D scene and render all zones as a single stacked column. Content lives in
 // one place; this is a view, not a second HTML file.
 //
 // Two entry paths:
-//   1. localStorage['reviewer'] === '1' — opt-in from a prior visit, OR auto-
+//   1. localStorage['reviewer'] === '1' - opt-in from a prior visit, OR auto-
 //      set by scene.js on WebGL context-creation failure.
-//   2. Key "R" (no modifiers, not inside an input) — toggles state and reloads.
+//   2. Key "R" (no modifiers, not inside an input) - toggles state and reloads.
 //
 // The feature flag gates only the keyboard shortcut. The toggle button + the
 // localStorage-driven activation are always live so the WebGL-fail fallback

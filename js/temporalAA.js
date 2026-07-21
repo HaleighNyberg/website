@@ -1,4 +1,4 @@
-// Temporal anti-aliasing — the only fix for the resting-view sparkle that
+// Temporal anti-aliasing - the only fix for the resting-view sparkle that
 // costs NO detail.
 //
 // The island is 263k verts inside ~150 px, so a dozen micro-triangles fight
@@ -12,7 +12,7 @@
 //
 // Deliberately NO projection jitter: jitter buys extra edge AA but resamples
 // the whole frame every frame, which softens the image. Without it a static
-// scene reproduces bit-identically (history == current) — the look is
+// scene reproduces bit-identically (history == current) - the look is
 // preserved exactly, and only the flicker averages out.
 //
 // Ghosting control:
@@ -29,11 +29,11 @@ import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 // History weight when the camera is still.
 //
 // HARD-WON: this pass does NOT reproject history with motion vectors, and the
-// dish is ALWAYS turning — so every pixel's history is misaligned by a
+// dish is ALWAYS turning - so every pixel's history is misaligned by a
 // fraction of a pixel every frame. The neighbourhood clamp is the only thing
 // holding that misalignment back. Push the weight up (0.94) or slacken the
 // clamp (1.25x) to chase the last of the seabed shimmer and the misalignment
-// leaks through as MOTION BLUR over the whole scene — owner-caught, twice.
+// leaks through as MOTION BLUR over the whole scene - owner-caught, twice.
 // 0.88 with a STRICT clamp is the setting that kills the twinkle and stays
 // sharp. Anything more needs real motion vectors, not a bigger blend.
 const BLEND = 0.88;
@@ -93,11 +93,11 @@ export class TemporalAAPass extends Pass {
                         }
                     }
 
-                    // STRICT box — do not widen it. Widening lets the
+                    // STRICT box - do not widen it. Widening lets the
                     // un-reprojected history (the dish is always turning) bleed
                     // in and the whole scene goes soft. See the BLEND note.
                     vec3 hist = texture2D(tHistory, vUv).rgb;
-                    // Clip history into that box — kills ghosting/smearing at
+                    // Clip history into that box - kills ghosting/smearing at
                     // any real edge while leaving a flickering pixel (whose
                     // two states both live inside its own neighbourhood) free
                     // to average with its past.

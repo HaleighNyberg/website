@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-// OrbitControls removed — scroll navigation only
+// OrbitControls removed - scroll navigation only
 import { state, FLY_SPEED, LOOK_SPEED } from './config.js?v=real18';
 
 // Control mode: 'orbit' (default) or 'fly' (dev)
@@ -52,7 +52,7 @@ export function initControls() {
         setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('copied'); }, 1200);
     });
 
-    // "copy zone" — outputs camera + lookAt in the exact format zones.js needs.
+    // "copy zone" - outputs camera + lookAt in the exact format zones.js needs.
     // Fly to your desired view, click this, paste the result to me.
     const zoneBtn = document.getElementById('zoneBtn');
     if (zoneBtn) zoneBtn.addEventListener('click', (e) => {
@@ -80,7 +80,7 @@ export function initControls() {
         }
     });
 
-    // Noon button — no-op in static space scene (day cycle removed)
+    // Noon button - no-op in static space scene (day cycle removed)
     const noonBtn = document.getElementById('noonBtn');
     if (noonBtn) noonBtn.style.display = 'none';
 
@@ -136,7 +136,7 @@ function _initPresetNav() {
     });
 }
 
-// Smooth camera transition (direct lerp — no OrbitControls dependency)
+// Smooth camera transition (direct lerp - no OrbitControls dependency)
 function _animateCamera(targetPos, duration = 800) {
     const startPos = state.camera.position.clone();
     const startTime = performance.now();
@@ -178,7 +178,7 @@ function _toggleDevMode() {
     }
 }
 
-/** Per-frame drag physics (no-op — drag system removed). */
+/** Per-frame drag physics (no-op - drag system removed). */
 export function updateDragPhysics(dt) {}
 
 export function updateFly(dt) {

@@ -6,7 +6,7 @@
 // and the storm-lighting module all keep reading window._weather each
 // frame exactly as before.
 //
-// First epoch is always CLEAR and holds ≥ 90 s — a first-time visitor
+// First epoch is always CLEAR and holds ≥ 90 s - a first-time visitor
 // judges the island in its shipping look before any weather moves in.
 // Reduced-motion visitors stay clear permanently.
 
@@ -28,7 +28,7 @@ const EPOCHS = {
     overcast: { base: 0.55, spread: 0.06, dwell: [40, 90]  },
     storm:    { base: 0.90, spread: 0.07, dwell: [50, 110] },
 };
-// Neighbour transitions only — weather fronts, not channel surfing.
+// Neighbour transitions only - weather fronts, not channel surfing.
 const NEXT = {
     clear:    [['hazy', 1.0]],
     hazy:     [['clear', 0.6], ['overcast', 0.4]],
@@ -69,7 +69,7 @@ function _enterEpoch(name) {
 
 export function setWeather(t) {
     // Manual override (easter eggs / console). The living process resumes
-    // from wherever this puts it — the next epoch change re-targets.
+    // from wherever this puts it - the next epoch change re-targets.
     const clamped = Math.max(0, Math.min(1, +t || 0));
     window._weather.t = clamped;
     window.dispatchEvent(new CustomEvent('weather:change', { detail: { t: clamped } }));
@@ -139,12 +139,12 @@ export function tickWeather(dt) {
         // Re-roll boost relaxes once the front has arrived.
         if (_rateBoost > 1 && Math.abs(goal - w.t) < 0.02) _rateBoost = 1;
     }
-    // 0.8s time constant — keeps per-frame consumers snap-free.
+    // 0.8s time constant - keeps per-frame consumers snap-free.
     const k = 1.0 - Math.exp(-dt * 1.25);
     w.smoothed += (w.t - w.smoothed) * k;
 }
 
-/** The living process needs no DOM — this exists so main.js has one
+/** The living process needs no DOM - this exists so main.js has one
  *  explicit init point (and a place to pin reduced-motion clear). */
 export function initWeather() {
     if (PRM) {

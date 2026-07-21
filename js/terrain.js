@@ -12,7 +12,7 @@ export function initTerrain() {
     // --- High-res mountain (pure heightmap, no modifications) ---
     const mtnGeo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
     mtnGeo.rotateX(-Math.PI / 2);
-    // Mountain material — elevation-based vertex colors (volcanoColor + shore blend).
+    // Mountain material - elevation-based vertex colors (volcanoColor + shore blend).
     // Lava pulse is injected into the vertex shader via onBeforeCompile so that
     // per-frame work is one uniform write instead of an O(N_verts) JS loop +
     // full color buffer re-upload. See ISSUES P1 #5.
@@ -50,11 +50,11 @@ export function initTerrain() {
         uSandNrm: { value: sandNormalMap },
     };
 
-    // terrainTimeUniform removed — lava trickle was the only consumer
+    // terrainTimeUniform removed - lava trickle was the only consumer
 
     const mtnMat = new THREE.MeshStandardMaterial({
         // Photo albedo multiplies with the elevation vertex colors, so
-        // the tuned palette / shore band / scorch zone all survive —
+        // the tuned palette / shore band / scorch zone all survive -
         // they just gain real rock grain.
         map: rockColorMap,
         // >1 material color compensates the double-albedo product:
@@ -76,7 +76,7 @@ export function initTerrain() {
         // 0.22: the global scene.environment (PMREM) feeds indirect
         // specular to EVERY standard material, and on the craggy rock
         // it fired white sub-pixel glints even inside shadows (env
-        // light has no shadowing). Rock is matte — a whisper suffices.
+        // light has no shadowing). Rock is matte - a whisper suffices.
         envMapIntensity: 0.05,
     });
     // Island-local sun direction, written per frame from animate.js
@@ -112,7 +112,7 @@ export function initTerrain() {
                     'varying float vSand;',
                     'varying float vSlopeY;',
                     'varying vec2 vLocXZ;',
-                    '// uTime removed — lava trickle was stripped',
+                    '// uTime removed - lava trickle was stripped',
                 ].join('\n')
             )
             .replace(
@@ -146,7 +146,7 @@ export function initTerrain() {
                     '',
                     '  vColor.rgb += aEmissive * uPulse;',
                     '',
-                    '  // Volcano peak red glow — always-on, concentrated at the summit',
+                    '  // Volcano peak red glow - always-on, concentrated at the summit',
                     '  float peakHeight = clamp((position.y - 4.5) / 1.5, 0.0, 1.0);',
                     '  float peakGlow = peakHeight * peakHeight * 0.35;',
                     '  vColor.rgb += vec3(peakGlow * 0.8, peakGlow * 0.25, peakGlow * 0.04);',
@@ -282,13 +282,13 @@ export function initTerrain() {
                     '// the indirect fill down on slopes facing away from the sun',
                     '// so the island reads half lit / half shadow like the moon.',
                     '// Floors sit low (0.12) so the clear-weather night side is as',
-                    '// dark as the storm one — the split must not change with weather.',
+                    '// dark as the storm one - the split must not change with weather.',
                     'float dayside = smoothstep(-0.30, 0.40, vSunFacing);',
                     '// Grabbed here for the summit mist further down: chunks are',
                     '// inlined into one main(), so this local is still in scope at',
                     '// <opaque_fragment>. The mist has to know where the sun',
                     '// actually lands, or it paints lit cloud over shadowed rock.',
-                    '// The RECEIVED direct diffuse is the honest signal — it is',
+                    '// The RECEIVED direct diffuse is the honest signal - it is',
                     '// already zero in cast shadow and on the night side, and it',
                     '// costs nothing (the same trick as litAmt below).',
                     'float mistShadow = smoothstep(0.02, 0.18, dot(reflectedLight.directDiffuse, vec3(0.3333)));',
@@ -297,28 +297,28 @@ export function initTerrain() {
                     '// Direct specular too: the camera-facing rim fill was making',
                     '// the wet low-roughness shore band sparkle on the NIGHT side,',
                     '// which read as light leaking through the terrain. Capped at',
-                    '// 0.30 even on the day side — grazing-angle GGX spikes at the',
+                    '// 0.30 even on the day side - grazing-angle GGX spikes at the',
                     '// terminator were blooming into blinding white flickers that',
                     '// made the island glimmer in a way rock never would.',
                     'reflectedLight.directSpecular *= mix(0.0, 0.30, dayside);',
                     '// Specular only where light actually LANDS: gate by the',
                     '// received direct diffuse (which already includes the',
                     '// shadow map). Kills the single-pixel glints inside',
-                    '// day-side crevices — dark hollows whose detail normals',
+                    '// day-side crevices - dark hollows whose detail normals',
                     '// still caught the sun through the position-only gate.',
                     'float litAmt = smoothstep(0.02, 0.18, dot(reflectedLight.directDiffuse, vec3(0.3333)));',
                     'reflectedLight.directSpecular *= litAmt;',
                     '// Silhouette de-twinkle: grazing-angle pixels are the last',
                     '// shimmer source (sub-pixel silhouette facets catch the key',
                     '// for one frame at a time as the island turns). Fade all',
-                    '// specular where the surface goes edge-on to the camera —',
+                    '// specular where the surface goes edge-on to the camera -',
                     '// matte rock loses nothing visually there.',
                     'float rimNV = abs(dot(normal, normalize(vViewPosition)));',
                     'float rimFade = smoothstep(0.04, 0.28, rimNV);',
                     'reflectedLight.directSpecular *= rimFade;',
                     'reflectedLight.indirectSpecular *= mix(0.4, 1.0, rimFade);',
                     '// Absolute ceiling: every gate above SCALES the specular,',
-                    '// but a single GGX spike is HDR — scale 3.0 by 0.3 and the',
+                    '// but a single GGX spike is HDR - scale 3.0 by 0.3 and the',
                     '// pixel still flashes white. Matte volcanic rock never',
                     '// flashes; clamp the term itself, and fade it out with',
                     '// distance (past ~50u a one-pixel highlight is pure noise',
@@ -341,7 +341,7 @@ export function initTerrain() {
                     '#ifdef USE_NORMALMAP',
                     '// Distance fade: past ~mid-range these micro-normals are',
                     '// SUB-PIXEL, and sub-pixel normal variance under the sun',
-                    '// key re-rolls per frame as the island turns — the',
+                    '// key re-rolls per frame as the island turns - the',
                     '// twinkling/deep-fried shimmer. Full detail up close,',
                     '// gone by 130u where it could only alias.',
                     'float dtlFade = clamp(1.0 - (length(vViewPosition) - 35.0) / 60.0, 0.0, 1.0);',
@@ -353,12 +353,12 @@ export function initTerrain() {
                     '// gated purely on dish rotation (36 hot flips/frame at',
                     '// spin on, 2 at spin off; shadows/clouds/specular ruled',
                     '// out empirically). Distance-fading these map normals was',
-                    '// tried and made it WORSE (49 flips) — map noise dithers',
+                    '// tried and made it WORSE (49 flips) - map noise dithers',
                     '// the facet flips; do not re-try. Real fixes: slower spin',
                     '// or TAA.',
                     '// Specular AA: widen roughness by per-pixel normal',
                     '// variance (screen derivatives) so sub-pixel normal',
-                    '// detail can never flash single-pixel highlights — the',
+                    '// detail can never flash single-pixel highlights - the',
                     '// fried speckle killed at the source instead of by blur.',
                     'vec3 saaDx = dFdx(normal);',
                     'vec3 saaDy = dFdy(normal);',
@@ -373,12 +373,12 @@ export function initTerrain() {
                     '// slopes darken and blue-shift with true water depth, so',
                     '// looking inward through the glass the floor visibly',
                     '// deepens toward the island base. max() floor: pure',
-                    '// exponential drove the basin to PITCH black — real deep',
+                    '// exponential drove the basin to PITCH black - real deep',
                     '// water keeps a dim blue ambient from downwelled scatter.',
                     'float wDepth = clamp(0.62 - vWorldHeight, 0.0, 4.0);',
                     '// Downwelling light is DIRECTIONAL: the water column on',
                     '// the night side receives no sun, so submerged ground',
-                    '// there dims (including the shallow shore ring) — but the',
+                    '// there dims (including the shallow shore ring) - but the',
                     '// dimming applies BEFORE the ambient floor, so the night',
                     '// basin bottoms out at the same never-darker-than-space',
                     '// level instead of going pitch black.',
@@ -388,14 +388,14 @@ export function initTerrain() {
                     'outgoingLight *= max(uwAbs, vec3(0.13, 0.17, 0.23) * uDeepLight);',
                     '// Bloom-proof the rock: the bloom pass thresholds at 0.8',
                     '// scene-linear, and single sunlit-speckle pixels crossing it',
-                    '// bloom into flashing buds as the island turns — the fried',
+                    '// bloom into flashing buds as the island turns - the fried',
                     '// look. Rock never legitimately glows; ceiling it just under',
                     '// the threshold starves bloom of terrain input entirely.',
                     '// (The lava pool + crater glow are separate meshes and keep',
                     '// their bloom.) Soft knee, not a hard min: linear below 0.62,',
                     '// asymptotic cap. History: 0.78 read OVERCAST (full sun never',
                     '// landed), 0.92 restored brilliant faces but left 0.12 of bloom',
-                    '// headroom over the 0.80 threshold — enough for a lone bright',
+                    '// headroom over the 0.80 threshold - enough for a lone bright',
                     '// DIFFUSE pixel to bloom-flicker as the island turns, the last',
                     '// twinkle path once specular is ceilinged. 0.84 keeps the sun',
                     '// on the lit faces while cutting bloom overshoot to 0.04.',
@@ -405,10 +405,10 @@ export function initTerrain() {
                     '// opaque terrain (no depth-aware march in this pipeline),',
                     '// so a peak poking into the deck showed crisp rock inside',
                     '// cloud. Fade rock above the deck base into the cloud',
-                    '// ambient instead — a shrouded summit reads shrouded. The',
+                    '// ambient instead - a shrouded summit reads shrouded. The',
                     '// noise breaks the band edge so it looks like drift, not a',
                     '// waterline.',
-                    '// Band starts AT the cloud base — never below it. It used to',
+                    '// Band starts AT the cloud base - never below it. It used to',
                     '// open 0.7 BELOW a base that was itself the volume box floor',
                     '// rather than the visible cloud, so the summit went grey while',
                     '// it was plainly under the deck (owner-caught from the side).',
@@ -416,7 +416,7 @@ export function initTerrain() {
                     'float mistN = 0.78 + 0.22 * sin(vNormalMapUv.x * 41.0 + vNormalMapUv.y * 37.0);',
                     '// Mist is LIT MATTER, not paint: it takes the same sun the rock',
                     '// takes. Without this it lerped every pixel toward a flat lit',
-                    '// grey — brightening the night side (which read as sun leaking',
+                    '// grey - brightening the night side (which read as sun leaking',
                     '// through the mountain) and erasing cast shadows inside the band.',
                     'float mistDay = smoothstep(-0.30, 0.40, vSunFacing);',
                     'float mistLit = mix(0.12, 1.0, mistDay) * mix(0.45, 1.0, mistShadow);',
@@ -432,7 +432,7 @@ export function initTerrain() {
                     '// Photo roughness (sampled by the include above, normalized',
                     '// by the 0.9 material constant) modulates a height-based',
                     '// base: wet near shore, matte mid-slope, dusty at peak.',
-                    '// Floors stay high — glossy pixels on detailed normals fire',
+                    '// Floors stay high - glossy pixels on detailed normals fire',
                     '// the white specular flicker (the old fried look).',
                     'float texRough = clamp(roughnessFactor / 0.9, 0.0, 1.0);',
                     'float heightNorm = clamp((vWorldHeight - 0.6) / 5.1, 0.0, 1.0);',
@@ -454,7 +454,7 @@ export function initTerrain() {
     };
     const mtnMesh = new THREE.Mesh(mtnGeo, mtnMat);
     mtnMesh.renderOrder = 1;
-    mtnMesh.userData.aoInclude = true; // solid geometry — feeds the GTAO G-buffer (scene.js)
+    mtnMesh.userData.aoInclude = true; // solid geometry - feeds the GTAO G-buffer (scene.js)
     islandGroup.add(mtnMesh);
 
     // --- Satellite islets: small rocky outcrops off the shoreline. ---
@@ -523,7 +523,7 @@ export function initTerrain() {
                     '#include <lights_fragment_end>',
                     [
                         '#include <lights_fragment_end>',
-                        '// Anti-twinkle ceiling (see mountain material) — the',
+                        '// Anti-twinkle ceiling (see mountain material) - the',
                         '// skerries had NO specular gate and pipped freely.',
                         'float isSpecDist = clamp(1.0 - (length(vViewPosition) - 45.0) / 70.0, 0.15, 1.0);',
                         'reflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(0.09)) * isSpecDist;',
@@ -578,7 +578,7 @@ export function initTerrain() {
             const tpl = islets[k];
             let cfg = tpl, ph = 0;
             if (rng) {
-                // The two biggest skerries always survive a roll — they
+                // The two biggest skerries always survive a roll - they
                 // anchor the scale read; the rest may sit one out.
                 if (k !== 0 && k !== 2 && rng() < 0.22) continue;
                 cfg = {
@@ -654,7 +654,7 @@ export function initTerrain() {
                     bp.setXYZ(i, bx * d, by * d, bz * d);
                 }
                 bGeo.computeVertexNormals();
-                // isletMat has vertexColors on — a missing color attribute
+                // isletMat has vertexColors on - a missing color attribute
                 // reads as black, so give boulders a neutral white fill.
                 const bCols = new Float32Array(bp.count * 3).fill(1.0);
                 bGeo.setAttribute('color', new THREE.BufferAttribute(bCols, 3));
@@ -753,7 +753,7 @@ export function initTerrain() {
         poolMesh.renderOrder = 2;
         islandGroup.add(poolMesh);
 
-        // Deep magma layer — darker disc slightly below the surface pool
+        // Deep magma layer - darker disc slightly below the surface pool
         const deepPoolGeo = new THREE.CircleGeometry(POOL_RADIUS * 0.85, 32);
         const deepPoolMat = new THREE.ShaderMaterial({
             uniforms: {
@@ -790,7 +790,7 @@ export function initTerrain() {
         deepPoolMesh.renderOrder = 1;
         islandGroup.add(deepPoolMesh);
 
-        // Edge transition ring — blends pool into crater rock
+        // Edge transition ring - blends pool into crater rock
         const ringGeo = new THREE.RingGeometry(POOL_RADIUS, POOL_RADIUS + 0.25, 32);
         const ringMat = new THREE.ShaderMaterial({
             vertexShader: `
@@ -870,8 +870,8 @@ export function initTerrain() {
             const dist = Math.sqrt(vx * vx + vz * vz);
 
             // hMul: per-roll island stature (±~14%). The footprint radii
-            // (EDGE_R/FADE_R) stay fixed — camera framing, beach terrace
-            // and shore systems are authored against them — so a roll
+            // (EDGE_R/FADE_R) stay fixed - camera framing, beach terrace
+            // and shore systems are authored against them - so a roll
             // reads as a different VOLCANO, not a different dish.
             let height = hVal * TERRAIN_HEIGHT * (SD.hMul || 1);
 
@@ -962,7 +962,7 @@ export function initTerrain() {
                     const macro = 0.5 + 0.5 * Math.sin(vx * 0.9 + 2.0 + SD.b) * Math.cos(vz * 0.8 + 0.5 + SD.d);
                     // Center the ridge term around 0 so it cuts valleys AND
                     // raises crests. Amplitude toned down from the first
-                    // pass (0.35 + 1.15h2) — wall-to-wall spikes read as
+                    // pass (0.35 + 1.15h2) - wall-to-wall spikes read as
                     // noise; roughness should come from cliff faces and
                     // benches, with crags reserved for the ridge crests.
                     const amp = (0.26 + 0.65 * h01 * h01) * rock * (0.45 + 0.8 * macro);
@@ -971,7 +971,7 @@ export function initTerrain() {
                     height += Math.pow(h01, 3.0) * 0.35 * rock * (0.6 + 0.4 * (1.0 - Math.abs(f1)));
                     // Radial drainage: meandering gullies carved downslope
                     // from the summit, strongest mid-flank. This is what
-                    // gives a stratovolcano its structure — aretes RADIATE
+                    // gives a stratovolcano its structure - aretes RADIATE
                     // from the peak instead of noise sitting on a cone.
                     const ang = Math.atan2(vz, vx);
                     const meander = Math.sin(dist * 1.6 + ang * 2.0 + SD.a) * 0.4;
@@ -980,7 +980,7 @@ export function initTerrain() {
                     const flank = Math.sin(Math.PI * Math.min(1, Math.max(0, (h01 - 0.04) / 0.9)));
                     height -= channel * channel * 0.45 * flank * rock;
                     // Stratified lava benches: on selected flanks, quantize
-                    // the height into flat treads with steep risers — the
+                    // the height into flat treads with steep risers - the
                     // trap-basalt terrace/plateau/cliff profile (Faroes,
                     // Iceland). The slope-zoned material then paints risers
                     // dark basalt and treads pale ash automatically.
@@ -1006,7 +1006,7 @@ export function initTerrain() {
                 const c = volcanoColor(Math.max(0, Math.min(1, hVal + noise)), nearShore);
                 cr = c.r; cg = c.g; cb = c.b;
             } else {
-                // Underwater mountain — raw volcanic crust coloring
+                // Underwater mountain - raw volcanic crust coloring
                 const c = seafloorColor(Math.max(0, Math.min(1, (height - FLOOR_Y) / BASE_DEPTH)));
                 cr = c.r; cg = c.g; cb = c.b;
             }
@@ -1015,13 +1015,13 @@ export function initTerrain() {
             // Underwater verts get a much smaller lift: the full 2.4x
             // pushed the shallow seabed ring around the island to the
             // cap, and that beige glowed through the semi-transparent
-            // water as a milky halo the same brightness as the land —
+            // water as a milky halo the same brightness as the land -
             // in the top-down framing the shoreline vanished entirely.
             // The night-readability argument only applies above water.
             // Beach fringe: a dry-sand band just above the waterline,
             // patchy via noise so it reads as pocket beaches between
             // rock, not a painted ring. Sits above the darker WET band
-            // (which starts at the waterline) — the two-tone shore is
+            // (which starts at the waterline) - the two-tone shore is
             // the scale cue that makes the island read mountain-sized.
             if (height > OCEAN_LEVEL + 0.04 && height < OCEAN_LEVEL + 0.5) {
                 const bandT = 1.0 - Math.abs((height - OCEAN_LEVEL - 0.22) / 0.28);
@@ -1183,8 +1183,13 @@ export function initTerrain() {
             _isleSD = {
                 a: Math.random() * T, b: Math.random() * T,
                 c: Math.random() * T, d: Math.random() * T,
-                // Stature + crater depth roll with the shape phases.
-                hMul: 0.86 + Math.random() * 0.30,
+                // Stature + crater depth roll with the shape phases. The
+                // stature ceiling is set by the weather, not by taste: the
+                // cloud deck's visible base sits at y ~7.2 in clear air, and
+                // 1.16 put the tallest summits at 7.14 - touching the
+                // underside of the scattered cells. 1.05 caps the peak near
+                // 6.5 and leaves the deck its own airspace.
+                hMul: 0.86 + Math.random() * 0.19,
                 crMul: 0.70 + Math.random() * 0.70,
             };
             try {
@@ -1192,7 +1197,7 @@ export function initTerrain() {
                 mtnGeo.attributes.position.needsUpdate = true;
                 mtnGeo.computeVertexNormals();
                 // Fresh satellite skerries + a new cloud layout to match.
-                // (Shore foam is shipped hidden — fPts.visible=false — so
+                // (Shore foam is shipped hidden - fPts.visible=false - so
                 // its stale shoreline positions are inert by design.)
                 if (window.__rebuildSkerries) window.__rebuildSkerries();
                 if (window._cloud && window._cloud.mat.uniforms.uSeedOff) {
@@ -1219,7 +1224,7 @@ export function initTerrain() {
         const fType = new Uint8Array(tot); // 0=shore, 1=rim, 2=whitecap
         let idx = 0;
 
-        // Shore foam — tight to island waterline, narrow band
+        // Shore foam - tight to island waterline, narrow band
         for (let i = 0; i < sv.length; i++) {
             const sx = sv[i].x, sz = sv[i].z;
             for (let p = 0; p < SHORE_PER; p++) {
@@ -1233,7 +1238,7 @@ export function initTerrain() {
             }
         }
 
-        // Rim foam — same style as island shore, tight to glass edge
+        // Rim foam - same style as island shore, tight to glass edge
         for (let i = 0; i < RIM_COUNT; i++) {
             const angle = Math.random() * Math.PI * 2;
             const r = OCEAN_RADIUS - 0.15 + Math.random() * 0.1; // tight to edge
@@ -1267,14 +1272,14 @@ export function initTerrain() {
         window._foam = { geo: fg, speeds: fs, phases: fph, types: fType, count: tot, mat: fm, mesh: fPts };
     });
 
-    // --- (D) Seabed terrain — full ocean floor with composited heightmaps ---
+    // --- (D) Seabed terrain - full ocean floor with composited heightmaps ---
     const SEABED_SEGMENTS = 512;
     const seabedGeo = new THREE.PlaneGeometry(OCEAN_RADIUS * 2, OCEAN_RADIUS * 2, SEABED_SEGMENTS, SEABED_SEGMENTS);
     seabedGeo.rotateX(-Math.PI / 2);
     // Same photo rock set as the mountain (own texture instances so the
     // tiling can differ): the baked depth/lava vertex tints keep the
     // bathymetry palette, the photo maps add real sediment-rock grain.
-    // Tiled denser (6x) than the mountain — the seabed plane is 2x the
+    // Tiled denser (6x) than the mountain - the seabed plane is 2x the
     // island footprint and reads at a smaller texel scale through water.
     const seabedColorMap = _rockTex('rockface_color.jpg', true);
     const seabedNormalMap = _rockTex('rockface_normal.jpg', false);
@@ -1285,7 +1290,7 @@ export function initTerrain() {
     const seabedMat = new THREE.MeshStandardMaterial({
         map: seabedColorMap,
         // Same double-albedo compensation logic as the mountain material,
-        // but held lower — at 2.6 the shallow rim shelf blew out into a
+        // but held lower - at 2.6 the shallow rim shelf blew out into a
         // bright icy ring through the glass.
         color: new THREE.Color(1.7, 1.7, 1.7),
         vertexColors: true,
@@ -1309,7 +1314,7 @@ export function initTerrain() {
                 '#include <normal_fragment_maps>',
                 [
                     '#include <normal_fragment_maps>',
-                    '// Specular AA (see mountain material) — derivative math',
+                    '// Specular AA (see mountain material) - derivative math',
                     '// only, no texture cost.',
                     'vec3 saaDx = dFdx(normal);',
                     'vec3 saaDy = dFdy(normal);',
@@ -1321,7 +1326,7 @@ export function initTerrain() {
             '#include <opaque_fragment>',
             [
                 '// Underwater light absorption: the floor darkens and',
-                '// blue-shifts with true depth — the shallow rim shelf',
+                '// blue-shifts with true depth - the shallow rim shelf',
                 '// stays readable while the basin toward the island base',
                 '// falls into deep-water dark. THE inward-depth cue.',
                 '// max() floor keeps the basin a dim blue instead of the',
@@ -1346,10 +1351,10 @@ export function initTerrain() {
     };
     const seabedMesh = new THREE.Mesh(seabedGeo, seabedMat);
     seabedMesh.renderOrder = 2;
-    seabedMesh.userData.aoInclude = true; // solid geometry — feeds the GTAO G-buffer (scene.js)
+    seabedMesh.userData.aoInclude = true; // solid geometry - feeds the GTAO G-buffer (scene.js)
     islandGroup.add(seabedMesh);
 
-    // Seabed: real NASA GEBCO bathymetry — single heightmap, no tiling
+    // Seabed: real NASA GEBCO bathymetry - single heightmap, no tiling
     loadHeightmap('ocean_floor.webp', (imgData, w, h) => {
         const pos = seabedGeo.attributes.position;
         const uv = seabedGeo.attributes.uv;
@@ -1396,7 +1401,7 @@ export function initTerrain() {
             const noise = (Math.random() - 0.5) * 0.03;
             const depthNorm = Math.max(0, Math.min(1, (y - FLOOR_Y) / BASE_DEPTH + noise));
 
-            // Lava veins — procedural at the deepest areas
+            // Lava veins - procedural at the deepest areas
             let lava = 0;
             if (depthNorm < 0.3) {
                 const vx2 = pos.getX(i), vz2 = pos.getZ(i);
@@ -1411,7 +1416,7 @@ export function initTerrain() {
             const depthDark = 0.6 + depthNorm * 0.3;
             // Floored at 0.55: unfloored, the product bottomed at 0.24 on
             // the darkest palette stop and the basin baked out at ~0.014
-            // vertex color — pitch black after absorption. The depth read
+            // vertex color - pitch black after absorption. The depth read
             // comes from the absorption shader now, not from crushing the
             // bake.
             const dark = Math.max(radialDark * depthDark, 0.55);
@@ -1419,7 +1424,7 @@ export function initTerrain() {
             // Sediment contact ring: only the last ~1.3u darkens into the
             // grounded seam tone. The wall now goes CLEAR below the shelf
             // line so the seabed detail near the glass is deliberately on
-            // display — a wide dark weld here would black out exactly the
+            // display - a wide dark weld here would black out exactly the
             // rock the cutaway view exists to show.
             if (dist > OCEAN_RADIUS - 2.2) {
                 const sedT = Math.min(1, (dist - (OCEAN_RADIUS - 2.2)) / 2.0);

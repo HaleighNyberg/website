@@ -61,7 +61,7 @@ if (isReviewerActive()) {
     });
 })();
 
-// Init order matters — each module populates the shared state
+// Init order matters - each module populates the shared state
 try { resolveDailyParams(); } catch (e) { console.warn('daily planet resolve failed', e); }
 initScene();
 initLighting();
@@ -101,7 +101,7 @@ function typeHeroStatement() {
 
 // --- No Man's Sky–style warp load-in ---
 // The intro holds far out in deep space at warp (js/warp.js star-streaks)
-// while textures download — the island never zooms until it's fully loaded.
+// while textures download - the island never zooms until it's fully loaded.
 // A mono HUD readout shows real progress; on ready it drops out of warp and
 // swoops into the home framing over a complete world. (js/loadingApproach.js)
 setApproachActive(true);
@@ -122,7 +122,7 @@ THREE.DefaultLoadingManager.onProgress = (url, loaded, total) => {
 THREE.DefaultLoadingManager.onLoad = () => {
     _assetsReady = true;
     _loadPct = 100;
-    // Releases the gateway download (lighting.js) — deferred only this far so it
+    // Releases the gateway download (lighting.js) - deferred only this far so it
     // never competes with the first-view textures for bandwidth.
     state._firstViewLoaded = true;
     warmShaders();
@@ -136,12 +136,12 @@ setTimeout(() => {
     }
 }, 24000);
 
-// Shader-ready signal — the other half of "don't fly until the world is real".
+// Shader-ready signal - the other half of "don't fly until the world is real".
 //
 // A material's program is not compiled when the object is created; it is
 // compiled the first time the object is actually RENDERED. During the deep-space
 // hold the island, dish and water are outside the frustum, so they compile at
-// the exact moment they come into view — three blocks on the driver
+// the exact moment they come into view - three blocks on the driver
 // (getProgramParameter) and the swoop stutters just as the dish appears. The
 // warm render under the cover only ever warmed what was on screen at boot.
 //
@@ -149,7 +149,7 @@ setTimeout(() => {
 // KHR_parallel_shader_compile so the wait happens off the main thread. Then hold
 // the warp until it lands, exactly as we already do for textures.
 // The warm MUST run with the composer's render target bound. three keys a
-// program on, among other things, whether tone mapping is applied — and tone
+// program on, among other things, whether tone mapping is applied - and tone
 // mapping is skipped whenever the destination is a render target rather than the
 // canvas. The composer renders into a target and never to the canvas, so warming
 // with nothing bound compiles the SCREEN variant of every shader: a full set of
@@ -188,13 +188,13 @@ setTimeout(() => { _shadersReady = true; }, 30000);
 
 // The gateway (lighting.js) now attaches, uploads and compiles during the hold
 // rather than after the landing, and reports _gatewayWarm once its fade has
-// finished — the fade's last act restores `transparent`, which rebuilds every
+// finished - the fade's last act restores `transparent`, which rebuilds every
 // one of its programs. Holding the warp for it keeps the swoop clean.
 //
 // But it is 2.8 MB, and nobody should sit at warp watching a station download.
 // Give it a bounded grace period past the first-view assets; if it misses that,
 // stop waiting and let the flight go. lighting.js then holds the station back
-// until the landing on its own, so a late arrival can never attach mid-swoop —
+// until the landing on its own, so a late arrival can never attach mid-swoop -
 // which would be worse than the stutter we are removing.
 const _gatewayGrace = () => setTimeout(() => { state._gatewayWarm = true; }, 5000);
 if (state._firstViewLoaded) _gatewayGrace();
@@ -264,13 +264,13 @@ const _hud = document.getElementById('approach-telemetry');
 let _hudTick = null;
 let _liteLink = null;
 // Once the HUD has been retired it must never come back. Its 700ms timer can
-// fire LATE — the main thread stalls hard while the shaders compile — and land
+// fire LATE - the main thread stalls hard while the shaders compile - and land
 // after stopHud() has already run, building a fresh skip link that nothing is
 // left to remove. That is how it ended up pinned to the screen for good.
 let _hudRetired = false;
 // The flight now holds for three things, not one: the textures, the shader warm,
 // and the station. The readout has to span all three or it sits at "100%" while
-// the visitor is still parked at warp — and the HUD has to appear whenever ANY of
+// the visitor is still parked at warp - and the HUD has to appear whenever ANY of
 // them is outstanding, not just the textures, or a fast connection gets a silent
 // hold with no indicator and no way out.
 function _overallPct() {
@@ -286,14 +286,14 @@ function _stillHolding() {
 function startHud() {
     setTimeout(() => {
         if (_hudRetired) return;        // the world arrived while this timer was stuck
-        if (!_stillHolding()) return;   // everything already in — don't flash any UI
+        if (!_stillHolding()) return;   // everything already in - don't flash any UI
         if (_hud) {
             _hud.classList.add('on');
             _hudTick = setInterval(() => {
                 if (_hud) _hud.textContent = '◦ loading ' + _overallPct() + '%';
             }, 90);
         }
-        // Offer an immediate jump to the reduced text version — for a weak
+        // Offer an immediate jump to the reduced text version - for a weak
         // machine or an impatient visitor. It reloads into that view; the
         // 3D never has to finish for them.
         _liteLink = document.createElement('button');
@@ -337,7 +337,7 @@ const _flight = startApproach(state.camera, state.scene, revealScene, {
     onDropout: stopHud,
 });
 
-// Skip on interaction — click / scroll / any key drops out of warp the moment
+// Skip on interaction - click / scroll / any key drops out of warp the moment
 // the assets are ready. Listeners self-remove after firing.
 if (!_skipIntro && _flight) {
     const _skip = () => {
@@ -355,7 +355,7 @@ const _cover = document.getElementById('loading-screen');
 if (_cover) {
     const _lift = () => {
         // Two chained rAFs: the first render compiles shaders and can block the
-        // main thread for over a second — but the CSS cover fade runs on the
+        // main thread for over a second - but the CSS cover fade runs on the
         // compositor and would sail through it, revealing a stale black canvas
         // that then pops. Waiting for a genuinely painted frame keeps the fade
         // over live pixels.
@@ -366,7 +366,7 @@ if (_cover) {
     };
 
     if (!_skipIntro) {
-        // The warp hold IS what the visitor is meant to be looking at — but not a
+        // The warp hold IS what the visitor is meant to be looking at - but not a
         // FROZEN one. Boot compiles every program in the scene (loadingApproach
         // does it deliberately, "in the same covered window") and that blocks the
         // main thread for seconds. Lifting after two frames closed the window long
@@ -390,15 +390,15 @@ if (_cover) {
         // Nothing to hide behind. The camera is already parked at home, so
         // lifting on frame two shows a black island on an empty sea for the beat
         // it takes the heightmap to decode and the water normals to land. Hold
-        // the cover until the world is actually there. On a returning visitor —
-        // which is most of this path — the assets are cached and this is over
+        // the cover until the world is actually there. On a returning visitor -
+        // which is most of this path - the assets are cached and this is over
         // before the fade could have finished anyway.
         // The readout and its escape hatch are retired HERE. On this path the
-        // flight never drops out of warp, so onDropout — the only other thing
-        // that calls stopHud — never fires, and they would sit on screen for the
+        // flight never drops out of warp, so onDropout - the only other thing
+        // that calls stopHud - never fires, and they would sit on screen for the
         // rest of the visit.
         // Wait for the ASSETS and nothing else. The black island and the empty sea
-        // are an asset problem — the heightmap has not decoded and the water
+        // are an asset problem - the heightmap has not decoded and the water
         // normals have not landed. Shaders are a different failure (a stutter, not
         // a hole) and the warm can block the main thread for seconds; nobody
         // should watch a black rectangle while a compiler runs.

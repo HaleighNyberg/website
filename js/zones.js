@@ -1,4 +1,4 @@
-// Zone system — scroll-driven navigation with smooth camera transitions
+// Zone system - scroll-driven navigation with smooth camera transitions
 import * as THREE from 'three';
 import { state } from './config.js?v=real18';
 
@@ -8,14 +8,14 @@ import { state } from './config.js?v=real18';
 // The subject (island + dish) must therefore render roughly at 30%
 // viewport width (the center of the left 60%), not at 50%. To achieve
 // this, each lookAt is offset in the camera's local +right direction
-// from the island origin — pushing the subject LEFT in frame while
+// from the island origin - pushing the subject LEFT in frame while
 // keeping the camera itself close to its previous pose. The default
 // (home) zone stays full-width and is left unchanged.
 // See docs/SCENE_GRAPH.md for the pose table.
 const ZONE_ORDER = [
     {
         name: 'default',
-        // 3/4 high hero — shows dish, mountain, sun+flare, orbital rings.
+        // 3/4 high hero - shows dish, mountain, sun+flare, orbital rings.
         camera: { x: 84, y: 33, z: 78 },
         lookAt: { x: 2, y: 5, z: -4 },
         orbit: { minDist: 40, maxDist: 320, minPolar: 0.3, maxPolar: 1.6 },
@@ -43,7 +43,7 @@ const ZONE_ORDER = [
     },
     {
         name: 'connect',
-        // CONNECT — under-dish, looking up through the glass (was the
+        // CONNECT - under-dish, looking up through the glass (was the
         // Toolkit pose). The previous far-pullback view was removed at
         // user request.
         camera: { x: 81, y: -28, z: -40 },
@@ -67,9 +67,9 @@ export function isApproachActive() { return _approachActive; }
 // Camera animation
 let _animating = false;
 let _animStart = 0;
-let _animDuration = 900; // ms — computed per-transition based on distance
-const ANIM_DURATION_MIN = 700;  // ms — floor for very short moves
-const ANIM_DURATION_MAX = 2200; // ms — cap for longest traversals
+let _animDuration = 900; // ms - computed per-transition based on distance
+const ANIM_DURATION_MIN = 700;  // ms - floor for very short moves
+const ANIM_DURATION_MAX = 2200; // ms - cap for longest traversals
 const ANIM_DURATION_SCALE = 5.5; // ms per unit of camera distance
 let _fromPos = new THREE.Vector3();
 let _toPos = new THREE.Vector3();
@@ -77,7 +77,7 @@ let _fromLook = new THREE.Vector3();
 let _toLook = new THREE.Vector3();
 let _currentLookAt = new THREE.Vector3(2, 5, -4); // must match ZONE_ORDER[0].lookAt
 
-// Easing — cubic ease-in-out (no overshoot, no spring)
+// Easing - cubic ease-in-out (no overshoot, no spring)
 function easeInOut(t) {
     return t < 0.5
         ? 4 * t * t * t
@@ -116,7 +116,7 @@ function _activateZone(name) {
                 }
             }
             _isTransitioning = false;
-        }, 80); // short settle gap — camera has overshot and returned by now
+        }, 80); // short settle gap - camera has overshot and returned by now
     } else {
         _isTransitioning = false;
     }
@@ -132,7 +132,7 @@ function _goToZone(index) {
     _currentIndex = index;
     const zone = ZONE_ORDER[index];
 
-    // OrbitControls permanently disabled — scroll handles navigation
+    // OrbitControls permanently disabled - scroll handles navigation
 
     // Store start/end positions
     _fromPos.copy(state.camera.position);
@@ -185,7 +185,7 @@ export function initZones() {
         _zoneElements[name] = document.getElementById(`zone-${name}`);
     }
 
-    // CV/Resume tab switching — class-only, styling lives in zones.css
+    // CV/Resume tab switching - class-only, styling lives in zones.css
     const cvTabs = document.querySelectorAll('.cv-tab');
     cvTabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
@@ -203,7 +203,7 @@ export function initZones() {
         });
     });
 
-    // Scroll listener — wheel advances zone ONLY when the cursor is in
+    // Scroll listener - wheel advances zone ONLY when the cursor is in
     // open space (over the 3D canvas). If the wheel event targets a
     // content panel, the home terminal, or any scrollable overlay, the
     // event is left alone for the native scroll. This kills the "scroll
@@ -274,7 +274,7 @@ export function initZones() {
         }
     }, { passive: true });
 
-    // Section nav — click labels to jump to zone
+    // Section nav - click labels to jump to zone
     const navItems = document.querySelectorAll('.section-nav__item');
     navItems.forEach((item) => {
         item.addEventListener('click', (e) => {
@@ -299,7 +299,7 @@ export function initZones() {
         }
     });
 
-    // Explore hint timing is driven from main.js revealScene() — not here.
+    // Explore hint timing is driven from main.js revealScene() - not here.
     // See the approach onComplete callback for the coordinated reveal chain.
 
     // Activate default zone on load
@@ -357,7 +357,7 @@ export function updateZones(camera) {
 
         if (t >= 1) {
             _animating = false;
-            // Snap to exact target — no floating-point residue
+            // Snap to exact target - no floating-point residue
             camera.position.copy(_toPos);
             _currentLookAt.copy(_toLook);
             camera.lookAt(_currentLookAt);
@@ -394,7 +394,7 @@ export function updateZones(camera) {
         return;
     }
 
-    // Settled state — apply the Connect cinematic orbit if applicable.
+    // Settled state - apply the Connect cinematic orbit if applicable.
     if (_currentZone === 'connect' && state.moonOrb) {
         const elapsed = (typeof window !== 'undefined' && window._elapsed) || 0;
 
@@ -435,7 +435,7 @@ export function updateZones(camera) {
             _currentLookAt.copy(CONNECT_LOOK);
         }
     } else if (_connectBlend !== 0) {
-        // Left the Connect zone — reset blend so the next entry eases in
+        // Left the Connect zone - reset blend so the next entry eases in
         // from the new static landing pose.
         _connectBlend = 0;
     }

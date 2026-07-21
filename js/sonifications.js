@@ -1,7 +1,7 @@
 // Hubble sonification manifest. The audio module picks one at random on
 // load, plays it end-to-end via <audio src="...">, then picks the next.
 //
-// Streamed directly from NASA's CDN rather than bundled locally — the
+// Streamed directly from NASA's CDN rather than bundled locally - the
 // full set is ~727MB which is unshippable for a portfolio. NASA content
 // is public domain; each track credits SYSTEM Sounds (M. Russo, A.
 // Santaguida) or NASA/CXC/SAO/K. Arcand. Credit is shown in the audio

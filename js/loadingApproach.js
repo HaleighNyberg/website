@@ -1,11 +1,11 @@
-// loadingApproach.js — galactic-transit load-in (layer-isolated).
+// loadingApproach.js - galactic-transit load-in (layer-isolated).
 //
 // The intro never shows the island until its textures are fully loaded,
 // and the whole journey is REAL camera translation through one rigid
 // space: from the first frame the camera genuinely flies down the
 // approach axis, past a world-fixed corridor of stars (transit.js) and
 // through a raymarched interstellar medium (corridor.js), under the real
-// destination skybox. There is no streamed medium and no parked cruise —
+// destination skybox. There is no streamed medium and no parked cruise -
 // every parallax cue on screen is true relative motion, consistent by
 // depth, because it is all rendered from the camera's actual position.
 //
@@ -17,15 +17,15 @@
 // corridor jump forward TOGETHER by the surplus distance. Only the
 // view-locked skybox and the corridor are visible, and both are
 // invariant under the shared shift, so the spliced frame is
-// pixel-identical to the one before it — no visible seam, ever. From
+// pixel-identical to the one before it - no visible seam, ever. From
 // there the brake is a pure continuation: the camera decelerates over
 // the real remaining distance and lands exactly on the establishing
 // pose. (If the failsafe fires, the surplus is ~zero and the splice is a
 // no-op.)
 //
 //   Phase 1 (cruise): real flight at cruise speed. Only the skybox, the
-//     corridor stars and the medium render — the entire main scene is
-//     hidden — while the island's textures download. FOV widened for
+//     corridor stars and the medium render - the entire main scene is
+//     hidden - while the island's textures download. FOV widened for
 //     speed. The destination star is not visible at warp.
 //   Phase 2 (decel): once every texture + heightmap has landed
 //     (opts.isReady) the GPU is warmed (renderer.compile), the splice
@@ -34,20 +34,20 @@
 //     corridor streaks shorten and dim with the true displacement, the
 //     medium thins away (braking is entering the system's wind-cleared
 //     cavity), the route's point stars thin out as the destination's
-//     REAL star shell emerges into the far plane with true parallax —
-//     we physically arrive among the neighborhood — and the destination
-//     is ONE COMPLETE OBJECT at every visible instant — disc, halos and
+//     REAL star shell emerges into the far plane with true parallax -
+//     we physically arrive among the neighborhood - and the destination
+//     is ONE COMPLETE OBJECT at every visible instant - disc, halos and
 //     rays together, never an assembly sequence (owner: "just have it be
 //     there"). During cruise it sits beyond the far plane and is clipped
-//     — naturally invisible. It enters the frustum at the splice ~8.4k
+//     - naturally invisible. It enters the frustum at the splice ~8.4k
 //     units out, held at zero by a distance-driven extinction ramp, then
 //     brightens and grows purely by the real approach.
-//   Phase 3 (zoom): the brake does NOT end at rest — it exits the
+//   Phase 3 (zoom): the brake does NOT end at rest - it exits the
 //     establishing pose still gliding at LAND_SPEED, and the swing home
 //     inherits that exact velocity. One unbroken motion from cruise to
 //     the final landing; the only true stop of the whole journey is the
 //     settle onto the home pose. The flight layer is retired at the
-//     handoff — at a few percent of cruise speed the corridor is already
+//     handoff - at a few percent of cruise speed the corridor is already
 //     dark by physics (streak length and brightness both ride real
 //     motion), so the retirement has nothing visible left to remove.
 //
@@ -59,7 +59,7 @@ import { state } from './config.js';
 import { initTransit, TRANSIT_LAYER } from './transit.js';
 
 // Establishing pose: far and high, framing the whole system (star + distant
-// dish + orbit ring) — the shot the brake comes to rest on.
+// dish + orbit ring) - the shot the brake comes to rest on.
 const ESTABLISH_POS  = new THREE.Vector3(150, 128, 1120);
 const ESTABLISH_LOOK = new THREE.Vector3(2, 6, -2);
 
@@ -69,15 +69,15 @@ const HOME_LOOK = new THREE.Vector3(2, 5, -4);
 
 // Unit flight direction. ESTABLISH_POS, ESTABLISH_LOOK and every cruise
 // position are collinear, so lookAt(ESTABLISH_LOOK) yields the same
-// orientation all the way down the axis — the flight is a pure dolly.
+// orientation all the way down the axis - the flight is a pure dolly.
 const DIR = new THREE.Vector3().subVectors(ESTABLISH_LOOK, ESTABLISH_POS).normalize();
 
 const BASE_FOV    = 45;
-const TRANSIT_FOV = 58;      // widened at speed — the velocity cue
+const TRANSIT_FOV = 58;      // widened at speed - the velocity cue
 
 const MIN_TRANSIT_MS = 2800; // always travel at least this long
 const MAX_TRANSIT_MS = 24000;// failsafe: arrive even if a load never resolves
-const CRUISE_SPEED   = 2350; // u/s — held constant; the brake starts from it
+const CRUISE_SPEED   = 2350; // u/s - held constant; the brake starts from it
 const RAMP_MS        = 900;  // spool-up from rest at page-open
 // Long brake: braking from cruise speed is inherently front-loaded (half
 // the distance goes by in the first quarter of the time), so a short brake
@@ -89,7 +89,7 @@ const ZOOM_MS        = 3100; // final approach into the home framing
 // carried speed and the zoom curve inherits it exactly, so the camera is
 // in continuous motion from the first frame to the landing at HOME. (The
 // old profile hit v=0 at the pose, held a 450ms stop, then eased out from
-// v=0 again — the near-stillness totalled ~2s and read as a break.)
+// v=0 again - the near-stillness totalled ~2s and read as a break.)
 const LAND_SPEED     = 170;  // u/s through the establishing pose
 
 // Braking distance for the speed profile V(k) = Vc·P′(k)/2 below: P(1)=1
@@ -99,29 +99,29 @@ const LAND_SPEED     = 170;  // u/s through the establishing pose
 const D_START = CRUISE_SPEED * (DECEL_MS / 1000) / 2;
 // P′(1) = LAND_C makes the brake exit at exactly LAND_SPEED.
 const LAND_C = 2 * LAND_SPEED / CRUISE_SPEED;
-// Departure distance: the furthest the flight could ever need — a full
+// Departure distance: the furthest the flight could ever need - a full
 // failsafe-length cruise plus the braking run. A faster load just means a
 // bigger (still invisible) splice.
 const D_TOTAL = D_START + CRUISE_SPEED * (MAX_TRANSIT_MS / 1000);
 
 // The sun is never staged (owner-locked 2026-07-11, after every staged
 // variant was caught: windowed halos/rays, visibility flips at k
-// .80/.85/.55, the uDiscScale growth — ALL read as "loading in"). The
-// complete assembly — disc + halos + screen-space ray pass — is gated by
+// .80/.85/.55, the uDiscScale growth - ALL read as "loading in"). The
+// complete assembly - disc + halos + screen-space ray pass - is gated by
 // ONE extinction signal driven by the real camera→sun distance: deep in
 // the nebula the star is extinguished; entering the system's cleared
 // cavity it brightens; the growth on screen is pure parallax. It enters
-// the far plane at the splice (~8.4k out) already at zero — no pop.
+// the far plane at the splice (~8.4k out) already at zero - no pop.
 // Tightened 2026-07-12 (owner: the system read "way out in the distance"
 // too early): the star resolves across the MIDDLE of the brake, not from
-// its first seconds — nothing of the destination is discernible until
+// its first seconds - nothing of the destination is discernible until
 // the approach has genuinely closed in.
-const SUN_FADE_FAR  = 5200;  // u — fully extinguished (inside the nebula)
-const SUN_FADE_NEAR = 2200;  // u — fully clear (inside the cavity)
+const SUN_FADE_FAR  = 5200;  // u - fully extinguished (inside the nebula)
+const SUN_FADE_NEAR = 2200;  // u - fully clear (inside the cavity)
 // The lens-flare pass (god rays + the warm ghost train) is SCREEN-SPACE:
 // mid-brake, with the sun still near frame centre, its ghost chain
 // stretches across the vista and reads as an artifact. It gets a much
-// nearer window — the rays bloom only into the establishing framing,
+// nearer window - the rays bloom only into the establishing framing,
 // the geometry where the resting look was graded.
 const FLARE_FADE_FAR  = 3200;
 const FLARE_FADE_NEAR = 1900;
@@ -149,10 +149,10 @@ function smoothstep(a, b, x) {
 // Fraction of the braking distance covered at normalized time k:
 // P(k) = 2k − 5k⁴ + 6k⁵ − 2k⁶ + LAND_C·(k³ − k²). Still P(0)=0, P(1)=1
 // (the glide term vanishes at both ends), still monotone, still
-// front-loaded — half the distance goes by in the first quarter of the
+// front-loaded - half the distance goes by in the first quarter of the
 // time. P′(0) = 2 means the brake begins at exactly cruise speed (no seam
 // at the splice); P′(1) = LAND_C means it EXITS at LAND_SPEED instead of
-// dying to zero — the old profile's last second covered <1% of the
+// dying to zero - the old profile's last second covered <1% of the
 // distance, which is where the "parked before the zoom" read came from.
 function decelDist(k) {
     const k2 = k * k;
@@ -163,12 +163,12 @@ function decelDist(k) {
 // The route star field empties itself PHYSICALLY during the brake: at the
 // splice the corridor stops respawning stars ahead, so every star still in
 // view is genuinely overtaken and swept past while the destination shell
-// (starShell.js) grows in — no star ever fades or disappears in place.
+// (starShell.js) grows in - no star ever fades or disappears in place.
 
 /**
  * @param {THREE.PerspectiveCamera} camera
  * @param {THREE.Scene} scene
- * @param {Function} onComplete — called on landing at home
+ * @param {Function} onComplete - called on landing at home
  * @param {{ isReady?: () => boolean, skip?: boolean, onDropout?: () => void }} [opts]
  * @returns {{ requestSkip: () => void }}
  */
@@ -177,7 +177,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
 
     // Returning visitors / reduced-motion / save-data: snap straight home.
     // The permanent nebula volume (built in scene.js, cavity on) is the
-    // resting sky — nothing to prepare.
+    // resting sky - nothing to prepare.
     if (opts.skip) {
         camera.position.copy(HOME_POS);
         camera.lookAt(HOME_LOOK);
@@ -195,7 +195,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     const medium = state._nebulaVol;
     if (medium) medium.setCavityOn(0);
     // The flight happens under the REAL destination sky from the first
-    // frame — the skybox is view-locked (no parallax), so it reads as the
+    // frame - the skybox is view-locked (no parallax), so it reads as the
     // infinitely distant backdrop it is, and the intro's grade matches the
     // loaded site EXACTLY at every moment. Only the system itself arrives:
     // the sky lives on layer 9 so it (plus the flight layer) shows while
@@ -203,10 +203,10 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     // One hidden warm render of the FULL scene from the home pose into a
     // tiny offscreen target, while the loading cover is still opaque:
     // this allocates the water-reflection target, builds the shadow map
-    // and compiles every lit program NOW — none of it is left to stall
+    // and compiles every lit program NOW - none of it is left to stall
     // the reveal mid-brake. (Textures arrive later and upload spread
     // across the cruise via the warm queue; the flight camera itself
-    // can't warm this — at 63k out the whole system is beyond the far
+    // can't warm this - at 63k out the whole system is beyond the far
     // plane and renders nothing.)
     if (state.renderer) {
         try {
@@ -246,18 +246,18 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     camera.layers.enable(TRANSIT_LAYER);
     // The lens flare + DOF are screen-space passes that ignore layers, so
     // the sun's flare and a defocus blur would leak onto the transit.
-    // They stay ON for exactly ONE frame — under the still-opaque loading
-    // cover — so their programs compile now instead of mid-brake at the
+    // They stay ON for exactly ONE frame - under the still-opaque loading
+    // cover - so their programs compile now instead of mid-brake at the
     // reveal (that late compile was a visible stutter); the first cruise
     // tick below turns them off. Their gates are 0, so they contribute
     // nothing to the warm frame either way.
     state._sunGlowGate = 0;
     state._flareGate = 0;
-    // The whole sun assembly stays RENDERABLE from the first frame — it
+    // The whole sun assembly stays RENDERABLE from the first frame - it
     // is simply too far away to exist on screen (beyond the far plane at
     // cruise) and extinguished (uSunFade/gates 0) when it first enters
     // the frustum at the splice. Nothing is ever hidden or staged.
-    // CRITICAL detail: the halo sprites are CHILDREN of sunOrb — never
+    // CRITICAL detail: the halo sprites are CHILDREN of sunOrb - never
     // toggle sunOrb.visible to gate anything.
     if (state.sunOrb) {
         state.sunOrb.visible = true;
@@ -307,7 +307,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
     // (camera.position − rebaseOffset) so the field it renders is
     // continuous across the splice, exactly like the star corridor.
     const rebaseOffset = new THREE.Vector3();
-    // The flight runs on its OWN clock, accumulated from clamped frame deltas —
+    // The flight runs on its OWN clock, accumulated from clamped frame deltas -
     // not on wall time. Boot compiles the shaders for everything on screen and
     // blocks the main thread for seconds; with a wall clock the camera comes back
     // from that stall having "flown" the whole time it was frozen, and teleports
@@ -338,7 +338,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
 
     // Camera pose at a given distance-remaining along the flight axis, with
     // a diminishing lateral sway (drift, not shake). The sway is real
-    // camera translation too — the near corridor parallaxes against it.
+    // camera translation too - the near corridor parallaxes against it.
     function poseAt(dRem, sway, elapsed) {
         pos.copy(ESTABLISH_POS).addScaledVector(DIR, -dRem);
         pos.x += Math.sin(elapsed * 0.00028) * 16 * sway;
@@ -389,7 +389,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 if (state.dofPass) state.dofPass.enabled = false;
             }
             // Real flight: constant cruise speed after a short spool-up.
-            // Every visual — corridor streaks, medium parallax, sky drift —
+            // Every visual - corridor streaks, medium parallax, sky drift -
             // reads off this one genuine displacement.
             const v = CRUISE_SPEED * quintic(Math.min(1, elapsed / RAMP_MS));
             traveled += v * dt;
@@ -420,7 +420,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                     seen.add(v);
                     // Textures still in flight (the 24s ready-failsafe can
                     // fire before slow downloads finish) go to a pending
-                    // list — they are watched each tick and pre-uploaded
+                    // list - they are watched each tick and pre-uploaded
                     // on arrival, BEFORE the reveal can sync-decode them
                     // on screen. (Possible only because nothing renders
                     // them during the cruise.)
@@ -438,7 +438,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                         }
                     }
                 });
-                // Drain as an async chain, ONE upload per frame — and
+                // Drain as an async chain, ONE upload per frame - and
                 // decode each image OFF-THREAD first (image.decode()):
                 // initTexture on a never-rendered image forces a
                 // synchronous decode on the main thread, and the big
@@ -462,7 +462,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             }
 
             // Late arrivals: when a pending texture's download lands,
-            // decode it off-thread and pre-upload immediately — during
+            // decode it off-thread and pre-upload immediately - during
             // the cruise nothing renders these, so this is the only
             // moment their upload timing is ours to choose.
             if (warmStarted && pendingTex.length) {
@@ -490,9 +490,9 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             if (ready && (warmReady || elapsed > MAX_TRANSIT_MS + 12000)) {
                 // THE SPLICE: jump camera and corridor forward together by
                 // the surplus distance so the brake starts exactly D_START
-                // out. Both sides of the jump render the identical frame —
+                // out. Both sides of the jump render the identical frame -
                 // the skybox is view-locked and the corridor moves rigidly
-                // with the camera — so the seam does not exist on screen.
+                // with the camera - so the seam does not exist on screen.
                 // (The camera's own jump lands via the next poseAt.)
                 const surplus = dRem - D_START;
                 _splice.copy(DIR).multiplyScalar(surplus);
@@ -502,17 +502,17 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 // (animate.js) subtracts this offset, and the system's
                 // cavity is re-anchored in the corrected coordinates. The
                 // cavity itself is still held OFF here and eased in across
-                // the early brake — a slow far-field clearing, never a
+                // the early brake - a slow far-field clearing, never a
                 // switch.
                 if (state._nebulaOffset) state._nebulaOffset.copy(rebaseOffset);
                 if (medium) medium.setCavity(effPos.copy(rebaseOffset).negate());
                 // From here the route field must empty itself by REAL
                 // overtaking: no new stars ahead, every visible star
-                // sweeps past and stays behind — nothing fades in place.
+                // sweeps past and stays behind - nothing fades in place.
                 field.setRespawn(false);
                 // The camera must land its side of the splice in THIS tick:
                 // the render loop is registered ahead of this one, so the
-                // next paint happens before the next tick — if the corridor
+                // next paint happens before the next tick - if the corridor
                 // has jumped and the camera hasn't, that paint shows one
                 // mismatched frame. Snap the pose now so camera and
                 // corridor cross the splice atomically.
@@ -532,7 +532,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             // The brake: the camera travels the last D_START units on a
             // quintic speed profile from cruise speed to rest, landing
             // exactly on the establishing pose. One kinematic state drives
-            // every visual cue below — the corridor and medium simply
+            // every visual cue below - the corridor and medium simply
             // render the camera's true motion.
             const k = Math.min(1, inPhase / DECEL_MS);
             const s = 1 - quintic(k);                    // speed fraction
@@ -545,18 +545,18 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             // NO fades on the star field: streak length and brightness die
             // with the real speed, and with respawn off the remaining
             // stars are genuinely overtaken (all pre-splice stars sit
-            // within 2.9k ahead; the brake covers 6.8k) — the forward view
+            // within 2.9k ahead; the brake covers 6.8k) - the forward view
             // empties by physics while the destination shell grows in.
             // The nebula's cavity eases in across the early brake: the
             // system's clearing develops in the far field long before the
-            // camera reaches it — near-field clouds END at the cavity
+            // camera reaches it - near-field clouds END at the cavity
             // wall, and the nebula beyond it IS the resting sky.
             if (medium) medium.setCavityOn(Math.min(1, k / 0.25));
 
             // The sun: one complete star, gated by real distance alone.
             // Disc (uSunFade), corona halos (_sunGlowGate) and the
             // screen-space god-ray pass (_flareGate) share ONE extinction
-            // signal — the assembly never appears in parts, it is a
+            // signal - the assembly never appears in parts, it is a
             // finished star that brightens as the camera closes and grows
             // by true parallax. (smoothstep here accepts a falling edge.)
             const dSun = dRem + sunEstDist;
@@ -567,12 +567,12 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 const u = state.sunOrb.material.uniforms;
                 if (u && u.uSunFade) u.uSunFade.value = sunFade;
             }
-            // Rings are the last thing to resolve — a near-field diagram
+            // Rings are the last thing to resolve - a near-field diagram
             // overlay that only reads once the system is genuinely close
             // (owner: nothing of the destination discernible too early).
             setRingLevel(smoothstep(0.55, 0.95, k));
             // The far star fields resolve across the brake (absent at
-            // warp, per owner — the deceleration is when the faint
+            // warp, per owner - the deceleration is when the faint
             // background becomes legible).
             setLayerFade(smoothstep(0.25, 0.85, k));
 
@@ -584,7 +584,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 poseAt(0, 0, elapsed);
                 if (medium) medium.setCavityOn(1);
                 // The camera crosses the establishing pose still gliding
-                // at LAND_SPEED — no stop, no beat of stillness. Retire
+                // at LAND_SPEED - no stop, no beat of stillness. Retire
                 // the flight layer at the handoff so nothing can overlay
                 // the dish during the swing home: at 7% of cruise speed
                 // the corridor is already dark by physics (opacity rides
@@ -593,7 +593,7 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
                 camera.layers.disable(TRANSIT_LAYER);
                 field.dispose();
                 // dSun ≈ sunEstDist « SUN_FADE_NEAR here, so the fade is
-                // already exactly 1 — these are the resting values, set
+                // already exactly 1 - these are the resting values, set
                 // explicitly for the post-intro steady state.
                 state._sunGlowGate = 1;
                 state._flareGate = 1;
@@ -610,14 +610,14 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             return;
         }
 
-        // zoom — the island approach, over a fully-loaded world. Every
+        // zoom - the island approach, over a fully-loaded world. Every
         // element on screen is already the resting site: this move IS the
         // resting look. The curve inherits the brake's exit velocity
         // exactly: the glide term below has unit slope at t=0 and vanishes
         // (value and slope) by t=1, so the camera swings out of the
         // establishing pose at LAND_SPEED along the flight axis, bows
         // gently onto the home line, and still lands on the quintic's
-        // soft settle — the journey's only true stop is at HOME itself.
+        // soft settle - the journey's only true stop is at HOME itself.
         const k = Math.min(1, inPhase / ZOOM_MS);
         const e = septic(k);
         const glide = k * (1 - k) * (1 - k) * LAND_SPEED * (ZOOM_MS / 1000);

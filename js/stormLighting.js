@@ -1,10 +1,10 @@
 // Storm-weather lighting cross-fade. Drives sun/hemi/ambient/rim between
 // their captured clear-weather values and a peak-storm palette on a 0..1
 // weather parameter (window._weather.t). A localized PointLight "strike"
-// lamp handles lightning — NOT a global intensity pump. The sun + rim
+// lamp handles lightning - NOT a global intensity pump. The sun + rim
 // are directional sources behind the deck and must not flash.
 //
-// Does NOT touch fog, clouds, or rain — those are the main thread's job.
+// Does NOT touch fog, clouds, or rain - those are the main thread's job.
 
 import * as THREE from 'three';
 import { state, TERRAIN_HEIGHT, OCEAN_LEVEL } from './config.js?v=real18';
@@ -12,7 +12,7 @@ import { state, TERRAIN_HEIGHT, OCEAN_LEVEL } from './config.js?v=real18';
 // --- Peak-storm targets. Clear-weather anchors are captured at runtime. ---
 const STORM_SUN_COLOR   = new THREE.Color(0.58, 0.62, 0.72); // cool grey-blue
 const STORM_HEMI_SKY    = new THREE.Color(0.18, 0.21, 0.27); // slate
-const STORM_HEMI_GROUND = new THREE.Color(0.016, 0.022, 0.034); // dark slate — was inky (0.008/0.012/0.02) but the night side fell unreadable
+const STORM_HEMI_GROUND = new THREE.Color(0.016, 0.022, 0.034); // dark slate - was inky (0.008/0.012/0.02) but the night side fell unreadable
 const STORM_AMB_COLOR   = new THREE.Color(0.10, 0.13, 0.20); // deep blue shift
 const STORM_RIM_COLOR   = new THREE.Color(0.28, 0.34, 0.44); // cool steel
 
@@ -20,10 +20,10 @@ const STORM_RIM_COLOR   = new THREE.Color(0.28, 0.34, 0.44); // cool steel
 // Moderate dimming only: the storm's mood comes from the cool slate
 // COLOR shift + the heavier cloud shadow, not from crushing the whole
 // dish into darkness. The day/night terminator on the island must
-// read the same in every weather state — the deck blocks some light,
+// read the same in every weather state - the deck blocks some light,
 // it does not switch the sun off.
 // Raised twice by owner review (0.55 era -> 0.68 -> 0.80): the island
-// must stay clearly readable at full storm — the DARKNESS of a storm
+// must stay clearly readable at full storm - the DARKNESS of a storm
 // should come from the near-black deck overhead, not from starving
 // the terrain lights.
 const STORM_SUN_MUL  = 0.80;
@@ -31,7 +31,7 @@ const STORM_HEMI_MUL = 0.90;
 const STORM_AMB_MUL  = 0.90;
 const STORM_RIM_MUL  = 0.72;
 
-// Cloud geometry — used to place the strike inside the cloud volume.
+// Cloud geometry - used to place the strike inside the cloud volume.
 // CLOUD_Y is the volume centre; CLOUD_HEIGHT is its vertical extent.
 // These match effects.js init values (TERRAIN_HEIGHT + 3.5, 5.4). If
 // window._cloud.mesh is available we read the live position instead.
@@ -39,12 +39,12 @@ const CLOUD_Y_FALLBACK   = TERRAIN_HEIGHT + 3.5;
 const CLOUD_HEIGHT       = 5.4;
 const CLOUD_HALF_EXTENT  = 12; // horizontal sample margin (vol is ±14)
 
-// Strike palette — cool-blue bolt, warm-plasma core on peak sub-flash,
+// Strike palette - cool-blue bolt, warm-plasma core on peak sub-flash,
 // near-white for the occasional "close hit" variant.
 const FLASH_BLUE   = new THREE.Color(0.75, 0.85, 1.00);
 const FLASH_WHITE  = new THREE.Color(0.95, 0.96, 1.00);
 const FLASH_PLASMA = new THREE.Color(1.00, 0.90, 0.72);
-// Sky-side hemi sympathy tint — the strike backlights the cloud deck
+// Sky-side hemi sympathy tint - the strike backlights the cloud deck
 // so the sky-half of the hemi light briefly pulses cool.
 const FLASH_HEMI_TINT = new THREE.Color(0.80, 0.90, 1.05);
 
@@ -64,7 +64,7 @@ let _strikeLight = null;
 // Bolt geometry: a BufferGeometry of LINE SEGMENT pairs rebuilt per
 // strike. The main channel is a midpoint-displacement fractal (kinks
 // at every scale, like a real stepped leader) and 2-3 shorter BRANCH
-// channels fork off partway down. Two LineSegments share the buffer —
+// channels fork off partway down. Two LineSegments share the buffer -
 // a thin hot core stacked with a wider glow for the two-tone look;
 // UnrealBloom turns the core into a visible streak.
 const BOLT_MAX_VERTS = 220;        // main channel (fractal, 32+ segs)
@@ -87,7 +87,7 @@ const _strikeCube = new THREE.Vector3();
 // its sub-flash chain (the bolt is one object, not a sequence of bolts).
 const _lightning = {
     nextStrikeIn: 3 + Math.random() * 5, // seconds until first strike check
-    flashQueue: [],    // array of {at, peak} — at is elapsed-relative seconds
+    flashQueue: [],    // array of {at, peak} - at is elapsed-relative seconds
     decayUntil: 0,     // elapsed-relative seconds
     peak: 0,           // current pump amount (0..1 nominal, can >1 briefly)
     elapsed: 0,        // local accumulator, independent of animate.js clock
@@ -105,7 +105,7 @@ const _cStrike = new THREE.Color();
 
 /** Snapshot current light values as the clear-weather (t=0) anchor. Call
  *  once after initLighting() has populated state.*Light refs. Safe to call
- *  multiple times — only the first snapshot sticks. */
+ *  multiple times - only the first snapshot sticks. */
 export function captureBaseline() {
     if (_baseline) return;
     const { sunLight, hemiLight, ambLight, rimLight, scene } = state;
@@ -122,7 +122,7 @@ export function captureBaseline() {
             : null,
     };
 
-    // Lazily spawn the strike lamp. One light, reused across strikes —
+    // Lazily spawn the strike lamp. One light, reused across strikes -
     // we just reposition + retint it. Starts dark.
     if (scene && !_strikeLight) {
         _strikeLight = new THREE.PointLight(
@@ -130,7 +130,7 @@ export function captureBaseline() {
         );
         _strikeLight.position.set(0, CLOUD_Y_FALLBACK, 0);
         // The lamp CASTS. Without this it lit the far side of the peak straight
-        // through the rock — the "sun leaking into the night side" during a
+        // through the rock - the "sun leaking into the night side" during a
         // storm: a 1200-intensity light landing in directDiffuse, which the
         // terrain's day/night gate never attenuates (it only touches indirect
         // and specular). A flash needs no resolution, and castShadow is flipped
@@ -143,7 +143,7 @@ export function captureBaseline() {
     }
 
     // Lazily spawn the bolt line pair. Shared geometry; two materials
-    // render back-to-back — wide glow first (renderOrder 14), then
+    // render back-to-back - wide glow first (renderOrder 14), then
     // hot core (renderOrder 15) so the core reads as a bright spine
     // inside the glow.
     if (scene && !_boltCore) {
@@ -170,7 +170,7 @@ export function captureBaseline() {
             depthWrite: false,
         });
         // HDR-hot core: past the 0.8 bloom knee so the UnrealBloom halo
-        // does the "plasma channel" widening. Held to ~1.2 — at 1.6-1.95
+        // does the "plasma channel" widening. Held to ~1.2 - at 1.6-1.95
         // the 1-px line's HDR energy came out of the post chain as
         // scattered zero-channel garbage pixels (magenta/green pips,
         // owner-caught; isolation-tested: pips track the bolt, not the
@@ -181,7 +181,7 @@ export function captureBaseline() {
         _boltCore.frustumCulled = false;
 
         // Branches on their OWN buffer so they render dimmer than the
-        // main channel — a real strike's forks are decaying side leaders,
+        // main channel - a real strike's forks are decaying side leaders,
         // not copies of the return stroke. Glow only, no hot core.
         const bpos = new Float32Array(BOLT_BRANCH_VERTS * 3);
         _boltBranchGeo = new THREE.BufferGeometry();
@@ -209,7 +209,7 @@ export function captureBaseline() {
     }
 
     // Debug: fire a strike on the next frame (weather must be ≥0.7 for
-    // the sim to accept it — the panel sets that first).
+    // the sim to accept it - the panel sets that first).
     window.__forceStrike = () => { _lightning.nextStrikeIn = 0; };
 }
 
@@ -320,10 +320,10 @@ function _pickStrikeColor(outColor) {
 
 /** Schedule a new lightning strike: 3-5 sub-flashes within ~200ms, then a
  *  0.7-1.4s decay tail. Strike rarity scales with weather t. Also picks a
- *  fresh position + tint for the strike — these stay fixed across the
+ *  fresh position + tint for the strike - these stay fixed across the
  *  sub-flash chain (one bolt, many flicker frames). */
 function _scheduleStrike(t) {
-    const subs = 3 + ((Math.random() * 3) | 0);          // 3..5 — more strobe
+    const subs = 3 + ((Math.random() * 3) | 0);          // 3..5 - more strobe
     const windowMs = 90 + Math.random() * 130;           // 90..220ms
     for (let i = 0; i < subs; i++) {
         _lightning.flashQueue.push({
@@ -331,7 +331,7 @@ function _scheduleStrike(t) {
             peak: 0.70 + Math.random() * 0.55,           // fuller sub-flash
         });
     }
-    // Tighter decay — so successive sub-flashes strobe cleanly instead of
+    // Tighter decay - so successive sub-flashes strobe cleanly instead of
     // bleeding into one long glow.
     _lightning.decayUntil = _lightning.elapsed + 0.7 + Math.random() * 0.7;
 
@@ -349,7 +349,7 @@ function _scheduleStrike(t) {
     _lightning.plasmaOnPeak = Math.random() < 0.25;
 
     // TARGET-first strike placement: real lightning prefers the tallest
-    // conductor — 70% of strikes hit the ISLAND, the rest open sea near
+    // conductor - 70% of strikes hit the ISLAND, the rest open sea near
     // it. The channel then starts INSIDE the cloud body above the
     // target (centre to +0.15h), so the bolt's top is swallowed by the
     // volume and it visibly emerges from the deck instead of dangling
@@ -368,7 +368,7 @@ function _scheduleStrike(t) {
         const cloudH = cm ? cm.scale.y : CLOUD_HEIGHT;
         // Channel origin rides the UPPER deck (owner call): the bolt
         // reads as coming down out of the cell top, its first stretch
-        // veiled by the volume. Track the LIVE mesh height — the deck
+        // veiled by the volume. Track the LIVE mesh height - the deck
         // rides lower/thicker under storm.
         _boltStart.set(
             tx + (Math.random() * 2 - 1) * 2.2,
@@ -434,13 +434,13 @@ export function applyStormLighting(t, dt) {
     const k = _smooth(t);
     const b = _baseline;
 
-    // Colors — lerp clear→storm on the scratch buffers, assign.
+    // Colors - lerp clear→storm on the scratch buffers, assign.
     _cSun.lerpColors(b.sun.color, STORM_SUN_COLOR, k);
     _cHemiS.lerpColors(b.hemiS, STORM_HEMI_SKY, k);
     _cHemiG.lerpColors(b.hemiG, STORM_HEMI_GROUND, k);
     _cAmb.lerpColors(b.amb.color, STORM_AMB_COLOR, k);
 
-    // Intensities — lerp baseline toward baseline*mul. Keep hemi never fully
+    // Intensities - lerp baseline toward baseline*mul. Keep hemi never fully
     // black; the mul floors handle that.
     const sunI  = b.sun.intensity * (1 - k * (1 - STORM_SUN_MUL));
     const hemiI = b.hemiI          * (1 - k * (1 - STORM_HEMI_MUL));
@@ -448,7 +448,7 @@ export function applyStormLighting(t, dt) {
 
     // Advance the lightning sim. pump is 0..~1.2; it drives the strike
     // PointLight directly plus a small sky-sympathy pulse on hemi + amb.
-    // No pump on sun or rim — those are directional sources that would
+    // No pump on sun or rim - those are directional sources that would
     // not brighten on a real lightning strike (sun is behind the deck,
     // rim is a backside fill).
     const pump = _advanceLightning(t, dt || 0);
@@ -461,7 +461,7 @@ export function applyStormLighting(t, dt) {
     sunLight.intensity = sunI;
 
     // Hemi: storm lerp, plus a TINY cool pulse on the sky half during a
-    // strike. The strike lamp does the real lighting — this is just the
+    // strike. The strike lamp does the real lighting - this is just the
     // bounce off the cloud deck interior as the bolt illuminates it.
     const hemiPulse = Math.min(1, pump * 0.55);
     _cHemiS.lerp(FLASH_HEMI_TINT, hemiPulse * 0.30);
@@ -469,14 +469,14 @@ export function applyStormLighting(t, dt) {
     hemiLight.groundColor.copy(_cHemiG);
     hemiLight.intensity = hemiI + b.hemiI * pump * 0.15;
 
-    // Ambient: same story — small sympathy pulse only. The big
+    // Ambient: same story - small sympathy pulse only. The big
     // illumination comes from the point light throwing directional light
     // at surfaces facing the strike.
     _cAmb.lerp(FLASH_HEMI_TINT, hemiPulse * 0.20);
     ambLight.color.copy(_cAmb);
     ambLight.intensity = ambI + b.amb.intensity * pump * 0.10;
 
-    // Rim: pure storm lerp. No flash component — a backside rim light
+    // Rim: pure storm lerp. No flash component - a backside rim light
     // pumping on a front-hemisphere strike reads wrong.
     if (rimLight && b.rim) {
         _cRim.lerpColors(b.rim.color, STORM_RIM_COLOR, k);
@@ -484,14 +484,14 @@ export function applyStormLighting(t, dt) {
         rimLight.intensity = b.rim.intensity * (1 - k * (1 - STORM_RIM_MUL));
     }
 
-    // Strike lamp — the actual directional bit. Peak intensity scales
+    // Strike lamp - the actual directional bit. Peak intensity scales
     // with the pump, color uses the per-strike tint (plus a warm core
     // on the peak sub-flash IF this strike was flagged for it).
     if (_strikeLight) {
         if (pump > 0.001) {
             _cStrike.copy(_lightning.strikeColor);
             if (_lightning.plasmaOnPeak) {
-                // Warm core mixes in near the sub-flash peak only —
+                // Warm core mixes in near the sub-flash peak only -
                 // pump^2 keeps the warmth off the decay tail.
                 const coreMix = Math.min(1, pump * pump * 0.9);
                 _cStrike.lerp(FLASH_PLASMA, coreMix * 0.35);
@@ -507,7 +507,7 @@ export function applyStormLighting(t, dt) {
         }
     }
 
-    // Bolt polyline — visible only during a strike. Core reads as a
+    // Bolt polyline - visible only during a strike. Core reads as a
     // thin hot-white spine, glow reads as the cool-blue halo around
     // it. Both fade with the pump envelope. UnrealBloom picks up the
     // bright additive core and bleeds it into a visible streak.
@@ -516,14 +516,14 @@ export function applyStormLighting(t, dt) {
             _boltCore.visible = true;
             _boltGlow.visible = true;
             // Core opacity is near-full on peak sub-flash, glow sits
-            // lower but wider (conceptually — thickness comes from
+            // lower but wider (conceptually - thickness comes from
             // bloom, not linewidth, which WebGL ignores).
             _boltCoreMat.opacity = Math.min(1.0, 0.65 + pump * 0.55);
             _boltGlowMat.opacity = Math.min(0.95, 0.35 + pump * 0.60);
             _boltGlowMat.color.copy(_lightning.strikeColor);
             if (_boltBranch) {
                 // Side leaders: dimmer, and they die FASTER than the
-                // return stroke (pump² tail) — uniform-brightness forks
+                // return stroke (pump² tail) - uniform-brightness forks
                 // were the big "drawn, not physical" tell.
                 _boltBranch.visible = true;
                 _boltBranchMat.opacity = Math.min(0.6, pump * pump * 0.55);
@@ -535,7 +535,7 @@ export function applyStormLighting(t, dt) {
         }
     }
 
-    // Cloud volume strike glow — same pump envelope + tint as the lamp.
+    // Cloud volume strike glow - same pump envelope + tint as the lamp.
     if (window._cloud && window._cloud.mat &&
         window._cloud.mat.uniforms.uStrikeI) {
         const cu = window._cloud.mat.uniforms;

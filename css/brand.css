@@ -1,7 +1,7 @@
 /* ============================================
-   Design System — Haleigh Nyberg
+   Design System - Haleigh Nyberg
    A friendly sci-fi HUD over the scene.
-   Shades of blue only — ice ink on deep navy, one
+   Shades of blue only - ice ink on deep navy, one
    electric cyan accent. Nasalization is the display
    voice (rounded, future-forward), JetBrains Mono is
    the working voice (the whole chrome behaves like a
@@ -59,7 +59,7 @@
     --blue-500: #1e5f8f;   /* deep accent / depressed */
     --blue-400: #2f88c4;   /* mid accent */
     --blue-300: #4fb3e8;   /* accent rest */
-    --blue-200: #7fd4ff;   /* primary accent — active, focus, glow */
+    --blue-200: #7fd4ff;   /* primary accent - active, focus, glow */
     --blue-100: #c0eaff;   /* highlight */
 
     --ink-100: #e6f2fa;    /* primary ice ink */
@@ -82,7 +82,7 @@
     --accent-rest:    var(--blue-300);
     --accent-hover:   var(--blue-100);
 
-    /* Holo glow — spent on active states and display type only. */
+    /* Holo glow - spent on active states and display type only. */
     --glow-soft:   0 0 14px rgba(127, 212, 255, 0.22);
     --glow-strong: 0 0 8px rgba(127, 212, 255, 0.55), 0 0 28px rgba(79, 179, 232, 0.28);
 
@@ -210,7 +210,7 @@
     max-width: 62ch;
 }
 
-/* Label: mono caps kicker — the env's working voice. */
+/* Label: mono caps kicker - the env's working voice. */
 .label {
     font-family: var(--font-mono);
     font-weight: 400;
@@ -268,7 +268,7 @@
 }
 
 /* ============================================
-   Approach telemetry — mono load readout shown during a slow warp hold.
+   Approach telemetry - mono load readout shown during a slow warp hold.
    ============================================ */
 #approach-telemetry {
     position: fixed;
@@ -296,7 +296,7 @@
     position: fixed;
     right: var(--space-8, 48px);
     bottom: var(--space-8, 48px);
-    /* Above the cover too — an escape hatch you cannot click is not one. */
+    /* Above the cover too - an escape hatch you cannot click is not one. */
     z-index: 10000;
     background: transparent;
     border: 1px solid rgba(127, 212, 255, 0.28);

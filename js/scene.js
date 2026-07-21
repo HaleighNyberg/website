@@ -18,7 +18,7 @@ export function initScene() {
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 1000);
     // Layer 2 = glass dish (moonLight excluded from it).
     // Layer 1 = reserved by Water.js's mirror camera.
-    // Layer 4 = moon orb only — main camera renders it (visible in
+    // Layer 4 = moon orb only - main camera renders it (visible in
     //          main view) but Water.js's mirror camera doesn't, so the
     //          moon doesn't appear in the ocean reflection.
     camera.layers.enable(2);
@@ -35,7 +35,7 @@ export function initScene() {
     camera.far = 9000;
     // Without this the assignment above never reached the projection
     // matrix (still the constructor's far=1000), so distant objects
-    // hard-clipped during the approach — and the first window RESIZE
+    // hard-clipped during the approach - and the first window RESIZE
     // then silently baked 6000 in forever. main.js restores far=1000
     // (the tight, depth-precise frustum) when the approach completes.
     camera.updateProjectionMatrix();
@@ -63,14 +63,14 @@ export function initScene() {
     // Applied by the OutputPass at the END of the composer chain (three
     // r152+ skips tone mapping when rendering into a render target, so
     // the scene reaches the post stack linear). Exposure 1.1 is the value
-    // the lighting schema was graded against — must stay in sync with the
+    // the lighting schema was graded against - must stay in sync with the
     // write in lighting.js initLighting and OUTPUT_EXPOSURE in spaceEnv.js.
     renderer.toneMappingExposure = 1.1;
     renderer.localClippingEnabled = true;
     document.body.appendChild(renderer.domElement);
 
     // Canvas ARIA attributes for accessibility
-    renderer.domElement.setAttribute('aria-label', '3D volcanic island world — interactive research visualization');
+    renderer.domElement.setAttribute('aria-label', '3D volcanic island world - interactive research visualization');
     renderer.domElement.setAttribute('role', 'img');
 
     // scene.background set in lighting.js (dark void + atmospheric haze).
@@ -84,15 +84,15 @@ export function initScene() {
     // The stars are real 3D points on a deterministic shell around the
     // system (they used to live in the skybox shader): true parallax
     // during the load-in approach and between zones at rest. Needs the
-    // 9000 far plane permanently — main.js no longer tightens it.
+    // 9000 far plane permanently - main.js no longer tightens it.
     state._starShell = initStarShell(scene, renderer.getPixelRatio());
     state._starShellMat = state._starShell.material;
     // The far background as CRISP fixed-pixel points in THREE drift
     // layers (view-locked, each carrying a fraction of the real camera
-    // motion by depth) — baked texture stars were rejected as
+    // motion by depth) - baked texture stars were rejected as
     // magnification blur; stars are geometry only.
     state._skyLayers = initDeepField(scene, renderer.getPixelRatio());
-    // The nebula is a PERMANENT raymarched volume — the resting sky as
+    // The nebula is a PERMANENT raymarched volume - the resting sky as
     // much as the flight medium. animate.js feeds it the camera position
     // (minus the intro's splice offset) every frame; the system sits in a
     // cleared cavity so no cloud can ever film over the island. Cheaper
@@ -109,7 +109,7 @@ export function initScene() {
 
     // --- Environment floors ---
 
-    // Option A: Apple Keynote Studio — polished dark floor with subtle under-dish glow
+    // Option A: Apple Keynote Studio - polished dark floor with subtle under-dish glow
     const floorAMat = new THREE.ShaderMaterial({
         transparent: false,
         depthWrite: true,
@@ -146,11 +146,11 @@ export function initScene() {
     floorA.rotation.x = -Math.PI / 2;
     floorA.position.y = -5;
     floorA.renderOrder = -2;
-    floorA.userData.aoInclude = true; // solid geometry — GTAO G-buffer
+    floorA.userData.aoInclude = true; // solid geometry - GTAO G-buffer
     scene.add(floorA);
     state.floorA = floorA;
 
-    // Option B: Maker Workshop / 3D Printer Build Plate — grid lines with fade
+    // Option B: Maker Workshop / 3D Printer Build Plate - grid lines with fade
     const floorBMat = new THREE.ShaderMaterial({
         transparent: false,
         depthWrite: true,
@@ -214,7 +214,7 @@ export function initScene() {
     scene.add(floorB);
     state.floorB = floorB;
 
-    // Floors disabled — clean void is best
+    // Floors disabled - clean void is best
     floorA.visible = false;
     floorB.visible = false;
 
@@ -227,7 +227,7 @@ export function initScene() {
     // Low-power tier: only genuinely weak TOUCH devices get a lighter scene
     // (ambient-occlusion pass off, reduced water-reflection resolution) so
     // they stay smooth. Desktops and laptops (fine pointer) are never
-    // affected — the owner and any reviewer on a computer always see the full
+    // affected - the owner and any reviewer on a computer always see the full
     // scene. Preview either path with ?lowpower=1 / ?lowpower=0.
     state.lowPower = (function () {
         const q = new URLSearchParams(location.search).get('lowpower');
@@ -247,7 +247,7 @@ export function initScene() {
     // hardware anti-aliasing at all: WebGLRenderer({antialias:true}) only
     // affects the default framebuffer, and the composer never draws into it.
     // The single remaining AA was SMAA, a post filter inferring edges from a
-    // finished image — it cannot reconstruct a sub-pixel specular line that was
+    // finished image - it cannot reconstruct a sub-pixel specular line that was
     // never sampled, which is why the dish rim stepped and its glint broke into
     // a dotted chain. Verified against a 144-samples/px reference: the edge was
     // undersampled, not unsampleable.
@@ -264,7 +264,7 @@ export function initScene() {
     );
     const composer = new EffectComposer(renderer, msaaTarget);
     // MUST follow. Handed a target, EffectComposer takes ITS width as the CSS
-    // width and then sizes every pass at width * pixelRatio — so on any display
+    // width and then sizes every pass at width * pixelRatio - so on any display
     // where the ratio is not 1 the passes and the targets disagree and the whole
     // scene renders at the wrong resolution. setSize re-derives both from CSS
     // pixels and the real ratio. (setSize preserves the sample count.)
@@ -305,11 +305,11 @@ export function initScene() {
         }
     }
     const gtaoPass = new ScopedGTAOPass(scene, camera, window.innerWidth, window.innerHeight);
-    // Radius in world units — terrain crevices and the dish contact ring
+    // Radius in world units - terrain crevices and the dish contact ring
     // live at the 0.5–3u scale on this island (dish radius ~32u).
     gtaoPass.updateGtaoMaterial({ radius: 0.8, distanceExponent: 1.5, thickness: 1.0, scale: 1.2, samples: 16 });
     // Poisson denoise tuned UP: per-pixel AO speckle over the terrain's
-    // detailed normal map re-rolled every frame as the island turned —
+    // detailed normal map re-rolled every frame as the island turned -
     // one of the engines of the "fried"/flickering rock. Wider spatial
     // filter + looser edge thresholds trade micro AO detail for a
     // stable, film-like occlusion field.
@@ -317,7 +317,7 @@ export function initScene() {
     // soft smudge that sat on every surface (part of the global "fuzzy"
     // read). 5 still averages over enough taps to hold the moiré fix.
     gtaoPass.updatePdMaterial({ lumaPhi: 10, depthPhi: 4, normalPhi: 8, radius: 5, radiusExponent: 1, rings: 3, samples: 12 });
-    // 0.62: partial restore — the dominant pulse sources turned out to
+    // 0.62: partial restore - the dominant pulse sources turned out to
     // be the caustics + hash decay (both fixed structurally), so the AO
     // can carry more contact-shadow weight again. The wide Poisson
     // denoise stays as the moiré guard.
@@ -338,7 +338,7 @@ export function initScene() {
 
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
-        0.6,   // strength (static — space scene)
+        0.6,   // strength (static - space scene)
         0.5,   // radius
         0.8    // threshold
     );
@@ -349,8 +349,8 @@ export function initScene() {
     // encode. Sits immediately after bloom: RenderPass + bloom work in
     // scene-linear HDR (physically correct thresholding), while the
     // cosmetic passes below (lens flare, vignette, chromatic) were all
-    // authored against display-space input — the flare in particular uses
-    // subtractive haze terms that crush a linear buffer to black — so
+    // authored against display-space input - the flare in particular uses
+    // subtractive haze terms that crush a linear buffer to black - so
     // they run after the encode, exactly as originally graded.
     // spaceEnv.js pre-applies the exact inverse of this stage so the
     // locked nebula grade reaches the screen byte-identical.
@@ -381,7 +381,7 @@ export function initScene() {
             // of snapping off. 1.0 = full contribution (matches the old
             // `true` branch), 0.0 = none (matches the old `false`).
             secondaryGhosts: { value: 1.0 },
-            starBurst: { value: false }, // GPU heavy — off by default
+            starBurst: { value: false }, // GPU heavy - off by default
             ghostScale: { value: 0.1 },
             aditionalStreaks: { value: 1.0 },
             lensDirtTexture: { value: lensDirtTex },
@@ -677,7 +677,7 @@ export function initScene() {
             }
         `,
     });
-    // Film grain DISABLED — causes rapid flickering that's uncomfortable
+    // Film grain DISABLED - causes rapid flickering that's uncomfortable
     // composer.addPass(grainPass);
     state.grainPass = null;
     // To re-enable: uncomment the line above and set state.grainPass = grainPass;
@@ -707,7 +707,7 @@ export function initScene() {
     // MSAA are both blind to it, and every material/AO/shadow knob was ruled
     // out by measurement). This pass blends each pixel with its own clamped
     // history, so a flickering pixel converges to its average while a still
-    // image passes through untouched — no projection jitter, so nothing is
+    // image passes through untouched - no projection jitter, so nothing is
     // resampled and nothing softens. See temporalAA.js.
     const taaPass = new TemporalAAPass(
         window.innerWidth * smaaPR,
@@ -742,17 +742,17 @@ export function initScene() {
                 varying vec3 vDir;
                 void main() {
                     float y = vDir.y;
-                    // Brighter museum environment — glass needs contrast to refract.
+                    // Brighter museum environment - glass needs contrast to refract.
                     // The glass dish samples this PMREM env through transmission,
                     // so the env brightness directly controls dish clarity.
-                    // Zero cost per frame — PMREM is baked once.
+                    // Zero cost per frame - PMREM is baked once.
                     vec3 top = vec3(0.55, 0.52, 0.50);
                     vec3 mid = vec3(0.22, 0.25, 0.32);
                     vec3 bot = vec3(0.08, 0.08, 0.10);
                     // Broad key light area for glass caustics
                     float keyDot = max(0.0, dot(vDir, normalize(vec3(0.6, 0.5, 0.6))));
                     float keyHighlight = pow(keyDot, 16.0) * 3.2 + pow(keyDot, 4.0) * 0.55;
-                    // Rim light — wider, brighter
+                    // Rim light - wider, brighter
                     float rimDot = max(0.0, dot(vDir, normalize(vec3(-0.6, 0.4, -0.8))));
                     float rimHighlight = pow(rimDot, 12.0) * 1.4 + pow(rimDot, 3.0) * 0.30;
                     vec3 col = y > 0.0 ? mix(mid, top, y) : mix(mid, bot, -y);

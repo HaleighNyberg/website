@@ -55,7 +55,7 @@ function updateTitle() {
     if (!titleEl) return;
     const t = getCurrentTrack();
     if (!t) {
-        titleEl.textContent = '—';
+        titleEl.textContent = '-';
         titleEl.removeAttribute('href');
         return;
     }

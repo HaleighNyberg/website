@@ -1,11 +1,11 @@
-// transit.js — rigid corridor starfield for the load-in.
+// transit.js - rigid corridor starfield for the load-in.
 //
-// This field is the stellar neighborhood of the ROUTE — real fixed points
+// This field is the stellar neighborhood of the ROUTE - real fixed points
 // in world space laid through the flight corridor (the destination's own
 // neighborhood is the shell in starShell.js). The camera genuinely
 // translates past them; each one is drawn as a pure line whose endpoints are
 // the star now and the star one shutter-beat ago (its true apparent sweep),
-// so streak length and direction are exact motion blur — one uniform shutter
+// so streak length and direction are exact motion blur - one uniform shutter
 // for the whole field, never sprites with tails, never per-star fakery.
 // Screen length falls off with depth by perspective alone, which is the
 // rigid-space parallax cue.
@@ -13,31 +13,31 @@
 // Each star has TWO renderings that crossfade by its real apparent
 // angular speed (v·r/d²): sweeping past fast, it is a pure motion-blur
 // LINE; slow on screen (far away, or near the flight axis ahead), it is a
-// dim gaussian POINT — an actual star sitting in the space ahead, exactly
+// dim gaussian POINT - an actual star sitting in the space ahead, exactly
 // what the forward view was missing when everything was velocity streaks.
 // The line side dies with speed BY PHYSICS (zero length, zero brightness
 // at rest); the point side is thinned across the brake via setPointLevel
 // as the route field gives way to the destination's real star shell
-// (starShell.js) — so nothing of the journey can sit as a dot or streak
+// (starShell.js) - so nothing of the journey can sit as a dot or streak
 // over the arrival. depthTest is on, so once the system reveals, the dish
 // and island genuinely occlude the field.
 //
 // The corridor is endless via recycled cells: a star that falls behind the
 // camera respawns far ahead, but every star, while visible, is world-fixed.
 // rebase(delta) shifts the whole field rigidly together with a camera
-// origin jump (the load-ready splice) — relative geometry, and therefore
+// origin jump (the load-ready splice) - relative geometry, and therefore
 // the rendered frame, is unchanged.
 //
 // (The old destination-beacon sprite is gone: a billboard glare read as a
 // flat 2D blob on approach. The sun now emerges purely through its own
-// real assembly — halos, god rays, then the disc — gated on the brake
+// real assembly - halos, god rays, then the disc - gated on the brake
 // clock in loadingApproach.js.)
 
 import * as THREE from 'three';
 
 export const TRANSIT_LAYER = 10;
 
-// Soft gaussian dot for the corridor stars' point rendering — the same
+// Soft gaussian dot for the corridor stars' point rendering - the same
 // footprint philosophy as the shell stars: a small gradient core, no ring.
 function pointTexture() {
     const S = 64, c = document.createElement('canvas');
@@ -52,7 +52,7 @@ function pointTexture() {
     return new THREE.CanvasTexture(c);
 }
 
-// Corridor-star tints: dim cool whites — never bright enough to read as
+// Corridor-star tints: dim cool whites - never bright enough to read as
 // skybox stars.
 const LINE_TINTS = [
     [0.62, 0.68, 0.78], [0.55, 0.64, 0.78], [0.68, 0.72, 0.80],
@@ -65,7 +65,7 @@ const SPREAD = 600;    // fresh stars enter scattered this far beyond FAR
 const NEAR   = 40;     // retire once this far behind the camera
 const RADIUS = 640;    // corridor cross-section around the flight axis
 // One shutter for the whole field: streak length per unit of real per-frame
-// travel. Uniform across stars — per-star length variation would break the
+// travel. Uniform across stars - per-star length variation would break the
 // single-rigid-space read.
 const EXPOSURE = 1.6;
 const MAX_LEN  = 230;  // cap so a stalled frame can't paint the sky
@@ -75,7 +75,7 @@ const MAX_LEN  = 230;  // cap so a stalled frame can't paint the sky
 // cruise speed (its r/z² reference × 2350 u/s).
 const APP_REF = 1.4;
 // Point-side brightness at zero apparent motion. The crossfade keeps every
-// star either a dim point or a streak — never a bright parked dot.
+// star either a dim point or a streak - never a bright parked dot.
 const POINT_BASE = 0.42;
 const POINT_SIZE = 9;   // world-ish units, sizeAttenuation on
 
@@ -83,7 +83,7 @@ const POINT_SIZE = 9;   // world-ish units, sizeAttenuation on
  * @param {THREE.Scene} scene
  * @param {THREE.PerspectiveCamera} camera
  * @param {{ axis?: THREE.Vector3 }} [opts]
- *   axis — unit flight direction; fixes the corridor's orientation in
+ *   axis - unit flight direction; fixes the corridor's orientation in
  *          world space.
  */
 export function initTransit(scene, camera, opts = {}) {
@@ -126,7 +126,7 @@ export function initTransit(scene, camera, opts = {}) {
             : FAR - Math.random() * SPREAD);
         const t = LINE_TINTS[(Math.random() * LINE_TINTS.length) | 0];
         bTint[i * 3 + 0] = t[0]; bTint[i * 3 + 1] = t[1]; bTint[i * 3 + 2] = t[2];
-        // Tail vertex stays black — the streak fades head -> black, so
+        // Tail vertex stays black - the streak fades head -> black, so
         // there is no discrete head point to read as a comet.
         sCol[i * 6 + 3] = 0; sCol[i * 6 + 4] = 0; sCol[i * 6 + 5] = 0;
     }
@@ -140,7 +140,7 @@ export function initTransit(scene, camera, opts = {}) {
         vertexColors: true, transparent: true, opacity: 0,
         blending: THREE.AdditiveBlending, depthWrite: false,
         // depthTest ON: during the flight nothing else renders, and from
-        // the reveal onward the dish/island genuinely occlude the field —
+        // the reveal onward the dish/island genuinely occlude the field -
         // no line can ever draw over the system.
         depthTest: true,
     });
@@ -176,7 +176,7 @@ export function initTransit(scene, camera, opts = {}) {
     let streakLevel = 1;   // safety multiplier (1 in normal operation)
     let pointLevel = 1;    // safety multiplier (1 in normal operation)
     let respawn = true;    // off from the splice: the route field must EMPTY
-                           // itself by real overtaking — no star may fade
+                           // itself by real overtaking - no star may fade
     let prevZ = null;      // camera corridor-z last frame
 
     function update(dt) {
@@ -184,7 +184,7 @@ export function initTransit(scene, camera, opts = {}) {
         if (prevZ === null) prevZ = camLocal.z;
         // Real per-frame travel, read straight off the camera. Computed in
         // group-local space, so a rebase (camera + group shifted together)
-        // contributes exactly nothing — only true relative motion counts.
+        // contributes exactly nothing - only true relative motion counts.
         const move = prevZ - camLocal.z;
         prevZ = camLocal.z;
         const speed = dt > 0 ? move / dt : 0;
@@ -194,7 +194,7 @@ export function initTransit(scene, camera, opts = {}) {
         for (let i = 0; i < COUNT; i++) {
             // With respawn off (from the splice), overtaken stars simply
             // stay behind the camera: the field ahead thins out because
-            // the camera REALLY passes its last stars — the physical
+            // the camera REALLY passes its last stars - the physical
             // hand-over to the destination shell, with no fades.
             if (respawn && pz[i] - camLocal.z > NEAR) spawn(i, false);
             const x = px[i], y = py[i], z = pz[i];
@@ -204,7 +204,7 @@ export function initTransit(scene, camera, opts = {}) {
             sPos[i * 6 + 3] = x; sPos[i * 6 + 4] = y; sPos[i * 6 + 5] = z - len;
             // Crossfade by real apparent angular speed v·r/d²: sweeping
             // stars are motion-blur lines, slow ones (distant, or near
-            // the flight axis ahead) are dim points — real stars sitting
+            // the flight axis ahead) are dim points - real stars sitting
             // in the space in front of us. One physical parallax
             // gradient; at v = 0 the line side is dark. r includes the
             // camera's lateral sway, so even the drift wobble parallaxes
@@ -221,8 +221,8 @@ export function initTransit(scene, camera, opts = {}) {
             // fade so fresh spawns materialize gently out of the deep
             // instead of popping in at the spawn plane. The final factor
             // keeps a genuinely motionless star (dead ahead on the axis)
-            // barely-there — owner: nothing may read as a parked dot at
-            // warp — and lets it brighten as soon as it visibly drifts.
+            // barely-there - owner: nothing may read as a parked dot at
+            // warp - and lets it brighten as soon as it visibly drifts.
             const pd = 1 - Math.min(1, Math.max(0, (dz - 1900) / 900));
             const pa = POINT_BASE * (1 - a) * (0.35 + 0.65 * pd) * (0.22 + 0.78 * g);
             pPos[i * 3 + 0] = x; pPos[i * 3 + 1] = y; pPos[i * 3 + 2] = z;

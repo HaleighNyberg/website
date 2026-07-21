@@ -5,7 +5,7 @@ import {
     SUN_WORLD_POSITION, MOON_ORBIT_RADIUS, MOON_ORBIT_PERIOD, MOON_ORBIT_PHASE,
 } from './config.js?v=real18';
 
-// Scratch vectors — write-then-read within a single updateScene call.
+// Scratch vectors - write-then-read within a single updateScene call.
 // Per-frame moon orbit scratch (avoids `new THREE.Vector3(...)` each frame).
 const _moonScratch = new THREE.Vector3();
 // Gateway specular-glint direction scratches.
@@ -25,11 +25,11 @@ export function initLighting() {
     // scene background drawn by spaceEnv.js. Fog removed: the approach
     // camera passed through ~720 units of FogExp2 and read as a universal
     // haze around the 75% mark of the fly-in. updateWeather() nulls fog
-    // too, but only after the first frames — by then the user has already
+    // too, but only after the first frames - by then the user has already
     // seen it.
     scene.fog = null;
 
-    // --- Directional sun light — points from the static sun position ---
+    // --- Directional sun light - points from the static sun position ---
     // LOCKED key-dominant schema (graded against the OutputPass pipeline,
     // exposure 1.1): sun key 6.5 owns direction and the terminator,
     // ambient 0.85 rescues shadow legibility only, rim 1.20 separates the
@@ -51,7 +51,7 @@ export function initLighting() {
     // has high-frequency depth detail, and sub-texel ridge shadows
     // re-roll per frame as the island turns (shadow twinkle) whenever a
     // crease sits near shadow-texel scale. At 2048/±36 a texel still
-    // covered ~0.035u — the same pitch as the terrace risers — so a
+    // covered ~0.035u - the same pitch as the terrace risers - so a
     // residual pixel-level twinkle survived on the lit slopes. 4096
     // brings a texel to ~0.018u, under the feature pitch.
     sunLight.shadow.mapSize.set(4096, 4096);
@@ -70,7 +70,7 @@ export function initLighting() {
     sunLight.shadow.bias = -0.0002;
     // 0.10 -> 0.05: the sun sits ON THE HORIZON (SUN_WORLD_POSITION.y = 0), so
     // it grazes every slope, and a normal offset that large pushes the lookup
-    // sideways along normals nearly perpendicular to the light — detaching
+    // sideways along normals nearly perpendicular to the light - detaching
     // contact shadows and letting light bleed past thin ridges onto faces that
     // should be dark. Half the offset re-attaches them; the crag acne it was
     // guarding against is now also handled by the softer storm radius below.
@@ -82,17 +82,17 @@ export function initLighting() {
     sunLight.layers.enable(2);
     scene.add(sunLight);
 
-    // --- Moonlight — cool blue, tracks the orbiting moon every frame ---
+    // --- Moonlight - cool blue, tracks the orbiting moon every frame ---
     // Secondary fill so the night hemisphere picks up a moon-blue tint.
     // Stays on layer 0 only; the glass dish (layer 1) does NOT receive
     // this light, so it can't produce a specular glint on the dish.
-    // intensity=0 by default — the moon is decorative only. moonLight as
+    // intensity=0 by default - the moon is decorative only. moonLight as
     // a non-zero DirectionalLight produced a moving blue specular spot on
     // the glass and water that mirrored the moon's orbital position.
     const moonLight = new THREE.DirectionalLight(0x6688bb, 0.0);
     scene.add(moonLight);
 
-    // --- Hemisphere light — cool sky-tinted fill so terrain detail reads
+    // --- Hemisphere light - cool sky-tinted fill so terrain detail reads
     // on the night side without washing out the lit side.
     // Stays on layer 0 only: the glass dish (layer 2) should be lit
     // primarily by the sun. With hemi enabled on layer 2 the blue sky
@@ -109,14 +109,14 @@ export function initLighting() {
     }
     scene.add(hemiLight);
 
-    // --- Ambient — baseline visibility for night-side terrain.
+    // --- Ambient - baseline visibility for night-side terrain.
     // Layer 0 only, same reasoning as hemi above. The glass relies on
     // sun + envMap for its character; ambient was painting the dish
     // cool-blue and washing out the specular look. ---
     const ambLight = new THREE.AmbientLight(0x44597a, 0.85);
     scene.add(ambLight);
 
-    // --- Reverse-rim fill — camera-facing hemisphere key-fill.
+    // --- Reverse-rim fill - camera-facing hemisphere key-fill.
     // Points FROM (+x,+y,+z) so home/connect zones get full rim
     // while research/publications zones preserve their terminator.
     // Stays on layer 0 only: we don't want the rim producing a
@@ -129,13 +129,13 @@ export function initLighting() {
     // --- Static tone mapping exposure (must match js/scene.js) ---
     renderer.toneMappingExposure = 1.1;
 
-    // --- Orbiting moon — always visible, phase-lit by the sun ---
+    // --- Orbiting moon - always visible, phase-lit by the sun ---
     const moonTex = new THREE.TextureLoader().load('moon.webp');
     // moon.webp is an sRGB photo. Without tagging it, the renderer treats
     // the values as linear and the output transform double-brightens them
     // (the washed-out "gamey" look the moon had).
     moonTex.colorSpace = THREE.SRGBColorSpace;
-    const moonGeo = new THREE.SphereGeometry(1.2, 64, 64); // halved from 2.5 — realistic angular size at orbit radius 90
+    const moonGeo = new THREE.SphereGeometry(1.2, 64, 64); // halved from 2.5 - realistic angular size at orbit radius 90
     // Custom shader: the hemisphere facing the sun is lit, opposite side is
     // dark with a tiny ambient term so the silhouette is still readable.
     // Relief comes from a normal perturbed by the albedo-luminance gradient
@@ -205,7 +205,7 @@ export function initLighting() {
                 vec3 col = tex * uTint * (uAmbient + lit * 1.85);
                 // Fresnel rim: warm moonrise-grey instead of the old
                 // synthetic ice-blue, softened (higher power, sun-weighted
-                // so the lit limb carries most of it) — the limb still
+                // so the lit limb carries most of it) - the limb still
                 // reads during an eclipse, it just no longer looks lit
                 // by a neon tube.
                 vec3 V = normalize(cameraPosition - vWorldPos);
@@ -217,7 +217,7 @@ export function initLighting() {
     });
     const moonOrb = new THREE.Mesh(moonGeo, moonMat);
     moonOrb.frustumCulled = false;
-    // Moon on layer 4 — main camera enables layer 4 so the moon is
+    // Moon on layer 4 - main camera enables layer 4 so the moon is
     // visible in the main view, but the water mirror camera (which
     // renders layers 0 + 1 only) skips it, so the moon's reflection
     // no longer appears on the ocean surface.
@@ -225,7 +225,7 @@ export function initLighting() {
     scene.add(moonOrb);
     state.moonOrb = moonOrb;
 
-    // --- Gateway Core — orbits the moon ---
+    // --- Gateway Core - orbits the moon ---
     // gateway.min.glb is the quantized + simplified + WebP-textured build
     // of gateway.glb (66 MB → 2.9 MB). Regenerate with:
     //   npx @gltf-transform/cli optimize gateway.glb gateway.min.glb \
@@ -240,11 +240,11 @@ export function initLighting() {
     // this deferred 2.8 MB download before lifting.
     const _loadGateway = () => new GLTFLoader(new THREE.LoadingManager()).load('gateway.min.glb', (gltf) => {
         const gateway = gltf.scene;
-        gateway.scale.set(0.03, 0.03, 0.03); // much smaller — like a real station vs a moon
+        gateway.scale.set(0.03, 0.03, 0.03); // much smaller - like a real station vs a moon
         gateway.frustumCulled = false;
         // NOT added to the scene yet: on a slow connection this download
         // lands mid-FLIGHT, and its first rendered frame pays the whole
-        // 2.8 MB geometry+texture upload in one stall — the "stutter
+        // 2.8 MB geometry+texture upload in one stall - the "stutter
         // between cruise and landing" the owner kept feeling. It attaches
         // only after the intro has landed, and even then its meshes
         // trickle in one per frame (invisible at opacity 0) so the
@@ -255,7 +255,7 @@ export function initLighting() {
         const emissiveMeshes = [];
         gateway.traverse((child) => {
             if (child.isMesh) {
-                child.userData.aoInclude = true; // solid geometry — GTAO G-buffer (scene.js)
+                child.userData.aoInclude = true; // solid geometry - GTAO G-buffer (scene.js)
                 if (child.material && child.material.emissive) {
                     emissiveMeshes.push(child);
                 }
@@ -278,7 +278,7 @@ export function initLighting() {
 
         // Invisible hit sphere for gateway drag targeting.
         // Gateway is scaled 0.03, so a radius-120 sphere in local space
-        // becomes ~3.6 world units — easy to click.
+        // becomes ~3.6 world units - easy to click.
         const gwHitGeo = new THREE.SphereGeometry(120, 8, 8);
         const gwHitMat = new THREE.MeshBasicMaterial({ visible: false });
         const gwHit = new THREE.Mesh(gwHitGeo, gwHitMat);
@@ -314,7 +314,7 @@ export function initLighting() {
             })();
         };
         // withFade=false is the warp-hold path: the camera is out in deep space,
-        // so nobody can see the station arrive and the fade buys nothing — while
+        // so nobody can see the station arrive and the fade buys nothing - while
         // costing a second trip through every program (restoring `transparent`
         // at the end of the fade is what rebuilds them). Put the materials in
         // their FINAL state up front and only the final variant is ever built.
@@ -344,7 +344,7 @@ export function initLighting() {
         // Attach DURING the hold, not after the landing.
         //
         // A material's shader is built the first time its mesh is rendered, and
-        // the trickle above only spreads the BUFFER uploads — so trickling one
+        // the trickle above only spreads the BUFFER uploads - so trickling one
         // mesh per frame also trickled one shader COMPILE per frame, each of
         // which blocks the main thread on the driver. Attaching after the flight
         // therefore stuttered the station in exactly where the sweep should be
@@ -359,7 +359,7 @@ export function initLighting() {
         // (the fade's last act is the final recompile trigger).
         //
         // If the station misses the flight's grace period on a slow connection,
-        // main.js lets the flight go without it — and then it must NOT attach
+        // main.js lets the flight go without it - and then it must NOT attach
         // mid-sweep. In that case fall back to the old behaviour and wait for the
         // landing.
         if (state._introReleased && !state._introDone) {
@@ -377,7 +377,7 @@ export function initLighting() {
     //
     // The GLB parse is a 300-500ms main-thread freeze, and its materials each
     // cost a blocked frame to compile. This used to be kicked post-landing so
-    // the parse could not land mid-flight — but that just moved the whole cost
+    // the parse could not land mid-flight - but that just moved the whole cost
     // to the moment the station attaches, which is the moment the sweep arrives
     // at the island. Stutter, inch forward, stutter.
     //
@@ -409,8 +409,8 @@ export function initLighting() {
         setTimeout(() => { clearInterval(_gwWait); _kickGateway(); }, 8000);
     }
 
-    // --- Sun orb (visual) — back-left on orbital plane, shader-based star surface ---
-    // Distance ~607 from origin. Radius 10 gives a ~1.9° angular diameter —
+    // --- Sun orb (visual) - back-left on orbital plane, shader-based star surface ---
+    // Distance ~607 from origin. Radius 10 gives a ~1.9° angular diameter -
     // genuinely small + distant, reads as a real star from orbital distance.
     const sunOrbGeo = new THREE.SphereGeometry(10, 64, 64);
     const sunOrbMat = new THREE.ShaderMaterial({
@@ -421,7 +421,7 @@ export function initLighting() {
             uLimbCenter: { value: new THREE.Color(1.0, 0.97, 0.88) },
             uLimbMid:    { value: new THREE.Color(1.0, 0.78, 0.42) },
             uLimbEdge:   { value: new THREE.Color(0.95, 0.45, 0.15) },
-            // Vertex scale knob — permanently 1. (A growth animation was
+            // Vertex scale knob - permanently 1. (A growth animation was
             // tried for the load-in and rejected by the owner: the sun
             // must always be its complete, full-size self.)
             uDiscScale:  { value: 1.0 },
@@ -486,7 +486,7 @@ export function initLighting() {
             }
 
             void main() {
-                // 3D position-based noise — no UV seams, no pole pinching
+                // 3D position-based noise - no UV seams, no pole pinching
                 vec3 p = normalize(vPosition) * 6.0;
 
                 // 4-octave fBm for solar granulation / supergranulation
@@ -499,7 +499,7 @@ export function initLighting() {
                 float cells = noise3D(p * 1.2 + vec3(uTime * 0.03, 0.0, uTime * 0.02));
                 cells = smoothstep(0.35, 0.65, cells);
 
-                // View-dependent limb darkening — works from any camera angle
+                // View-dependent limb darkening - works from any camera angle
                 float limb = max(0.0, vViewNormal.z);
                 // Realistic solar limb darkening: stronger at edge, keeps center bright
                 float limbDark = 0.3 + 0.7 * pow(limb, 0.45);
@@ -521,7 +521,7 @@ export function initLighting() {
 
                 // HDR emissive boost: the disc must sit WELL above the
                 // bloom threshold (0.8 scene-linear) so the pass builds a
-                // real glare core around it — at 1.35 it barely cleared
+                // real glare core around it - at 1.35 it barely cleared
                 // the knee and read as a flat orange sticker. Limb stays
                 // relatively darker so the disc keeps its sphere read
                 // inside the glow.
@@ -530,7 +530,7 @@ export function initLighting() {
                 // Approach extinction (rest: 1). The disc is an OPAQUE
                 // body: multiplying toward black made it a growing BLACK
                 // occluder over the glowing nebula ("black sun", owner-
-                // caught). Instead it dims toward the ambient sky color —
+                // caught). Instead it dims toward the ambient sky color -
                 // far out it is a nebula-lit body indistinguishable from
                 // the sky behind it, and it warms continuously inward.
                 col = mix(vec3(0.016, 0.036, 0.082), col, uSunFade);
@@ -545,7 +545,7 @@ export function initLighting() {
     sunOrb.visible = true;
     scene.add(sunOrb);
 
-    // Halos — billboard sprites with baked radial-gradient textures so
+    // Halos - billboard sprites with baked radial-gradient textures so
     // the glow reads as a soft atmospheric field rather than a hard
     // sphere silhouette. Previously used BackSide spheres, which
     // additive-accumulate thickest at the rim (longest ray path through
@@ -564,7 +564,7 @@ export function initLighting() {
                 const dx = (x - c) / c;
                 const dy = (y - c) / c;
                 const r = Math.min(1, Math.sqrt(dx*dx + dy*dy));
-                // Radial falloff — bright at center, soft to zero at rim.
+                // Radial falloff - bright at center, soft to zero at rim.
                 const t = Math.pow(1.0 - r, gamma);
                 const idx = (y * size + x) * 4;
                 img.data[idx]     = innerRGB[0] * t + outerRGB[0] * (1 - t);
@@ -594,7 +594,7 @@ export function initLighting() {
     sunHaloInner.scale.setScalar(32); // diameter of bright inner field
     sunOrb.add(sunHaloInner);
 
-    // Outer corona: wider, warmer, softer edge — reads as scattered light
+    // Outer corona: wider, warmer, softer edge - reads as scattered light
     const outerHaloTex = makeHaloTexture([255, 180, 100], [255, 120, 40], 1.6);
     const sunHaloMat = new THREE.SpriteMaterial({
         map: outerHaloTex,
@@ -619,7 +619,7 @@ export function initLighting() {
 
     const sunHit = new THREE.Mesh(sunHitGeo, hitMat);
     sunHit.name = '_sunHitSphere';
-    sunOrb.add(sunHit); // child of sunOrb — follows its position automatically
+    sunOrb.add(sunHit); // child of sunOrb - follows its position automatically
     state._sunHitSphere = sunHit;
 
     const moonHitGeo = new THREE.SphereGeometry(2, 16, 16);
@@ -636,7 +636,7 @@ export function initLighting() {
     // Two rings only: the island's heliocentric orbit (centered on the sun,
     // radius = sun→origin distance so it passes through the dish) and the
     // moon's orbit around the dish (centered on origin). No grid, no HZ
-    // band, no ticks, no ecliptic — per explicit user direction.
+    // band, no ticks, no ecliptic - per explicit user direction.
     const diagramGroup = new THREE.Group();
     diagramGroup.name = 'orbitalDiagramGroup';
     scene.add(diagramGroup);
@@ -645,7 +645,7 @@ export function initLighting() {
     // orb is SUN_WORLD_POSITION rotated by SUN_PHASE0 (the "behind isle"
     // staging), so the ring must use the same rotated point. Using the raw
     // constant left the orbit curving around empty space beside the star
-    // instead of around the star itself. Radius (AU) is unchanged — rotation
+    // instead of around the star itself. Radius (AU) is unchanged - rotation
     // preserves the sun→origin distance, so the near arc still passes through
     // the dish.
     const _sp0c = Math.cos(SUN_PHASE0), _sp0s = Math.sin(SUN_PHASE0);
@@ -659,7 +659,7 @@ export function initLighting() {
     // Staged sun world position, shared with the load-in flight
     // (loadingApproach.js): the transit's destination beacon is anchored at
     // this exact point, so the star flown toward and the scene's sun are
-    // the same world object — no separate "arrival sun" to pop in.
+    // the same world object - no separate "arrival sun" to pop in.
     state._sunWorldPos = SUN_WORLD.clone();
 
     function _makeCircle(radius, material, center, segs) {
@@ -683,14 +683,14 @@ export function initLighting() {
     // half of the orbit vanishes into space instead of terminating at
     // the viewport edge. Fade starts close to the dish (40u) and is
     // fully transparent by 340u so only the near arc reads at all.
-    // (Full-circle variant tried 2026-07-11, owner: "looks silly" —
+    // (Full-circle variant tried 2026-07-11, owner: "looks silly" -
     // reverted; keep the near arc.)
     const islandOrbitMat = new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
         uniforms: {
             baseColor:   { value: new THREE.Color(0x5f95b8) },
-            // Quieter than the old 0.22 — the rings should read as a
+            // Quieter than the old 0.22 - the rings should read as a
             // faint astro-diagram overlay, not neon hoops, now that the
             // physical scene carries photo-level materials.
             baseOpacity: { value: 0.15 },
@@ -745,7 +745,7 @@ export function initLighting() {
     const moonOrbitRing = _makeCircle(MOON_ORBIT_RADIUS, moonOrbitMat, new THREE.Vector3(0, 0, 0), 512);
     // Match the moon orb's layer so the ring isn't picked up by the
     // water mirror camera (which renders layers 0 + 1). The comment
-    // predates the actual call — the ring sat on layer 0 and the ocean
+    // predates the actual call - the ring sat on layer 0 and the ocean
     // reflected an orbit ring with no moon on it.
     moonOrbitRing.layers.set(4);
     diagramGroup.add(moonOrbitRing);
@@ -784,7 +784,7 @@ export function initLighting() {
 
 }
 
-// LOCKED by owner: "behind isle" placement — the sun rises just past
+// LOCKED by owner: "behind isle" placement - the sun rises just past
 // the island's shoulder in the home framing, backlighting the peak.
 const SUN_PHASE0 = -0.35;
 
@@ -804,7 +804,7 @@ export function updateScene(elapsed) {
 
     // --- Sun position: fully STATIC (owner-locked). ---
     // SUN_WORLD_POSITION rotated once by SUN_PHASE0 ("behind isle"
-    // staging). No orbital drift, no backdrop parade — the sun, sky,
+    // staging). No orbital drift, no backdrop parade - the sun, sky,
     // terminator, and every framing hold still for the whole visit.
     _orbitSunPos.copy(drag.sun || SUN_WORLD_POSITION);
     if (!drag.sun) {
@@ -830,9 +830,9 @@ export function updateScene(elapsed) {
 
     // --- Moon: real circular orbit around the dish (origin) in the y=0 plane ---
     // Radius and period live in config.js. Phase chosen so t=0 places the
-    // moon roughly behind/right of the dish — close to its old static spot.
+    // moon roughly behind/right of the dish - close to its old static spot.
     // --- Moon boost: terminal's /gogogo command pushes this structure ---
-    // { factor, orbitsLeft } — while active, angle advances factor× faster
+    // { factor, orbitsLeft } - while active, angle advances factor× faster
     // and orbitsLeft decrements each full 2π swept; restores on exhaust.
     const boost = window.__moonBoost;
     if (!state._moonPhase) state._moonPhase = MOON_ORBIT_PHASE;
@@ -881,7 +881,7 @@ export function updateScene(elapsed) {
             const gwPeriod = 50;
 
             if (drag.gateway) {
-                // Being dragged — check proximity for orbit capture on release
+                // Being dragged - check proximity for orbit capture on release
                 const gp = state.gateway.position;
                 const dSun = state.sunOrb ? gp.distanceTo(state.sunOrb.position) : Infinity;
                 const dMoon = state.moonOrb ? gp.distanceTo(state.moonOrb.position) : Infinity;
@@ -893,7 +893,7 @@ export function updateScene(elapsed) {
                     state._gwCaptureTarget = null;
                 }
             } else {
-                // Not dragged — orbit the captured (or default) body
+                // Not dragged - orbit the captured (or default) body
                 const target = state._gwCaptureTarget || state._gwOrbitTarget || 'moon';
                 state._gwOrbitTarget = target;
                 state._gwCaptureTarget = null;
@@ -917,7 +917,7 @@ export function updateScene(elapsed) {
 
             state.gateway.visible = true;
 
-            // Specular glint — iterate the cached mesh list (no per-frame
+            // Specular glint - iterate the cached mesh list (no per-frame
             // traverse). View-dependent term is identical for every child
             // since they all share the gateway's world position, so compute
             // it once outside the loop.
@@ -947,7 +947,7 @@ export function updateScene(elapsed) {
     }
 
     // (Water sunDirection/sunColor/waterColor writes removed: they were
-    // 100% masked dead work — updateOcean owns sunDirection (with the
+    // 100% masked dead work - updateOcean owns sunDirection (with the
     // elevation lift) and applyWeatherToScene owns both colors, running
     // later in the same frame. Leaving a second writer here was a latent
     // conflicting-writes trap if animate.js ever reordered.)
@@ -969,8 +969,8 @@ export function updateScene(elapsed) {
     // --- Foam: fixed opacity (no dayBlend modulation) ---
     if (window._foam && window._foam.mesh && window._foam.mesh.visible) {
         // Gentle breathing around the material's intended faint level.
-        // This used to pump 0.3-0.7 — an order of magnitude over the
-        // 0.07 the foam ships with — and the reflected shoreline foam
+        // This used to pump 0.3-0.7 - an order of magnitude over the
+        // 0.07 the foam ships with - and the reflected shoreline foam
         // strobed as a glittering patch on the water.
         window._foam.mat.opacity = 0.09 + Math.sin(elapsed * 0.8) * 0.035;
     }
@@ -986,7 +986,7 @@ export function updateScene(elapsed) {
     }
 
     // --- Atmospheric glow: track camera position for fresnel ---
-    // (atmospheric glow sphere removed — see initLighting comment)
+    // (atmospheric glow sphere removed - see initLighting comment)
 
 }
 

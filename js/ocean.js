@@ -46,7 +46,7 @@ function _makeNoiseTex() {
     return tex;
 }
 
-/** 256x256 cellular / Voronoi pattern — bright cells with dark cracks */
+/** 256x256 cellular / Voronoi pattern - bright cells with dark cracks */
 function _makeLavaTileTex() {
     const S = 256;
     const c = document.createElement('canvas');
@@ -93,11 +93,11 @@ function _makeLavaTileTex() {
 export function initOcean() {
     const { islandGroup, SUN_DIR } = state;
 
-    // --- (A) Ocean surface — THREE.js Water addon for realistic reflections ---
+    // --- (A) Ocean surface - THREE.js Water addon for realistic reflections ---
     // Ripple normal map. main.js holds the fly-in until this decodes
     // (state.waterNormalsReady), so the water is already rippled on the
     // first visible frame. Without it the shader's getNoise() samples an
-    // empty map for a beat — every tap reads 0, noise*0.5-1.0 = -1, and
+    // empty map for a beat - every tap reads 0, noise*0.5-1.0 = -1, and
     // the whole sheet collapses to one uniform normal that catches the
     // reflection as a hard squarish slab before it snaps into waves.
     const waterNormalTex = new THREE.TextureLoader().load('waternormals.webp', (tex) => {
@@ -129,7 +129,7 @@ export function initOcean() {
         sunDirection: waterSunDir,
         // Full-strength cream sun glint (matches the sun's emission).
         // This was dimmed to 0x9c8e75 and the lobe broadened to dodge a
-        // bloom hot pixel — the exact change that made the water read as
+        // bloom hot pixel - the exact change that made the water read as
         // gray plastic. Bloom now thresholds in scene-linear HDR after
         // the OutputPass migration, so the specular can be bright and
         // tight again without piling into a bloom flash.
@@ -147,19 +147,19 @@ export function initOcean() {
     water.material.uniforms['oceanRadius'].value = OCEAN_RADIUS;
     islandGroup.add(water);
 
-    // Opaque underside — blocks view through ocean from below.
+    // Opaque underside - blocks view through ocean from below.
     // depthWrite was previously false, which let the sun orb / corona / bloom
     // bleed straight through the dish in the skills zone (camera y = -9).
     // Switching to opacity 1.0 + depthWrite true makes this a real occluder
     // for everything that sits above the water plane (sun, moon, gateway,
     // mountain peak when seen from underneath). Side is FrontSide so it
-    // only kicks in when the camera is below it — top-down views are
+    // only kicks in when the camera is below it - top-down views are
     // unchanged because the Water mesh draws first at y = +0.05 above this.
-    // Underside disc — radial gradient: lighter at center (subsurface light),
+    // Underside disc - radial gradient: lighter at center (subsurface light),
     // darker at edges (deep water absorption). Shader-based for smooth falloff.
     // 512 (was 64): seen near edge-on from under the rim, a 64-gon shows a comb
     // of straight facets along the bottom edge of the dish. Same for the edge
-    // column below. Free — these are flat discs.
+    // column below. Free - these are flat discs.
     const undersideGeo = new THREE.CircleGeometry(OCEAN_RADIUS, 512);
     undersideGeo.rotateX(Math.PI / 2); // faces DOWN
     const undersideMat = new THREE.ShaderMaterial({
@@ -219,7 +219,7 @@ export function initOcean() {
     state.water = water;
     water.userData.aoInclude = true; // water plane depth grounds the dish/terrain contact AO
 
-    // --- (C) Bottom — two-texture distortion lava shader (TheGameMaker technique) ---
+    // --- (C) Bottom - two-texture distortion lava shader (TheGameMaker technique) ---
     // Procedural canvas textures: smooth noise + cellular Voronoi (no external files)
     const _noiseTex = _makeNoiseTex();
     const _lavaTileTex = _makeLavaTileTex();
@@ -232,7 +232,7 @@ export function initOcean() {
             uTime:     { value: 0 },
             uRadius:   { value: OCEAN_RADIUS - 0.1 },
             uPulse:    { value: 0.48 }, // synced from terrainPulseUniform each frame
-            // 0..1 eruption drive from volcano.js — the underside plumbing
+            // 0..1 eruption drive from volcano.js - the underside plumbing
             // surges when the crater above is erupting.
             uErupt:    { value: 0.0 },
             uNoiseTex: { value: _noiseTex },
@@ -267,7 +267,7 @@ export function initOcean() {
 
                 // ---- Radial intensity: white-hot at center, cold at edges.
                 // pow 2.4 (was 1.5): heat hugs the magma conduit under the
-                // volcano instead of washing the whole underside — the
+                // volcano instead of washing the whole underside - the
                 // full-disc glow read cartoon-bright from the connect view.
                 float radial = 1.0 - smoothstep(0.0, uRadius * 0.85, dist);
                 radial = pow(radial, 2.4);
@@ -291,12 +291,12 @@ export function initOcean() {
                 // Sample noise texture for UV warping
                 vec4 noiseA = texture2D(uNoiseTex, vUv * 3.0 + uTime * 0.005);
 
-                // First distorted UV — slow drift
+                // First distorted UV - slow drift
                 vec2 T1 = vUv * 2.0 + vec2(1.5, -1.5) * uTime * 0.015;
                 T1 += noiseA.xy * 0.8;
                 float p = texture2D(uNoiseTex, T1).r;
 
-                // Second distorted UV — counter-drift for turbulence
+                // Second distorted UV - counter-drift for turbulence
                 vec2 T2 = vUv * 2.0 + vec2(-0.5, 2.0) * uTime * 0.01;
                 T2 -= noiseA.yz * 0.3;
                 vec4 lava = texture2D(uLavaTex, T2);
@@ -332,7 +332,7 @@ export function initOcean() {
                 col *= heat;
 
                 // 1.6 (was 2.8): only the white-hot conduit core should
-                // clear the bloom threshold — the old value floodlit the
+                // clear the bloom threshold - the old value floodlit the
                 // entire underside into an unrealistic lava lamp.
                 col *= 1.6;
 
@@ -353,11 +353,11 @@ export function initOcean() {
     islandGroup.add(bottomMesh);
     window._lavaBottom = bottomMat;
 
-    // Gap sealer — thin, matches seabed color
+    // Gap sealer - thin, matches seabed color
     const gapH = 0.27;
-    const gapGeo = new THREE.CylinderGeometry(OCEAN_RADIUS - 0.1, OCEAN_RADIUS - 0.1, gapH, 64, 1, true); // open — no caps to z-fight with lava
+    const gapGeo = new THREE.CylinderGeometry(OCEAN_RADIUS - 0.1, OCEAN_RADIUS - 0.1, gapH, 64, 1, true); // open - no caps to z-fight with lava
     const gapMat = new THREE.MeshBasicMaterial({
-        color: 0x1a1510, // lighter — blends with seabed shelf
+        color: 0x1a1510, // lighter - blends with seabed shelf
         side: THREE.DoubleSide,
         depthWrite: true,
     });
@@ -366,12 +366,12 @@ export function initOcean() {
     gapMesh.renderOrder = 1;
     // Hidden: this flat-brown ring sealed a gap under the OLD dish GLB.
     // The rebuilt lathe dish closes that space with real glass, and the
-    // ring's top edge poked above the seabed shelf — one of the ugly
+    // ring's top edge poked above the seabed shelf - one of the ugly
     // stacked "seams" visible through the wall at the bottom edge.
     gapMesh.visible = false;
     islandGroup.add(gapMesh);
 
-    // (Glass bottom disc removed — now part of petri_dish.glb model)
+    // (Glass bottom disc removed - now part of petri_dish.glb model)
 
     // --- Edge water column: thin ring at glass/ocean interface, darker at bottom ---
     // Spans y -2.0..0.8: the rebuilt lathe dish is SOLID glass below
@@ -380,11 +380,11 @@ export function initOcean() {
     // glass wall thickness in below/edge-on framings.
     const edgeWcH = 2.8;
     const edgeWcGeo = new THREE.CylinderGeometry(OCEAN_RADIUS, OCEAN_RADIUS, edgeWcH, 512, 8, true);
-    // PHYSICAL water-body wall, fully STATIC by design (zero time input —
+    // PHYSICAL water-body wall, fully STATIC by design (zero time input -
     // it cannot flicker, ever; owner requirement after the animated wisp
     // versions kept shimmering). Models what a real cross-section of deep
     // water shows through an aquarium wall:
-    //  - Beer-Lambert absorption: red dies first, then green — color runs
+    //  - Beer-Lambert absorption: red dies first, then green - color runs
     //    sunlit-turquoise at the surface skim to deep blue-black with depth.
     //  - Downwelling light decays exponentially with depth.
     //  - Path-length opacity: a horizontal sight-line crosses ~60 units of
@@ -422,10 +422,10 @@ export function initOcean() {
 
                 // Downwelling light: I(d) = I0 * exp(-k d). k ~ 1.0/u at
                 // this scene scale gives a bright first half-unit and a
-                // lightless floor — the "real depth" read.
+                // lightless floor - the "real depth" read.
                 float light = exp(-d * 1.05);
 
-                // Spectral absorption — palette matched to the SURFACE
+                // Spectral absorption - palette matched to the SURFACE
                 // ocean (deep navy-teal, 0x061e2e family). The first pass
                 // ran too saturated-BLUE against the grey-navy top and the
                 // wall read as tinted plastic instead of the same water.
@@ -442,7 +442,7 @@ export function initOcean() {
                 bodyCol *= mix(0.25, 1.15, facing);
 
                 // Subsurface glow just under the waterline, sun side only
-                // — squared so it dies completely on the night half.
+                // - squared so it dies completely on the night half.
                 // Narrower band, dimmer, and broken up by a static
                 // positional swell pattern: the old uniform ribbon read
                 // as a painted stripe, real backlit swash varies along
@@ -476,13 +476,13 @@ export function initOcean() {
                 float alpha = 1.0 - exp(-path);
                 alpha = clamp(alpha, 0.10, mix(0.74, 0.93, horiz));
                 // The color absorbs along the path too (not just the
-                // alpha) — deep inward views lose red then green until
+                // alpha) - deep inward views lose red then green until
                 // only blue-black remains.
                 bodyCol *= exp(-vec3(1.4, 0.62, 0.30) * max(path - 0.4, 0.0) * 0.55);
 
                 // Below the shelf line (~y -0.6) the seabed face sits
                 // DIRECTLY behind the glass, so the water path to solid
-                // ground is short — the wall must go CLEAR there and let
+                // ground is short - the wall must go CLEAR there and let
                 // the rock detail show (the payoff of a cutaway aquarium
                 // view). The old version instead slammed this zone to a
                 // near-opaque black band, which read as a pitch-black
@@ -490,20 +490,20 @@ export function initOcean() {
                 float belowBed = smoothstep(-0.35, -1.1, vWorld.y);
                 alpha *= mix(1.0, 0.30, belowBed);
                 // Thin sediment contact seam at the very floor junction
-                // only — a grounded line, not a band.
+                // only - a grounded line, not a band.
                 float seam = smoothstep(-1.80, -2.0, vWorld.y);
                 bodyCol = mix(bodyCol, vec3(0.010, 0.016, 0.020), seam * 0.8);
                 alpha = max(alpha, seam * 0.55);
 
                 // FEATHER THE ENDS. This column is an open cylinder, so its top
-                // ring and its bottom ring are HARD alpha boundaries — and a
+                // ring and its bottom ring are HARD alpha boundaries - and a
                 // hard boundary one pixel wide rasterizes as a dashed line,
                 // which is exactly the discrete seam seen where the water meets
                 // the glass (top) and where it meets the seabed (bottom). No AA
                 // can rescue an edge the geometry itself cuts dead; it has to
                 // not be an edge. Both ends now fade to nothing before they
                 // reach the geometry's rim, so there is no boundary left to
-                // alias — and the fade costs nothing visually, because these
+                // alias - and the fade costs nothing visually, because these
                 // ends sit inside the glass and the seabed anyway.
                 alpha *= 1.0 - smoothstep(uSurfY + 0.02, uSurfY + 0.15, vWorld.y);
                 alpha *= smoothstep(-2.0, -1.72, vWorld.y);
@@ -603,7 +603,7 @@ export function updateOcean() {
     // hash. fp32 keeps only ~7 significant digits: once t (times its
     // speed factor, times the hash's 43758.5453 amplifier) grows past
     // ~1e7, fract() returns quantization garbage that changes every
-    // frame — the noise degenerates into per-pixel FLICKERING STATIC.
+    // frame - the noise degenerates into per-pixel FLICKERING STATIC.
     // That is why the edge water column and underside shimmered worse
     // and worse the longer a tab stayed open, while fresh reloads
     // looked calm for the first minutes. 600 s wrap = one impercept-
@@ -621,7 +621,7 @@ export function updateOcean() {
 
     // Sync the wave field to the dish spin. The shader samples its
     // normal maps by WORLD position and counter-rotates by this angle
-    // to get dish-local coordinates — the uniform existed for exactly
+    // to get dish-local coordinates - the uniform existed for exactly
     // this but was never written, so the wave pattern sat still in
     // world space while the dish turned under it and the water read
     // as sliding across the disc instead of turning with it.
@@ -632,7 +632,7 @@ export function updateOcean() {
     // water reflects it at a grazing angle that lands the glint on the
     // far rim where nobody sees it. Lifting the WATER'S private copy of
     // the sun to 0.60 elevation drags the mirror path back across the
-    // visible sea — the trail every above-water framing should show.
+    // visible sea - the trail every above-water framing should show.
     // (This is exactly the "second sun only the water can see" trick.)
     const wsd = water.material.uniforms['sunDirection'].value;
     const glintElev = (typeof window.__glintElev === 'number') ? window.__glintElev : 0.60;
@@ -641,7 +641,7 @@ export function updateOcean() {
     // Update underwater light rays. They get the WATER's lifted sun,
     // not the raw horizon-level SUN_DIR: the beam strength gate is
     // smoothstep(-0.3, 0.8, sunElev), and at the real elevation (~0)
-    // the shafts ran at ~1/8 intensity — every beam preset looked like
+    // the shafts ran at ~1/8 intensity - every beam preset looked like
     // nothing was happening.
     if (window._lightRays) {
         window._lightRays.uniforms.uTime.value = tw;
@@ -661,7 +661,7 @@ export function updateOcean() {
         }
         // Integrate pattern drift INCREMENTALLY (dir * dt). The old
         // dir * absolute-time form, with a rotating local sun, made the
-        // accumulated offset spiral — an accelerating rotating light
+        // accumulated offset spiral - an accelerating rotating light
         // sweep around the dish that built up into flicker.
         const sd = cu.uSunDir.value;
         const len = Math.hypot(sd.x, sd.z) || 1;
@@ -672,14 +672,14 @@ export function updateOcean() {
         cu.uDrift2.value.y -= sx * 0.023 * cdt;
     }
     // Edge water column: island-local sun azimuth only (the wall shader
-    // is deliberately time-free — it can never flicker).
+    // is deliberately time-free - it can never flicker).
     if (window._edgeColumn) {
         if (window._terrain && window._terrain.sunUniform) {
             const s = window._terrain.sunUniform.value;
             window._edgeColumn.uniforms.uSunXZ.value.set(s.x, s.z);
         }
     }
-    // Ocean surface particles — gentle drift on water plane.
+    // Ocean surface particles - gentle drift on water plane.
     // Skipped while launch-hidden: no reason to run 3000 sin/cos per
     // frame into an invisible buffer.
     if (window._oceanParticles && window._oceanParticles.mesh && window._oceanParticles.mesh.visible) {
@@ -689,13 +689,13 @@ export function updateOcean() {
             // Gentle XZ drift (wind-like)
             pp[i * 3]     += Math.sin(t * op.speeds[i] + op.phases[i]) * 0.002;
             pp[i * 3 + 2] += Math.cos(t * op.speeds[i] * 0.7 + op.phases[i]) * 0.002;
-            // Subtle vertical bob — stays just below surface
+            // Subtle vertical bob - stays just below surface
             pp[i * 3 + 1] = OCEAN_LEVEL - 0.02 + Math.sin(t * op.speeds[i] * 1.5 + op.phases[i]) * 0.01;
         }
         op.geo.attributes.position.needsUpdate = true;
     }
 
-    // Reflection-only foam animation — three types.
+    // Reflection-only foam animation - three types.
     // Skipped while launch-hidden (see terrain.js fPts.visible).
     if (window._foam && window._foam.types && window._foam.mesh && window._foam.mesh.visible) {
         const f = window._foam;
@@ -711,7 +711,7 @@ export function updateOcean() {
                 pos[i*3+2] += Math.cos(t * spd * 2.5 + ph) * 0.002;
                 pos[i*3+1] = OCEAN_LEVEL + 0.12 + Math.sin(t * spd + ph) * 0.02;
             } else if (type === 1) {
-                // Rim: same jitter as shore — tight XZ + vertical bob
+                // Rim: same jitter as shore - tight XZ + vertical bob
                 pos[i*3]   += Math.sin(t * spd * 3 + ph) * 0.002;
                 pos[i*3+2] += Math.cos(t * spd * 2.5 + ph) * 0.002;
                 pos[i*3+1] = OCEAN_LEVEL + 0.12 + Math.sin(t * spd + ph) * 0.02;
@@ -720,7 +720,7 @@ export function updateOcean() {
         f.geo.attributes.position.needsUpdate = true;
     }
 
-    // Peak foam shimmer — tiny sparkles on seabed high points
+    // Peak foam shimmer - tiny sparkles on seabed high points
     if (window._peakFoam) {
         const pf = window._peakFoam;
         const pp = pf.positions;
@@ -730,7 +730,7 @@ export function updateOcean() {
         pf.geo.attributes.position.needsUpdate = true;
     }
 
-    // Rim foam animation — subtle lapping at glass edge
+    // Rim foam animation - subtle lapping at glass edge
     if (window._rimFoam) {
         const rf = window._rimFoam;
         const rp = rf.positions;
@@ -747,7 +747,7 @@ export function updateOcean() {
         rf.geo.attributes.position.needsUpdate = true;
     }
 
-    // Rim bubbles — rise along dish edge.
+    // Rim bubbles - rise along dish edge.
     // Skipped while launch-hidden (see terrain.js bubMesh.visible).
     if (window._rimBubbles && window._rimBubbles.mesh && window._rimBubbles.mesh.visible) {
         const rb = window._rimBubbles;
@@ -774,7 +774,7 @@ export function updateOcean() {
             window._lavaBottom.uniforms.uPulse.value = state.terrainPulseUniform.value;
         }
         // Eruption drive: volcano.js publishes its glow multiplier
-        // (1 = quiet, ~2.8 = peak burst) — remap to 0..1 for the veins.
+        // (1 = quiet, ~2.8 = peak burst) - remap to 0..1 for the veins.
         window._lavaBottom.uniforms.uErupt.value =
             Math.max(0, Math.min(1, ((window._volcanoGlow || 1) - 1) / 1.6));
     }

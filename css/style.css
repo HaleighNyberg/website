@@ -9,7 +9,7 @@ canvas { display: block; }
 /* --- Loading screen: deep-space approach mode (cinematic v2) ---
    The loading screen becomes a transparent overlay for the Three.js
    starfield fly-in. The HALEIGH NYBERG wordmark functions as a cinematic
-   title card — large, centered, faded in/out by JS at specific timestamps.
+   title card - large, centered, faded in/out by JS at specific timestamps.
    The spinner is hidden immediately. The kicker subtitle appears below
    the name mid-flight. loadingApproach.js drives all opacity transitions.
    Uses !important to override brand.css which loads after style.css. */

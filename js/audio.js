@@ -24,7 +24,7 @@ let listeners = [];          // subscribers for track changes
 
 // Always boot muted. The previous behavior persisted "on" across sessions,
 // which surprised users who expected a quiet site by default. The mute pref
-// now lives only in the running tab — refresh = silence again.
+// now lives only in the running tab - refresh = silence again.
 function readMutedPref() { return true; }
 function writeMutedPref() { /* intentional no-op */ }
 
@@ -142,7 +142,7 @@ export function setMuted(muted, opts = {}) {
     applyBedGain();
 
     if (wasMuted && !mutedPref && ctx) {
-        // First unmute — the toggle's click counts as the gesture that
+        // First unmute - the toggle's click counts as the gesture that
         // satisfies autoplay policy. Resume context if needed and start
         // the currently-loaded track (or pick one if none loaded).
         const start = () => {
@@ -152,7 +152,7 @@ export function setMuted(muted, opts = {}) {
         if (ctx.state === 'running') start();
         else ctx.resume().then(start).catch(() => {});
     } else if (!wasMuted && mutedPref) {
-        // Mute — pause the element. Keep the track loaded so unmuting
+        // Mute - pause the element. Keep the track loaded so unmuting
         // resumes where it was. Bed fades out via applyBedGain.
         if (audioEl) audioEl.pause();
     }
@@ -202,7 +202,7 @@ export function initAudio() {
     applyMasterGain();
     applyBedGain();
 
-    // Scene-wide audio reactivity disabled — animate.js no longer reads
+    // Scene-wide audio reactivity disabled - animate.js no longer reads
     // this. Leaving the global UNSET means even a stale cached animate.js
     // hits the "no analyser → decay to 0" branch in sampleAudio().
     // The visualizer bars (audioViz.js) call getAnalyser() directly,

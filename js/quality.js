@@ -12,13 +12,13 @@ import { state } from './config.js?v=real18';
 //
 // The existing low-power switch never fires on the machines that need it: it
 // requires `(pointer: coarse)`, so it only ever triggers on touch devices. Every
-// laptop with integrated graphics — which is most people looking at this — gets
+// laptop with integrated graphics - which is most people looking at this - gets
 // the full spread and has to chew through all ten passes.
 //
 // So stop guessing at hardware and measure the thing we actually care about: the
 // frame rate on the machine in front of us. Sample it once the flight has landed
 // and the scene is at rest, then throttle the repeat passes if it is struggling.
-// A machine that is coping is never touched, and nothing here can step back UP —
+// A machine that is coping is never touched, and nothing here can step back UP -
 // quality that oscillates is worse than quality that is merely low.
 
 const SAMPLE_FRAMES = 90;
@@ -28,7 +28,7 @@ const SETTLE_FRAMES = 45;      // let the landing, the reveal and the GC settle 
 // fraction of the display rate without anyone noticing: the sun is static, and
 // the dish turns at ~0.07 px/frame.
 const TIER = [
-    null,                                            // 0 — coping; touch nothing
+    null,                                            // 0 - coping; touch nothing
     { reflectEvery: 2, shadowEvery: 6,  msaa: 0, shadowMap: 2048, gtao: true,  pixelRatio: null },
     { reflectEvery: 3, shadowEvery: 12, msaa: 0, shadowMap: 1024, gtao: false, pixelRatio: 1 },
 ];

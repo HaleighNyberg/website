@@ -16,4 +16,4 @@ npx --yes esbuild .build/main.js \
   --outfile=js/app.bundle.js \
   --log-level=warning
 rm -rf .build
-echo "built js/app.bundle.js ($(du -k js/app.bundle.js | cut -f1) KB) — remember to bump the ?v= token on the <script> in index.html"
+echo "built js/app.bundle.js ($(du -k js/app.bundle.js | cut -f1) KB) - remember to bump the ?v= token on the <script> in index.html"

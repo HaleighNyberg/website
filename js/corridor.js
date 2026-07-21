@@ -1,13 +1,13 @@
-// corridor.js — THE nebula: a world-space raymarched volume, everywhere,
+// corridor.js - THE nebula: a world-space raymarched volume, everywhere,
 // forever.
 //
 // There is no painted nebula and no baked nebula. The backdrop
 // (spaceEnv.js) is a static void gradient; ALL nebula structure is this
-// volume, marched from the camera's real position every frame — during
+// volume, marched from the camera's real position every frame - during
 // the flight AND at rest. Because the march origin is the actual camera,
 // translation produces true parallax inside the clouds: near filaments
 // sweep past faster than far ones during the approach, and at rest the
-// nebula shifts gently as the camera moves between zones — the same
+// nebula shifts gently as the camera moves between zones - the same
 // physical presence the stars have. The per-frame cost is BELOW the old
 // painted fBm sky, so permanence is free.
 //
@@ -16,13 +16,13 @@
 // and island physically occlude it (the nebula is behind the system).
 //
 // The destination system sits inside a CLEARED CAVITY carved into the
-// density field (a star system blows a cavity into its local medium) —
+// density field (a star system blows a cavity into its local medium) -
 // braking into the system is physically leaving the clouds: near-field
 // density ends at the cavity wall while the surrounding nebula stays in
 // view at distance. That surrounding view IS the resting sky.
 //
 // Grain control (the "staticky" fix): march jitter is interleaved
-// gradient noise (Jimenez IGN — blue-noise-like error distribution, the
+// gradient noise (Jimenez IGN - blue-noise-like error distribution, the
 // industry-standard volumetric dither) cycled per frame on the golden
 // ratio, so the residual grain decorrelates frame to frame and averages
 // away instead of sitting on the screen as a frozen pattern.
@@ -34,7 +34,7 @@ import { ACES_INVERSE_GLSL } from './shaderChunks.js';
 const VERT = /* glsl */`
     varying vec3 vDir;
     void main() {
-        // Camera-locked sphere at the far plane — same trick as spaceEnv.
+        // Camera-locked sphere at the far plane - same trick as spaceEnv.
         vDir = normalize(position);
         mat4 viewNoTranslate = viewMatrix;
         viewNoTranslate[3][0] = 0.0;
@@ -92,7 +92,7 @@ function frag(steps) {
         return mix(nxy0, nxy1, f.z);
     }
 
-    // 4 octaves — the fine structure the 3-octave version lacked.
+    // 4 octaves - the fine structure the 3-octave version lacked.
     float fbm(vec3 p) {
         float a = 0.5;
         float s = 0.0;
@@ -104,13 +104,13 @@ function frag(steps) {
         return s;
     }
 
-    // Interleaved gradient noise (Jimenez) — screen-space blue-noise-like
+    // Interleaved gradient noise (Jimenez) - screen-space blue-noise-like
     // dither for the march offset.
     float ign(vec2 px) {
         return fract(52.9829189 * fract(dot(px, vec2(0.06711056, 0.00583715))));
     }
 
-    // Palette — the authored filament families (teal / purple / pink).
+    // Palette - the authored filament families (teal / purple / pink).
     const vec3 tealCol = vec3(0.150, 0.360, 0.520);
     const vec3 purpCol = vec3(0.330, 0.150, 0.540);
     const vec3 pinkCol = vec3(0.540, 0.190, 0.400);
@@ -120,7 +120,7 @@ function frag(steps) {
 
     const int   STEPS     = ${steps};
     const float T_NEAR    = 120.0;   // march start (world units from camera)
-    const float T_FAR     = 7000.0;  // march end — the resting sky's depth
+    const float T_FAR     = 7000.0;  // march end - the resting sky's depth
     const float INV_SCALE = 1.0 / 1400.0; // world units -> noise units
     // Extinction coefficient per world unit at density 1. Opacity per
     // segment is 1 - exp(-SIGMA * density * segmentLength): a real optical
@@ -142,7 +142,7 @@ function frag(steps) {
         vec3 acc = vec3(0.0);
         float A = 0.0;
         for (int i = 0; i < STEPS; i++) {
-            // ft^2 biases samples toward the camera — the near medium
+            // ft^2 biases samples toward the camera - the near medium
             // carries the fastest parallax, so it gets the resolution.
             float ft0 = (float(i) + j) / float(STEPS);
             float ft1 = (float(i) + 1.0 + j) / float(STEPS);
@@ -186,7 +186,7 @@ function frag(steps) {
  * The permanent nebula volume. Created once at scene init; animate.js
  * feeds it the rebase-corrected camera position every frame.
  * @param {THREE.Scene} scene
- * @param {{ steps?: number }} [opts] — march samples per pixel (12 default,
+ * @param {{ steps?: number }} [opts] - march samples per pixel (12 default,
  *   8 for lowPower machines).
  */
 export function initCorridor(scene, opts = {}) {
@@ -205,7 +205,7 @@ export function initCorridor(scene, opts = {}) {
         side: THREE.BackSide,
         transparent: true,
         // depthTest ON: the sphere sits exactly at the far plane, so any
-        // real geometry occludes it — the nebula is physically behind the
+        // real geometry occludes it - the nebula is physically behind the
         // system and can never film over it.
         depthTest: true,
         depthWrite: false,

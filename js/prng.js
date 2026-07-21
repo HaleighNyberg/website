@@ -1,4 +1,4 @@
-// Deterministic seeded PRNG. Mulberry32 — small, fast, good enough for
+// Deterministic seeded PRNG. Mulberry32 - small, fast, good enough for
 // visual parameters (not cryptographic).
 // Shared utility: used by dailyPlanet; room for audio or future procedural
 // work without re-introducing Math.random nondeterminism.

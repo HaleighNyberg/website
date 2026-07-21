@@ -11,7 +11,7 @@ export const HEIGHTMAP_URL = 'mountain_height_8bit.webp';
 
 // Soft validation: warn if the loaded image looks wrong (colormap instead
 // of grayscale, or aspect ratio wildly off). Called by terrain.js from
-// inside the loadHeightmap callback. Cheap — runs once at startup.
+// inside the loadHeightmap callback. Cheap - runs once at startup.
 export function validateHeightmap(imgData, w, h) {
     const expectedAspect = 1;
     const aspect = w / h;

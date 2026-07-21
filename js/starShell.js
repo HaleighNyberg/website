@@ -1,14 +1,14 @@
-// starShell.js — the destination system's stellar neighborhood as REAL 3D
+// starShell.js - the destination system's stellar neighborhood as REAL 3D
 // points.
 //
 // The stars used to live in the skybox shader and "resolved" at arrival
 // via a uniform. Now they are actual objects on a deterministic shell
-// around the system. At rest they read like the old sky — same cool-white
-// tint, the same three-population brightness spread, gaussian cores —
+// around the system. At rest they read like the old sky - same cool-white
+// tint, the same three-population brightness spread, gaussian cores -
 // and between zones they carry a whisper of true parallax. During the
 // load-in flight they are simply too far to see; as the camera brakes
 // into the neighborhood they emerge with genuine parallax and we stop
-// AMONG them. Nothing resolves, nothing completes at the stop — the
+// AMONG them. Nothing resolves, nothing completes at the stop - the
 // arrival is physical.
 //
 // Layout is seeded, not Math.random(): the resting sky must be the same
@@ -33,7 +33,7 @@ const SEED = 481207;
 // field (texture, not punctate), a mid field, and sparse bright feature
 // stars nearest the system. size = on-screen pixels at REF_DIST.
 // Pushed OUT and thinned (owner, 2026-07-12): the old 2.6-7k radii read
-// as a small SPHERE of stars hugging the system on approach — a snow
+// as a small SPHERE of stars hugging the system on approach - a snow
 // globe around the sun. Stars must feel far apart and far away.
 const POPS = [
     { count:  900, rMin: 6200, rMax: 8300, size: 2.0, bMin: 0.10, bMax: 0.30 },
@@ -88,7 +88,7 @@ const FRAG = /* glsl */`
 
 /**
  * @param {THREE.Scene} scene
- * @param {number} pixelRatio — renderer pixel ratio (point sizes are in
+ * @param {number} pixelRatio - renderer pixel ratio (point sizes are in
  *   device pixels).
  * @returns {THREE.Points}
  */
@@ -142,18 +142,18 @@ export function initStarShell(scene, pixelRatio) {
     shell.renderOrder = -999;
     shell.name = 'starShell';
     // Visible both at rest (layer 0) and during the flight (layer 9,
-    // alongside the skybox) — during cruise it is simply too far to see.
+    // alongside the skybox) - during cruise it is simply too far to see.
     shell.layers.enable(9);
     scene.add(shell);
     return shell;
 }
 
 // ---------------------------------------------------------------------
-// DEEP FIELD — the genuinely infinite background as CRISP points.
+// DEEP FIELD - the genuinely infinite background as CRISP points.
 //
 // Baked stars in the equirect far map were rejected ("PSX-style blur"):
 // the 4096×2048 texture is magnified ~6× on a 4K panel and bilinear
-// filtering guarantees soft blobs. Stars are therefore GEOMETRY ONLY —
+// filtering guarantees soft blobs. Stars are therefore GEOMETRY ONLY -
 // fixed-pixel-size points on a view-locked sphere. The view translation
 // is cancelled in the vertex shader (same trick as the spaceEnv sky), so
 // the field shows zero parallax: physically correct for stars at
@@ -162,20 +162,20 @@ export function initStarShell(scene, pixelRatio) {
 // baked map, where softness is what distance actually looks like.
 
 // THREE drift layers (owner: "more layers between us and the deep field")
-// — a continuous parallax ramp between the corridor's real stars and the
+// - a continuous parallax ramp between the corridor's real stars and the
 // deepest background. Each layer is view-locked geometry that carries
 // k × the real (splice-corrected) camera motion: k encodes its effective
 // distance, so nearer layers slide visibly faster at cruise. Brightness
 // overshoots because the volumetric nebula in front veils the fields
-// (physically right — stars seen through the medium).
+// (physically right - stars seen through the medium).
 // Two families of layers, crossfaded across the brake (uLayerFade):
 // - resting layers (thinned; stars sparse and far apart) are held at
 //   zero during the cruise and resolve in as the camera slows into the
 //   neighborhood; they simply ARE the resting sky thereafter (default 1
 //   on skip visits and outside the intro).
-// - cruise layers carry MUCH larger drift fractions — distant stars
+// - cruise layers carry MUCH larger drift fractions - distant stars
 //   that visibly sweep by at warp (1.5-6°/s), layered by depth behind
-//   the streaking route stars — and retire across the brake as the
+//   the streaking route stars - and retire across the brake as the
 //   resting fields take over (default 0 outside the intro: they exist
 //   only under way). A few hundred extra points per layer: one cheap
 //   draw call each, no measurable cost.
@@ -216,7 +216,7 @@ const DEEP_VERT = /* glsl */`
         vBright = aBright;
         vTint = aTint;
         // The field is VERY far, not infinite: it carries a small
-        // fraction of the real (splice-corrected) camera translation —
+        // fraction of the real (splice-corrected) camera translation -
         // animate.js feeds uEyeDrift = corrected eye × K. Over the whole
         // cruise the background drifts a couple of degrees, so every
         // star in the sky moves when we move (owner: nothing may sit
@@ -228,7 +228,7 @@ const DEEP_VERT = /* glsl */`
         viewNoTranslate[3][2] = 0.0;
         vec4 mv = viewNoTranslate * vec4(position - uEyeDrift, 1.0);
         gl_Position = projectionMatrix * mv;
-        // Fixed on-screen size — crispness is the whole point.
+        // Fixed on-screen size - crispness is the whole point.
         gl_PointSize = aSize * uPxr;
     }
 `;
@@ -248,7 +248,7 @@ const DEEP_FRAG = /* glsl */`
         float a = core * vBright * uLayerFade;
         if (a < 0.004) discard;
         // Cool-white to warm-white spread, authored display sRGB, capped
-        // under the bloom knee (same 0.85 budget as the shell stars) —
+        // under the bloom knee (same 0.85 budget as the shell stars) -
         // background stars never bloom.
         vec3 tint = mix(vec3(0.72, 0.82, 1.00), vec3(1.00, 0.90, 0.74), vTint);
         vec3 col = displayToSceneLinear(tint * min(a, 0.80));
@@ -259,7 +259,7 @@ const DEEP_FRAG = /* glsl */`
 /**
  * @param {THREE.Scene} scene
  * @param {number} pixelRatio
- * @returns {Array<{points: THREE.Points, k: number}>} — animate.js feeds
+ * @returns {Array<{points: THREE.Points, k: number}>} - animate.js feeds
  *   each layer's uEyeDrift with (corrected camera) × k every frame.
  */
 export function initDeepField(scene, pixelRatio) {

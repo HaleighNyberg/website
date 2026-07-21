@@ -18,12 +18,12 @@ export const WALL_THICK = 0.6;
 // --- Single source of truth for the (static) sun world position ---
 // The sun does not orbit. It sits far back-left on the orbital plane and
 // every shader / light / lens-flare math reads from this one constant.
-// Treat as immutable — clone() it before mutating.
+// Treat as immutable - clone() it before mutating.
 export const SUN_WORLD_POSITION = new THREE.Vector3(-620, 0, -250);
 
 // --- Moon orbit parameters (orbits the dish at origin in the y=0 plane) ---
-export const MOON_ORBIT_RADIUS = 90;   // world units — pushed further out for realistic angular size
-export const MOON_ORBIT_PERIOD = 420;  // seconds per revolution — one "month". The sun
+export const MOON_ORBIT_RADIUS = 90;   // world units - pushed further out for realistic angular size
+export const MOON_ORBIT_PERIOD = 420;  // seconds per revolution - one "month". The sun
 // drift in lighting.js runs one orbit per ~12.5 moon revolutions, so the
 // moon/sun pair reads as a real month/year hierarchy (Earth-like feel).
 export const MOON_ORBIT_PHASE  = -1.107; // ≈ atan2(-60, 30): starts behind/right of dish
@@ -44,11 +44,11 @@ export const state = {
     composer: null,
     islandGroup: null,
 
-    // Sun direction — normalize(SUN_WORLD_POSITION), refreshed each frame
+    // Sun direction - normalize(SUN_WORLD_POSITION), refreshed each frame
     // in updateScene so consumers don't have to import the constant.
     SUN_DIR: new THREE.Vector3(1, 0.4, 0).normalize(),
 
-    // Legacy hook from when the sun moved. Sun is now static — kept null
+    // Legacy hook from when the sun moved. Sun is now static - kept null
     // so any old caller that reads it sees a falsy value.
     sunFixedPos: null,
 
@@ -96,7 +96,7 @@ export const state = {
     // Gateway (GLTF scene, set in lighting.js)
     gateway: null,
 
-    // Drag override positions — set by controls.js, read by lighting.js
+    // Drag override positions - set by controls.js, read by lighting.js
     _dragOverride: {},
 
 };
@@ -127,7 +127,7 @@ export function volcanoColor(t, nearShore) {
         const s = nearShore * nearShore;
         // Wet dark sand. The old 0.32/0.27/0.20 target hit the baked-
         // lift cap and turned the whole shoreline band pale beige, the
-        // same value as the sunlit water — top-down the island outline
+        // same value as the sunlit water - top-down the island outline
         // disappeared. Darker sand keeps a real land/water boundary.
         r += (0.21 - r) * s; g += (0.175 - g) * s; bl += (0.13 - bl) * s;
     }
@@ -139,7 +139,7 @@ export function seafloorColor(h, lavaAmount) {
     // Deepest stops lifted and blue-shifted: the old (0.06,0.04,0.04)
     // black-brown, multiplied by the bake dimmers and the underwater
     // absorption, landed the basin BELOW the space background's darkest
-    // pixel (~0.075 luminance) — the floor of an aquarium should read
+    // pixel (~0.075 luminance) - the floor of an aquarium should read
     // as dim cool rock, never as a void darker than space.
     const stops = [
         { t: 0.0, r: 0.10, g: 0.11, b: 0.13 },
@@ -170,7 +170,7 @@ export function seafloorColor(h, lavaAmount) {
 
 export function loadHeightmap(src, cb) {
     // Registered with the default loading manager so the loading-screen
-    // hold (main.js) counts heightmaps alongside every texture — without
+    // hold (main.js) counts heightmaps alongside every texture - without
     // this the island geometry could still be missing when the screen
     // lifts.
     THREE.DefaultLoadingManager.itemStart(src);
@@ -180,7 +180,7 @@ export function loadHeightmap(src, cb) {
         // Decode off the main thread, then split the pixel copy and the
         // geometry-building callback across two frames: as one
         // synchronous block this was a ~230ms main-thread freeze at
-        // whatever moment the download landed — mid-cruise on a slow
+        // whatever moment the download landed - mid-cruise on a slow
         // connection. The manager hold (itemEnd) still releases only
         // after the callback, so nothing downstream sees a difference.
         const go = () => {

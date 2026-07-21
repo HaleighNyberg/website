@@ -5,7 +5,7 @@ import { state, OCEAN_RADIUS, WALL_THICK } from './config.js?v=real18';
 export function initGlass() {
     const { islandGroup } = state;
 
-    // Unified glass material — museum-quality borosilicate look.
+    // Unified glass material - museum-quality borosilicate look.
     // Real physical glass: transmission ~1.0, low roughness, ior 1.5,
     // clearcoat for the wet-polished surface micro-reflection, and a
     // tiny cool attenuation tint for thickness-based color absorption.
@@ -25,7 +25,7 @@ export function initGlass() {
         transmission: 1.0,
         // 1.0: thickness drives the screen-space refraction displacement.
         // It sat at 0.35 for a while because at 1.0 the wall duplicates its
-        // backdrop shifted OUTWARD — the seabed can appear to continue past
+        // backdrop shifted OUTWARD - the seabed can appear to continue past
         // where the glass should stop it. 0.35 pinned the refracted image to
         // the truth but cost the shell its weight; the heavier refraction is
         // what makes it read as a real optic. If that outward-shifted seabed
@@ -33,11 +33,11 @@ export function initGlass() {
         thickness: 1.0,
         ior: 1.5,
         // Crisp wet-polish layer: this is most of what makes real glass
-        // read as glass — a sharp bright top-surface reflection riding
+        // read as glass - a sharp bright top-surface reflection riding
         // over the clear transmission. 0.25/0.18 was so soft the shell
         // read as acrylic; 0.85/0.06 blew the sun-side rim into a hot
         // blob. 0.35/0.14 gives a defined sun-side sheen arc.
-        // 0.45/0.11 (was 0.35/0.14): a wetter, tighter polish layer —
+        // 0.45/0.11 (was 0.35/0.14): a wetter, tighter polish layer -
         // the sheen arc reads more like museum glass under gallery light.
         clearcoat: 0.45,
         clearcoatRoughness: 0.11,
@@ -48,7 +48,7 @@ export function initGlass() {
         specularIntensity: 0.0,
         specularColor: new THREE.Color(0xffffff),
         // Soda-lime green-cyan, not near-white: the classic "that's real
-        // glass" tell is the edge tint — light that travels a LONG path
+        // glass" tell is the edge tint - light that travels a LONG path
         // through the material (rim, lip, edge-on walls) goes visibly
         // green-cyan while short face-on paths stay clear. Iron content
         // does this in every real petri dish and window pane.
@@ -56,7 +56,7 @@ export function initGlass() {
         // 3.0 is the physical value for display glass: tinted depth at
         // grazing angles, clear face-on. It was crushed to 0.4 for a
         // while as a bloom band-aid (bright objects behind the dish
-        // bloomed into white spots) — that thresholding artifact came
+        // bloomed into white spots) - that thresholding artifact came
         // from bloom running on an un-tonemapped display-space buffer.
         // Bloom now thresholds in scene-linear HDR, so the band-aid is
         // reverted. If a hot spot ever reappears through the far wall,
@@ -84,7 +84,7 @@ export function initGlass() {
 
     // Underwater reflection kill: light reaching SUBMERGED glass has
     // already been filtered through metres of water, so the wall below
-    // the waterline must not sparkle with bright sky reflections — that
+    // the waterline must not sparkle with bright sky reflections - that
     // sparkle was the "weird lights" at the seabed-glass bottom seam.
     // Fade env + clearcoat specular to a whisper below y ~ 0.65 (the
     // water surface); the above-water lip keeps its full sheen.
@@ -107,18 +107,18 @@ export function initGlass() {
             ].join('\n'));
     };
 
-    // Optional dispersion (chromatic refraction) — three.js r170 supports it.
+    // Optional dispersion (chromatic refraction) - three.js r170 supports it.
     // Guarded so older builds silently ignore it.
     if ('dispersion' in glassMat) {
-        // Chromatic edge fringing where light crosses thick glass —
+        // Chromatic edge fringing where light crosses thick glass -
         // subtle but a strong "real glass" cue at the rim. 0.18 (was
-        // 0.12): the wider fringe also SCALES the dish up — big optics
+        // 0.12): the wider fringe also SCALES the dish up - big optics
         // split light more visibly than trinket glass.
         glassMat.dispersion = 0.18;
     }
     // Whisper of thin-film iridescence: precision optical glass throws
     // faint oil-sheen colors at grazing angles. Kept far below "soap
-    // bubble" — it should register subliminally, not read as an effect.
+    // bubble" - it should register subliminally, not read as an effect.
     if ('iridescence' in glassMat) {
         glassMat.iridescence = 0.12;
         glassMat.iridescenceIOR = 1.3;
@@ -168,14 +168,14 @@ export function initGlass() {
     // no distinct inner/outer surface (DoubleSide transmission guessed
     // normals per face), and its floor at y=-2.55 interpenetrated the
     // seabed plane at y=-2.4 (visible clipping seam at the bottom edge).
-    // This lathe is a WATERTIGHT closed cross-section — outer wall,
-    // rounded lip, inner wall, inner floor, outer bottom — so every
+    // This lathe is a WATERTIGHT closed cross-section - outer wall,
+    // rounded lip, inner wall, inner floor, outer bottom - so every
     // face has a true outward normal and the material can run FrontSide
     // like real solid glass. Footprint matches the GLB (r=32.1, lip at
     // y=1.2) but the floor now wraps UNDER the seabed (-3.35) so
     // nothing intersects.
     const R_OUT = 32.1;         // outer wall radius (GLB match)
-    const WALL_T = 0.55;        // wall thickness — massive-scale dish
+    const WALL_T = 0.55;        // wall thickness - massive-scale dish
     const R_IN = R_OUT - WALL_T;
     const LIP_Y = 1.2;          // rim apex (GLB match)
     const IN_FLOOR_Y = -2.8;    // inner glass floor: below seabed's -2.4
@@ -205,20 +205,20 @@ export function initGlass() {
     pts.push(new THREE.Vector2(0.001, IN_FLOOR_Y));
     // 1536 (was 192): a 192-gon leaves ~15px straight facets on a rim this
     // large, which read as a scalloped comb along the bottom edge. Segments have
-    // to be set here, at construction — the lathe cannot be rebuilt from
+    // to be set here, at construction - the lathe cannot be rebuilt from
     // geometry.parameters afterwards without losing the merged seam below.
     // ~+10% verts on this mesh (21.7k total) and no measurable frame cost.
     let dishGeo = new THREE.LatheGeometry(pts, 1536);
     // The lathe duplicates its phi=0 / phi=2π meridian as separate
     // vertices. computeVertexNormals() averages face normals PER VERTEX,
-    // and each seam column only sees faces on one angular side — the two
+    // and each seam column only sees faces on one angular side - the two
     // columns end up tilted ~1.9° apart, and on this near-mirror glass
     // (roughness 0.025 + clearcoat + dispersion + live env) that kink
     // showed as a bright SEAM down one azimuth of the rim at grazing
     // light. Merging the wrap first gives the seam column two-sided
     // averaging like every other column. The unused uv attribute must go
     // first (seam uv.x is 0 vs 1, which blocks the merge; the material
-    // samples no uv maps — env is via reflection vector).
+    // samples no uv maps - env is via reflection vector).
     dishGeo.deleteAttribute('uv');
     dishGeo = mergeVertices(dishGeo);
     dishGeo.computeVertexNormals();
@@ -227,7 +227,7 @@ export function initGlass() {
     // Glass lives exclusively on layer 2 so we can exclude specific
     // lights (the moonLight DirectionalLight) from producing a specular
     // glint on it. Layer 1 is reserved by Water.js's mirrorCamera for
-    // reflection-only objects — glass there would appear inside the
+    // reflection-only objects - glass there would appear inside the
     // water reflection as a nested refraction mess at the rim.
     dishMesh.layers.set(2);
     // Feed the dish walls into the GTAO G-buffer so the glass-meets-
@@ -238,13 +238,13 @@ export function initGlass() {
 
 let _envFace = 0;
 
-// Refresh the live glass environment capture — AMORTIZED: exactly ONE
+// Refresh the live glass environment capture - AMORTIZED: exactly ONE
 // cube face per frame, round-robin. The earlier whole-cube refresh
 // (6 extra scene renders in one frame, every 2nd-5th frame) produced
-// alternating heavy/light frame times — visible JUDDER on the bright
+// alternating heavy/light frame times - visible JUDDER on the bright
 // dish-edge glint and the moving island texture. One face per frame is
 // a constant small cost, so frame pacing stays flat, and the full cube
-// still refreshes every 6 frames (~10 Hz at 60 fps) — faster than the
+// still refreshes every 6 frames (~10 Hz at 60 fps) - faster than the
 // old 12 Hz stepping AND smooth.
 export function updateGlassEnv() {
     const cam = state._glassCubeCam;
@@ -256,7 +256,7 @@ export function updateGlassEnv() {
     islandGroup.visible = false;
 
     // Child cameras inherit the CubeCamera's transform via the scene
-    // graph — no manual positioning needed.
+    // graph - no manual positioning needed.
     const faceCam = cam.children[_envFace];
     const prevTarget = renderer.getRenderTarget();
     const prevXr = renderer.xr.enabled;

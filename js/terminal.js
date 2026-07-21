@@ -1,5 +1,5 @@
 // Fake terminal under the home-zone scan message. Pattern-matches a
-// small curated command set — never evaluates user input. The prompt
+// small curated command set - never evaluates user input. The prompt
 // echoes back, renders inert text. Safe as shipped: no eval, no
 // innerHTML, bounded history, single-line input. Both `cmd` and
 // `/cmd` forms route to the same handlers.
@@ -29,7 +29,7 @@ const KONAMI_SEQ = 'up up down down left right left right b a';
 
 const COMMANDS = {
     help: () => [
-        'commands (slash optional — /help == help):',
+        'commands (slash optional - /help == help):',
         '  print("text")   echo a string',
         '  whoami          short bio',
         '  ls              list site sections',
@@ -133,7 +133,7 @@ const SECTION_NAV = {
     dissertation: 6,
 };
 
-// Strip an optional leading slash from commands. Single slash only — `//foo`
+// Strip an optional leading slash from commands. Single slash only - `//foo`
 // stays unknown. Keeps `print("…")` arguments untouched because we match on
 // the already-trimmed prefix.
 function stripSlash(s) {
@@ -144,15 +144,15 @@ function parse(line) {
     const trimmed = stripSlash(line.trim());
     if (!trimmed) return null;
 
-    // print("...") or print('...') — echo the quoted argument
+    // print("...") or print('...') - echo the quoted argument
     const printMatch = trimmed.match(/^print\s*\(\s*(["'])(.*?)\1\s*\)\s*;?$/);
     if (printMatch) return { kind: 'echo', value: printMatch[2] };
 
-    // sudo anything — joke handler
+    // sudo anything - joke handler
     const sudoMatch = trimmed.match(/^sudo\s+(.+)$/i);
     if (sudoMatch) return { kind: 'sudo', arg: sudoMatch[1] };
 
-    // scan all — multi-word command, check before single-word cat
+    // scan all - multi-word command, check before single-word cat
     const lower = trimmed.toLowerCase();
     if (COMMANDS[lower]) return { kind: 'cmd', name: lower };
 
@@ -199,7 +199,7 @@ export function initTerminal() {
     };
 
     function emit(line) {
-        // Bounded history — drop oldest line once limit hit.
+        // Bounded history - drop oldest line once limit hit.
         const lines = output.textContent ? output.textContent.split('\n') : [];
         lines.push(line);
         while (lines.length > MAX_HISTORY_LINES) lines.shift();
@@ -217,7 +217,7 @@ export function initTerminal() {
             return;
         }
         if (parsed.kind === 'sudo') {
-            emit(`${parsed.arg}: permission denied (nice try — you are not root)`);
+            emit(`${parsed.arg}: permission denied (nice try - you are not root)`);
             return;
         }
         if (parsed.kind === 'cat') {

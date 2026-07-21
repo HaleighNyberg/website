@@ -18,7 +18,7 @@ export function initEffects() {
             uDayBlend: { value: 0.5 },
             uRadius: { value: OCEAN_RADIUS },
             // Integrated drift offsets (world-units of UV). The shader
-            // previously offset its pattern by sunDir * ABSOLUTE time —
+            // previously offset its pattern by sunDir * ABSOLUTE time -
             // and with a rotating sun direction that product traces an
             // ever-accelerating spiral: the caustic web visibly swept
             // around the dish faster and faster until it flickered.
@@ -52,7 +52,7 @@ export function initEffects() {
                 return fract(sin(p) * 43758.5453);
             }
 
-            // Returns (F1, F2) — closest and second-closest Voronoi distances
+            // Returns (F1, F2) - closest and second-closest Voronoi distances
             vec2 voronoi(vec2 p) {
                 vec2 n = floor(p);
                 vec2 f = fract(p);
@@ -86,7 +86,7 @@ export function initEffects() {
                 vec2 v1 = voronoi(uv1);
                 vec2 v2 = voronoi(uv2);
 
-                // F2 - F1 gives the bright edges between cells — the caustic lines
+                // F2 - F1 gives the bright edges between cells - the caustic lines
                 float edge1 = smoothstep(0.0, 0.18, v1.y - v1.x);
                 float edge2 = smoothstep(0.0, 0.18, v2.y - v2.x);
 
@@ -107,7 +107,7 @@ export function initEffects() {
 
                 if (light < 0.003) discard;
 
-                // Slightly blue-green tint — underwater light
+                // Slightly blue-green tint - underwater light
                 vec3 col = vec3(0.55, 0.72, 0.82) * light;
                 gl_FragColor = vec4(col, light);
             }
@@ -122,7 +122,7 @@ export function initEffects() {
     causticMesh.position.y = -1.88;
     causticMesh.renderOrder = 3;
     // DISABLED FOR LAUNCH (owner decision, and good riddance): this
-    // shader caused two separate runaway artifacts — the accelerating
+    // shader caused two separate runaway artifacts - the accelerating
     // rotating light-sweep (direction x absolute-time spiral) and then
     // the edge-weighted flashing ring (unbounded drift offsets rotting
     // the Voronoi hash's fp32 precision). It was also buried invisible
@@ -143,7 +143,7 @@ export function initEffects() {
             uDayBlend: { value: 0.5 },
             uRadius: { value: OCEAN_RADIUS },
             // Locked-in beam strength (cathedral look, dialed down from
-            // the 2.2 audition value — full strength read too hot).
+            // the 2.2 audition value - full strength read too hot).
             uBeamMul: { value: 1.5 },
         },
         vertexShader: `
@@ -189,7 +189,7 @@ export function initEffects() {
                 // Sun position drives everything
                 vec2 sunXZ = normalize(uSunDir.xz + vec2(0.001));
                 float sunAngle = atan(sunXZ.y, sunXZ.x);
-                float sunElev = uSunDir.y; // raw, not clamped — negative = below horizon
+                float sunElev = uSunDir.y; // raw, not clamped - negative = below horizon
 
                 // Beam intensity scales smoothly with sun elevation
                 float sunStrength = smoothstep(-0.3, 0.8, sunElev); // gradual 0->1
@@ -198,10 +198,10 @@ export function initEffects() {
                 // Tilt follows sun XZ angle directly
                 float tilt = dot(normalize(vPos.xz), sunXZ) * (0.1 + sunStrength * 0.2) * (1.0 - normY);
 
-                // Wobble — livelier, faster
+                // Wobble - livelier, faster
                 float wobble = noise(vec2(cylAngle * 6.0 + uTime * 0.25, normY * 3.0 + uTime * 0.1)) * 0.15;
 
-                // Many fine beams — 40+ shafts, very thin
+                // Many fine beams - 40+ shafts, very thin
                 float b1 = sin(cylAngle * 40.0 + tilt + wobble + sunAngle);
                 b1 = smoothstep(1.0 - beamWidth * 0.3, 1.0, b1);
 
@@ -213,14 +213,14 @@ export function initEffects() {
 
                 float beam = b1 + b2 + b3;
 
-                // Lively flicker — faster, more variation
+                // Lively flicker - faster, more variation
                 float flicker = noise(vec2(cylAngle * 15.0 + uTime * 0.5, normY * 4.0 - uTime * 0.3));
                 float flicker2 = noise(vec2(cylAngle * 25.0 - uTime * 0.3, normY * 2.0 + uTime * 0.2));
                 beam *= 0.4 + flicker * 0.35 + flicker2 * 0.25;
 
                 // Depth fade. pow base clamped: normY interpolates a
                 // hair NEGATIVE at the bottom edge and pow(negative, x)
-                // NaNs on ANGLE/D3D — the NaN quads rendered as the big
+                // NaNs on ANGLE/D3D - the NaN quads rendered as the big
                 // BLACK SQUARES when the beams were enabled (same bug
                 // class as the historical bloom black-rectangle frames).
                 float depthFade = pow(max(normY, 1e-4), 1.5);
@@ -232,7 +232,7 @@ export function initEffects() {
                 // dot -0.2 (past the terminator) and a 0.03 uncondition-
                 // al floor kept a ghost of the beams on the night glass.
                 // Window now starts clearly inside the lit half and the
-                // floor is gone — the cathedral light lives and dies
+                // floor is gone - the cathedral light lives and dies
                 // with the day side.
                 // Gate in WORLD space so the lit beams never rotate onto the
                 // night side with the island. Hard window on the lit half so
@@ -242,7 +242,7 @@ export function initEffects() {
 
                 float light = beam * depthFade * radialFade * sunFacing;
 
-                // Scale with sun — smooth swell/shrink, NOT binary
+                // Scale with sun - smooth swell/shrink, NOT binary
                 light *= sunStrength * 0.38;
 
                 // Faint moonlight scatter, same day-side gate.
@@ -269,19 +269,19 @@ export function initEffects() {
     rayMesh.renderOrder = 5;
     rayMesh.visible = true; // locked-in look: beams always on
     islandGroup.add(rayMesh);
-    // Publish the handle the per-frame updaters already expect —
+    // Publish the handle the per-frame updaters already expect -
     // lighting.js and ocean.js both wrote to window._lightRays but no
     // one ever assigned it, so re-enabling the beams would have frozen
     // them at their init time/sun values.
     window._lightRays = rayMat;
     window._lightRaysMesh = rayMesh;
 
-    // --- Rain system — instanced billboard quads with SDF capsule shading ---
+    // --- Rain system - instanced billboard quads with SDF capsule shading ---
     // Each drop is a camera-aligned plane (not a line). The fragment shader
     // draws an uneven capsule SDF stacked 5x vertically so the streak reads
     // as motion-blur rather than a geometric line. Billboard aligns the
     // quad's local +Y with world-down crossed against the camera look
-    // direction — i.e. the streak lies flat across the viewing plane so it
+    // direction - i.e. the streak lies flat across the viewing plane so it
     // always presents its full width regardless of yaw.
     // Scene is macro-scale (island radius ~12, dish ~32). Few, long, wide
     // streaks read far better than many thin lines at this scale.
@@ -289,15 +289,15 @@ export function initEffects() {
                 window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Island radius is ~12u and the scene reads as a *massive* landform
     // seen from middle distance. Real rain at that mental scale is a
-    // fine veil, not stripes. Drops are deliberately under-scaled — a
-    // few hundredths of a unit wide, under half a unit tall — so they
+    // fine veil, not stripes. Drops are deliberately under-scaled - a
+    // few hundredths of a unit wide, under half a unit tall - so they
     // register as specks rather than boulders.
     const RAIN_N = PRM ? 70 : 140;
     const RAIN_R = 11.5;
     const RAIN_TOP = TERRAIN_HEIGHT + 2.2;
     const RAIN_BOTTOM = OCEAN_LEVEL + 0.2;
     // Halved: at 0.38/0.042 each drop read as a falling rod against the
-    // island scale — rain at this distance should be fine streaks.
+    // island scale - rain at this distance should be fine streaks.
     const RAIN_STREAK = 0.20;      // quad height in world units
     const RAIN_WIDTH = 0.022;      // quad width in world units
     const rainHeads = new Float32Array(RAIN_N * 3);
@@ -344,7 +344,7 @@ export function initEffects() {
     // Quad geometry: pivot at the HEAD (leading edge). Plane hangs from
     // origin UPWARD in local +Y (from y=0 to y=+RAIN_STREAK). When the
     // instance matrix rotates local +Y to point OPPOSITE velocity, the
-    // plane trails BEHIND the head along the velocity axis — i.e. the
+    // plane trails BEHIND the head along the velocity axis - i.e. the
     // head (pivot, UV.y=0) is the leading/dense end and the tail
     // (UV.y=1) feathers out upstream, just like real motion blur.
     const rainGeo = new THREE.PlaneGeometry(RAIN_WIDTH, RAIN_STREAK);
@@ -406,7 +406,7 @@ export function initEffects() {
                 }
                 acc /= 5.0;
 
-                // Column edge fade — drops near the rim taper out so the
+                // Column edge fade - drops near the rim taper out so the
                 // shower doesn't terminate on a hard disc boundary.
                 float rad = length(vInstancePos.xz);
                 float columnFade = 1.0 - smoothstep(uColumnR * 0.70, uColumnR, rad);
@@ -443,7 +443,7 @@ export function initEffects() {
     let splashMesh = null, splashData = null;
     if (SPLASH_N > 0) {
         // Ring plane stays small (0.26u) and expands via the vertex
-        // shader's progress-based scale — final outer ripple stays
+        // shader's progress-based scale - final outer ripple stays
         // under ~0.5u so splashes read as pinprick impacts, not craters.
         // 0.08 (owner-tuned down twice from 0.26): raindrop impacts are
         // barely-there pinpricks at this scene scale.
@@ -478,7 +478,7 @@ export function initEffects() {
                     if (vProgress <= 0.0 || vProgress >= 1.0) discard;
                     vec2 c = vUv - 0.5;
                     float r = length(c) * 2.0;
-                    // Two rings — primary expanding crown + inner secondary.
+                    // Two rings - primary expanding crown + inner secondary.
                     float ringR1 = vProgress * 0.95;
                     float ringR2 = vProgress * 0.55;
                     float w = 0.05 + vProgress * 0.05;
@@ -540,7 +540,7 @@ export function initEffects() {
         densGrid,
         densRes: DENS_RES,
         // Matches cloud shader drift (x: 0.0085, z: 0.0055 per uTime unit)
-        // scaled to world units — cells drift, rain drifts with them.
+        // scaled to world units - cells drift, rain drifts with them.
         driftX: 0.0085 * 14.0,
         driftZ: 0.0055 * 14.0,
         splash: splashData,
@@ -592,8 +592,8 @@ export function initEffects() {
     // camera rays miss the disc bound and cost nothing.
     {
         // Volume sits well above the island peak inside the dish. The
-        // deck was previously centered 2u above the summit, which — with
-        // CLOUD_HEIGHT/2 = 3.9u — put the cloud FLOOR nearly 2u BELOW
+        // deck was previously centered 2u above the summit, which - with
+        // CLOUD_HEIGHT/2 = 3.9u - put the cloud FLOOR nearly 2u BELOW
         // the peak, so cells visibly clipped through the mountaintop.
         // Raised so the LCL base sits a clear margin above the summit:
         // CLOUD_Y - CLOUD_HEIGHT/2 = TERRAIN_HEIGHT + 2.4. Height
@@ -631,7 +631,7 @@ export function initEffects() {
             let sum = 0, amp = 1, norm = 0, freq = 1;
             for (let o = 0; o < octaves; o++) {
                 const p = period * freq;
-                // Wrap to p then sample with hash — noise3D handles interp.
+                // Wrap to p then sample with hash - noise3D handles interp.
                 const xw = ((x * freq) % p + p) % p;
                 const yw = ((y * freq) % p + p) % p;
                 const zw = ((z * freq) % p + p) % p;
@@ -678,14 +678,14 @@ export function initEffects() {
             for (let y = 0; y < CLOUD_RES; y++) {
                 for (let x = 0; x < CLOUD_RES; x++) {
                     const fx = x / CLOUD_RES, fy = y / CLOUD_RES, fz = z / CLOUD_RES;
-                    // Base: Perlin-Worley — value fBm remapped onto an
+                    // Base: Perlin-Worley - value fBm remapped onto an
                     // inverted-Worley floor (Schneider/Hillaire). Worley
                     // carves the continuous fog field into distinct
                     // rounded lumps; the fBm keeps their outlines ragged.
                     const per = fbmTileable(fx * 3.0, fy * 3.0, fz * 3.0, 4, 3.0);
                     const wor = worleyFbm(fx * 3.0, fy * 3.0, fz * 3.0, 3);
                     const base = wor + per * (1.0 - wor);
-                    // Detail: high-freq Worley fBm — billowed scalloped
+                    // Detail: high-freq Worley fBm - billowed scalloped
                     // edges instead of the old value-noise fuzz.
                     const det = worleyFbm(fx * 8.0, fy * 8.0, fz * 8.0, 8);
                     cloudData[ci++] = Math.max(0, Math.min(255, base * 255));
@@ -722,7 +722,7 @@ export function initEffects() {
                 absorption: { value: new THREE.Vector3(0.72, 0.78, 1.05) },
                 // Sun intensity bumped (was 7.4) and multi-scatter
                 // contribution dropped (was 0.55) so the sun-facing side
-                // reads visibly brighter than the shadowed side — the
+                // reads visibly brighter than the shadowed side - the
                 // clouds were rendering too uniformly. The MS term fills
                 // the dark side with bounced light; reducing it preserves
                 // a true terminator on cumulus puffs.
@@ -833,10 +833,10 @@ export function initEffects() {
                 // Sample density at object-space p (range -0.5..0.5).
                 // Tiled wrap + two drift velocities for the big base and
                 // the fine detail, so the edges shimmer while the body
-                // moves slower — reads as turbulent convection.
+                // moves slower - reads as turbulent convection.
                 float sampleDensity(vec3 p) {
                     // Noise-domain seed (island re-roll). Applied ONLY to
-                    // the texture taps — the geometric disc/height masks
+                    // the texture taps - the geometric disc/height masks
                     // must stay centred on the dish.
                     vec3 ps = p + uSeedOff;
                     // Drift: body moves slow, detail moves faster but
@@ -847,7 +847,7 @@ export function initEffects() {
                     // frame in animate.js), not absolute time times a
                     // multiplier: with uTime * uWindMul, dragging the
                     // weather slider changed the multiplier and the whole
-                    // deck TELEPORTED to a new phase — clouds raced,
+                    // deck TELEPORTED to a new phase - clouds raced,
                     // formed, and tore during the drag. Integrate, never
                     // multiply absolute time (the caustics lesson).
                     vec3 qBase = ps + vec3(uWindT * 0.0085, 0.0, uWindT * 0.0055);
@@ -855,7 +855,7 @@ export function initEffects() {
                     // Domain warp: bend the sample coordinates by a very
                     // low-frequency tap before the tiled lookups. From
                     // TOP-DOWN the raw tiling read as a square repeating
-                    // grid — the warp shears every repeat differently so
+                    // grid - the warp shears every repeat differently so
                     // the pattern never lines up with itself.
                     vec3 warp = vec3(
                         texture(map, ps * 0.31 + vec3(0.13, 0.71, 0.37)).r - 0.5,
@@ -870,11 +870,11 @@ export function initEffects() {
                     // puck into distinct cumulus cells. Must vary FASTER
                     // than once per volume (the old 0.6x sampling gave a
                     // near-constant field across the disc, so the deck
-                    // stayed one merged blob no matter the coverage) —
+                    // stayed one merged blob no matter the coverage) -
                     // 2.2x gives roughly 4-6 lobes across the footprint.
                     float cell = texture(map, qBase * 2.2 + vec3(0.37, 0.19, 0.73)).r;
 
-                    // Radial disc falloff — warped by noise so the cloud
+                    // Radial disc falloff - warped by noise so the cloud
                     // cluster's outline is organic, not a perfect circle.
                     // Noise pushes the effective radius ±0.12 unit per
                     // cell so some edges bulge out, others cut in.
@@ -891,13 +891,13 @@ export function initEffects() {
                     float innerR = 0.50 * vertNarrow + outlineWarp;
                     float discMask = smoothstep(outerR, innerR, r);
                     // Hard guard at the volume wall: the warped outline can
-                    // push density past r=1 where the march box clips it —
+                    // push density past r=1 where the march box clips it -
                     // that flat cut is the one silhouette a cloud never has.
                     discMask *= 1.0 - smoothstep(0.86, 0.99, r);
 
                     // Cumulus vertical profile: hard floor at the LCL
                     // (lifting condensation level) so the base reads
-                    // FLAT rather than tapered — real cumulus looks
+                    // FLAT rather than tapered - real cumulus looks
                     // like someone sliced the bottom off with a razor.
                     // Base height jitters per cell (0.02..0.10) so it's
                     // not a perfect plane, and the ramp over just 0.04
@@ -916,7 +916,7 @@ export function initEffects() {
                     float topCap = mix(0.32, 1.05, tCell * tCell);
                     topCap += (base - 0.5) * 0.24;
                     // Virga: under the densest cells, leak a whisper of
-                    // density below the LCL — reads as trailing rain-shaft
+                    // density below the LCL - reads as trailing rain-shaft
                     // wisps connecting cloud base to shower column. Only
                     // active where the cell is dense (cell > 0.55) and
                     // modulated by detail noise so it breaks into strands
@@ -929,7 +929,7 @@ export function initEffects() {
                                   smoothstep(topCap, topCap - 0.55, hy);
 
                     // Multiply by cell mask so the coverage threshold
-                    // varies spatially — some regions clear sky, some
+                    // varies spatially - some regions clear sky, some
                     // thick cumulus. The Perlin-Worley base sits higher
                     // than the old value-noise field, so the cell swing
                     // must be wide (0.30..1.15 through a steepened cell
@@ -937,7 +937,7 @@ export function initEffects() {
                     // merged cottonball with no gaps between cells.
                     // Coverage-dependent cell window: at low coverage only
                     // the strongest cells condense (scattered fair-weather
-                    // cumulus with real gaps — clouds ARRIVE as patches);
+                    // cumulus with real gaps - clouds ARRIVE as patches);
                     // as coverage climbs the window opens and cells merge
                     // into a deck. A fixed window faded every cell in
                     // simultaneously, which read as one global dimmer.
@@ -1066,13 +1066,13 @@ export function initEffects() {
                             lit += amb;
                             // Storm decks are optically thick: swallow
                             // scattered light as the weather rises so the
-                            // deck goes properly DARK — and shift it cool,
+                            // deck goes properly DARK - and shift it cool,
                             // the bruised blue-gray of a real cell, not a
                             // sunlit cream puff.
                             lit *= mix(vec3(1.0), vec3(0.20, 0.23, 0.28), uStormDark);
 
                             // Lightning: the bolt channel lights the cell
-                            // from WITHIN — inverse-square glow around the
+                            // from WITHIN - inverse-square glow around the
                             // strike, added after the storm-darkening term
                             // so the flash is never swallowed by it. The
                             // offset maps to island-local units so the
@@ -1099,7 +1099,7 @@ export function initEffects() {
                     // clip when the bloom pass amps highlights.
                     vec3 rgb = scatter / (1.0 + scatter * 0.6);
 
-                    // Aerial perspective — distant (near-horizon) rays
+                    // Aerial perspective - distant (near-horizon) rays
                     // travel through more atmosphere. Keep the fade
                     // modest or the sun-facing silver lining washes out
                     // into a bright smear. Softer ramp + lower mix keep
@@ -1127,7 +1127,7 @@ export function initEffects() {
         cloudMesh.userData.baseSY = CLOUD_HEIGHT;
         cloudMesh.renderOrder = 16;
         cloudMesh.visible = true;
-        // Layer 2 — matches glass dish. Keeps clouds out of Water.js's
+        // Layer 2 - matches glass dish. Keeps clouds out of Water.js's
         // layer-1 mirror pass (which would double the sky as a ghost
         // reflection) and out of the moon spotlight cone.
         cloudMesh.layers.set(2);
@@ -1204,7 +1204,7 @@ export function initEffects() {
                     d = smoothstep(1.0 - localCov, 1.0 - localCov + 0.30, d) * uDensityMul;
 
                     // Soft radial falloff at the disc rim so shadow doesn't
-                    // terminate in a hard line — clouds don't have edges.
+                    // terminate in a hard line - clouds don't have edges.
                     float rim = smoothstep(0.98, 0.55, r);
                     float shadow = d * uStrength * rim;
 
@@ -1267,7 +1267,7 @@ export function updateRain(dt, elapsed) {
     const R = r.radius;
     const cam = state.camera;
 
-    // Camera position in islandGroup local space — rain lives in the
+    // Camera position in islandGroup local space - rain lives in the
     // rotating group, so the billboard must align to the local-space
     // camera direction, not the world-space one.
     state.islandGroup.worldToLocal(_rainCamDir.copy(cam.position));
@@ -1324,7 +1324,7 @@ export function updateRain(dt, elapsed) {
         _rainBillY.copy(_rainVel).multiplyScalar(-1);
         // View vector from drop to camera (local space).
         _rainBillZ.copy(_rainCamDir).sub(_rainPos).normalize();
-        // local +X = normalize(Y × Z) — right vector on the camera plane.
+        // local +X = normalize(Y × Z) - right vector on the camera plane.
         _rainBillX.crossVectors(_rainBillY, _rainBillZ);
         const xl = _rainBillX.length();
         if (xl < 1e-4) {
@@ -1390,7 +1390,7 @@ export function updateRain(dt, elapsed) {
                 // +0.07: ON the water surface (the Water mesh sits at
                 // OCEAN_LEVEL + 0.05 and depth-writes). At the old +0.01
                 // every splash ring was z-buried 0.04u under the water
-                // plane — the whole system was simulated but invisible.
+                // plane - the whole system was simulated but invisible.
                 _rainPos.set(s.pos[i*2], OCEAN_LEVEL + 0.07, s.pos[i*2+1]),
                 _splashQuat,
                 _rainScaleV.set(1, 1, 1)
@@ -1404,7 +1404,7 @@ export function updateRain(dt, elapsed) {
 }
 
 export function updateVolcanicEffects(dt) {
-    // Shore steam — skipped while launch-hidden.
+    // Shore steam - skipped while launch-hidden.
     const sv = window._shoreVent;
     if (sv && sv.mesh && sv.mesh.visible) {
         for (let i = 0; i < sv.count; i++) {

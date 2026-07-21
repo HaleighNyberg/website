@@ -28,7 +28,7 @@
 .intro-active #content-overlay { opacity: 0 !important; }
 
 /* ============================================
-   Base zone — the holo panel
+   Base zone - the holo panel
    ============================================ */
 
 .zone {
@@ -84,7 +84,7 @@
         visibility 0s;
 }
 
-/* Blueprint grid — the panel reads as a console surface. */
+/* Blueprint grid - the panel reads as a console surface. */
 .zone::after {
     content: '';
     position: absolute;
@@ -123,7 +123,7 @@
 }
 
 /* ============================================
-   Zone running head — [NN] ~/path, rule, headline
+   Zone running head - [NN] ~/path, rule, headline
    ============================================ */
 
 .zone__no {
@@ -216,7 +216,7 @@
 .brand-link--adjacent { margin-left: var(--space-4); }
 
 /* ============================================
-   Zone: Home — full-bleed scene + prompt lockup
+   Zone: Home - full-bleed scene + prompt lockup
    ============================================ */
 
 .zone--default {
@@ -243,7 +243,7 @@
     pointer-events: none;
 }
 
-/* Hero statement — a session line, bottom-left. Gated on the masthead
+/* Hero statement - a session line, bottom-left. Gated on the masthead
    reveal so it never shows during the fly-in approach. */
 .home-hero {
     position: absolute;
@@ -327,7 +327,7 @@
 }
 
 /* ============================================
-   Masthead — session prompt, top-left
+   Masthead - session prompt, top-left
    Reveal is opacity-only: the fixed-position nav
    inside must not gain a transformed ancestor.
    ============================================ */
@@ -373,7 +373,7 @@
 }
 
 /* ============================================
-   Section nav — workspace tabs, top-right
+   Section nav - workspace tabs, top-right
    ============================================ */
 
 .section-nav {
@@ -390,11 +390,17 @@
        scrolls up underneath them. Scoped to the nav only, so the 3D scene
        on the left is untouched. */
     padding: 5px 6px;
-    background: rgba(6, 14, 26, 0.72);
-    -webkit-backdrop-filter: blur(7px);
-    backdrop-filter: blur(7px);
+    /* Near-opaque, not tinted glass. At 0.72 the panel text sliding up behind
+       the bar stayed readable through it, so the tabs looked like they were
+       printed on the content instead of sitting above it. The blur cleans up
+       whatever still shows at the edges, and the shadow separates the bar from
+       the panel so it reads as chrome. */
+    background: rgba(6, 14, 26, 0.94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
     border: 1px solid var(--hairline);
     border-radius: var(--radius-lg, 10px);
+    box-shadow: 0 6px 20px -10px rgba(0, 0, 0, 0.8);
     pointer-events: auto;
     counter-reset: navidx;
 }
@@ -449,7 +455,7 @@
 }
 
 /* ============================================
-   Scroll cue — quiet, bottom-center, once
+   Scroll cue - quiet, bottom-center, once
    ============================================ */
 
 .nav-hint {
@@ -498,7 +504,7 @@
 }
 
 /* ============================================
-   Zone tick rail — left edge
+   Zone tick rail - left edge
    ============================================ */
 
 #zone-dots {
@@ -625,11 +631,15 @@
 }
 
 /* ============================================
-   Research zone — figures as readouts
+   Research zone - figures as readouts
    ============================================ */
 
 .research-figure {
     width: 100%;
+    /* The width/height attributes on these images reserve their space while
+       they lazy-load; height:auto keeps the attribute a ratio rather than a
+       literal pixel height. */
+    height: auto;
     margin: var(--space-4) 0;
     border-radius: var(--radius-md);
 }
@@ -742,7 +752,7 @@
 }
 
 /* ============================================
-   Skills — env packages
+   Skills - env packages
    ============================================ */
 
 .skill-group {
@@ -786,7 +796,7 @@
 .skill-tag:hover { color: var(--blue-200); text-shadow: var(--glow-soft); }
 
 /* ============================================
-   Projects — numbered process list
+   Projects - numbered process list
    ============================================ */
 
 .about-projects {
@@ -919,7 +929,7 @@
 }
 
 /* ============================================
-   Connect zone — channel list
+   Connect zone - channel list
    ============================================ */
 
 .connect-portrait {
@@ -1041,7 +1051,7 @@
 }
 
 /* ============================================
-   Chrome rail — bottom-left system dock
+   Chrome rail - bottom-left system dock
    ============================================ */
 
 .chrome-rail {
@@ -1252,17 +1262,22 @@
     bottom: var(--space-5);
     z-index: 1000;
     padding: 8px 14px;
-    background: rgba(6, 18, 36, 0.85);
+    /* Solid, and only the label is dimmed at rest. The element used to carry
+       opacity 0.75, which multiplied into its background and let panel text
+       read straight through the button. */
+    background: rgba(6, 18, 36, 0.94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
     border: 1px solid var(--hairline);
     border-radius: var(--radius-md);
-    color: var(--text-secondary);
+    box-shadow: 0 6px 20px -10px rgba(0, 0, 0, 0.8);
+    color: var(--ink-300);
     font: var(--fs-xs) / 1.2 var(--font-mono);
     letter-spacing: 0.08em;
     cursor: pointer;
-    opacity: 0.75;
-    transition: opacity 200ms ease-out;
+    transition: color 200ms ease-out;
 }
-#reviewer-toggle:hover { opacity: 1; }
+#reviewer-toggle:hover { color: var(--text-primary); }
 
 /* Legacy hooks */
 .preset-nav { display: none; }
@@ -1296,7 +1311,7 @@
 }
 
 /* ============================================
-   Mobile — bottom workspace bar + panel sheet
+   Mobile - bottom workspace bar + panel sheet
    ============================================ */
 
 @media (max-width: 768px) {
@@ -1411,7 +1426,7 @@
 }
 
 /* ============================================
-   Reviewer mode — collapsed scene, stacked column
+   Reviewer mode - collapsed scene, stacked column
    ============================================ */
 
 .reviewer-mode canvas,
@@ -1437,17 +1452,17 @@ html.reviewer-mode { background-color: var(--bg-void); }
 .reviewer-mode body { background-color: transparent; }
 
 /* ============================================
-   Text view — the same sky, quiet enough to read on
+   Text view - the same sky, quiet enough to read on
    ============================================
-   This used to be one 500px star tile, repeated and fixed. Next to the 3D view —
-   which is nothing but depth and slow motion — that reads as wallpaper, and the
+   This used to be one 500px star tile, repeated and fixed. Next to the 3D view -
+   which is nothing but depth and slow motion - that reads as wallpaper, and the
    whole view reads as a fallback bolted onto the side of the real thing.
 
    Same sky, rebuilt in CSS: a nebula, two star planes at different depths
    drifting at different rates (the gap between the rates IS the depth; one layer
    can only ever look like a texture), and the orbit rings of the system you were
    just flying through, sitting behind the masthead. Transform-only, so it
-   composites on the GPU and never repaints — which matters, because half the
+   composites on the GPU and never repaints - which matters, because half the
    people who land here got here by failing to run the other view. */
 
 .reviewer-mode::before,
@@ -1460,7 +1475,7 @@ html.reviewer-mode { background-color: var(--bg-void); }
     z-index: -1;
 }
 
-/* Deep plane — nebula, and the faint stars behind everything. */
+/* Deep plane - nebula, and the faint stars behind everything. */
 .reviewer-mode::before {
     background-image:
         radial-gradient(ellipse 70% 48% at 24% 12%, rgba(43, 116, 168, 0.13), transparent 62%),
@@ -1472,7 +1487,7 @@ html.reviewer-mode { background-color: var(--bg-void); }
     animation: reviewer-sky-far 420s linear infinite;
 }
 
-/* Near plane — brighter, sparser, visibly faster. */
+/* Near plane - brighter, sparser, visibly faster. */
 .reviewer-mode body::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700'%3E%3Ccircle cx='383.7' cy='242.1' r='1.23' fill='white' opacity='0.34'/%3E%3Ccircle cx='357.2' cy='240.7' r='0.88' fill='white' opacity='0.61'/%3E%3Ccircle cx='72.6' cy='311.3' r='0.73' fill='white' opacity='0.36'/%3E%3Ccircle cx='699.1' cy='230.5' r='1.04' fill='white' opacity='0.39'/%3E%3Ccircle cx='511.3' cy='313.0' r='0.69' fill='white' opacity='0.39'/%3E%3Ccircle cx='285.6' cy='554.9' r='1.0' fill='white' opacity='0.3'/%3E%3Ccircle cx='471.7' cy='208.9' r='0.96' fill='white' opacity='0.31'/%3E%3Ccircle cx='287.5' cy='550.3' r='0.96' fill='white' opacity='0.52'/%3E%3Ccircle cx='529.7' cy='411.0' r='1.07' fill='white' opacity='0.38'/%3E%3Ccircle cx='432.6' cy='544.1' r='0.63' fill='white' opacity='0.6'/%3E%3Ccircle cx='257.1' cy='97.4' r='0.67' fill='white' opacity='0.36'/%3E%3Ccircle cx='48.5' cy='278.5' r='0.88' fill='white' opacity='0.48'/%3E%3Ccircle cx='326.6' cy='654.7' r='1.08' fill='white' opacity='0.35'/%3E%3Ccircle cx='612.4' cy='489.3' r='1.32' fill='white' opacity='0.51'/%3E%3Ccircle cx='675.9' cy='143.7' r='0.77' fill='white' opacity='0.61'/%3E%3Ccircle cx='15.3' cy='646.6' r='1.28' fill='white' opacity='0.27'/%3E%3Ccircle cx='105.5' cy='641.2' r='1.32' fill='white' opacity='0.57'/%3E%3Ccircle cx='507.2' cy='531.8' r='0.8' fill='white' opacity='0.22'/%3E%3Ccircle cx='439.5' cy='617.6' r='1.31' fill='white' opacity='0.43'/%3E%3Ccircle cx='5.9' cy='122.1' r='0.91' fill='white' opacity='0.31'/%3E%3Ccircle cx='19.4' cy='134.9' r='0.95' fill='white' opacity='0.27'/%3E%3Ccircle cx='78.9' cy='115.8' r='0.58' fill='white' opacity='0.53'/%3E%3Ccircle cx='605.9' cy='141.2' r='1.06' fill='white' opacity='0.57'/%3E%3Ccircle cx='170.5' cy='233.4' r='1.26' fill='white' opacity='0.52'/%3E%3Ccircle cx='434.8' cy='555.7' r='1.01' fill='white' opacity='0.35'/%3E%3Ccircle cx='479.7' cy='548.7' r='0.59' fill='white' opacity='0.35'/%3E%3Ccircle cx='206.0' cy='620.5' r='0.78' fill='white' opacity='0.49'/%3E%3Ccircle cx='304.4' cy='264.8' r='0.95' fill='white' opacity='0.58'/%3E%3Ccircle cx='460.7' cy='272.6' r='0.67' fill='white' opacity='0.36'/%3E%3Ccircle cx='329.6' cy='452.2' r='1.35' fill='white' opacity='0.35'/%3E%3Ccircle cx='658.1' cy='637.5' r='0.9' fill='white' opacity='0.31'/%3E%3Ccircle cx='163.8' cy='644.9' r='0.69' fill='white' opacity='0.48'/%3E%3Ccircle cx='456.7' cy='117.1' r='0.58' fill='white' opacity='0.48'/%3E%3Ccircle cx='37.1' cy='384.1' r='1.33' fill='white' opacity='0.41'/%3E%3Ccircle cx='218.4' cy='74.3' r='0.79' fill='white' opacity='0.35'/%3E%3Ccircle cx='82.0' cy='491.7' r='1.03' fill='white' opacity='0.51'/%3E%3Ccircle cx='75.0' cy='175.3' r='1.29' fill='white' opacity='0.22'/%3E%3Ccircle cx='258.9' cy='572.6' r='0.73' fill='white' opacity='0.31'/%3E%3Ccircle cx='446.2' cy='176.2' r='0.82' fill='white' opacity='0.38'/%3E%3Ccircle cx='209.1' cy='461.4' r='1.14' fill='white' opacity='0.52'/%3E%3Ccircle cx='686.3' cy='51.0' r='0.76' fill='white' opacity='0.61'/%3E%3Ccircle cx='558.6' cy='532.3' r='0.73' fill='white' opacity='0.27'/%3E%3Ccircle cx='192.7' cy='625.0' r='1.15' fill='white' opacity='0.37'/%3E%3Ccircle cx='461.1' cy='514.7' r='0.78' fill='white' opacity='0.26'/%3E%3Ccircle cx='567.8' cy='495.5' r='1.2' fill='white' opacity='0.52'/%3E%3Ccircle cx='255.8' cy='458.1' r='0.84' fill='white' opacity='0.58'/%3E%3Ccircle cx='86.7' cy='487.6' r='0.83' fill='white' opacity='0.58'/%3E%3Ccircle cx='562.7' cy='122.5' r='0.56' fill='white' opacity='0.31'/%3E%3Ccircle cx='672.9' cy='537.9' r='1.11' fill='white' opacity='0.3'/%3E%3Ccircle cx='148.6' cy='311.6' r='0.98' fill='white' opacity='0.47'/%3E%3Ccircle cx='41.9' cy='590.3' r='0.75' fill='white' opacity='0.51'/%3E%3Ccircle cx='222.1' cy='207.5' r='1.25' fill='white' opacity='0.31'/%3E%3Ccircle cx='352.7' cy='612.6' r='1.21' fill='white' opacity='0.51'/%3E%3Ccircle cx='170.1' cy='439.1' r='0.93' fill='white' opacity='0.34'/%3E%3Ccircle cx='540.4' cy='472.4' r='1.26' fill='white' opacity='0.39'/%3E%3Ccircle cx='100.7' cy='189.7' r='1.14' fill='white' opacity='0.5'/%3E%3Ccircle cx='450.0' cy='277.9' r='1.01' fill='white' opacity='0.25'/%3E%3Ccircle cx='63.5' cy='563.9' r='0.64' fill='white' opacity='0.47'/%3E%3Ccircle cx='209.4' cy='120.1' r='1.18' fill='white' opacity='0.57'/%3E%3Ccircle cx='221.7' cy='106.1' r='0.92' fill='white' opacity='0.27'/%3E%3C/svg%3E");
     background-repeat: repeat;
@@ -1480,7 +1495,7 @@ html.reviewer-mode { background-color: var(--bg-void); }
     animation: reviewer-sky-near 210s linear infinite;
 }
 
-/* A soft falloff at the edges — depth, not geometry. */
+/* A soft falloff at the edges - depth, not geometry. */
 .reviewer-mode body::after {
     background-image:
         radial-gradient(ellipse 90% 70% at 50% 42%, transparent 55%, rgba(2, 6, 14, 0.5) 100%);
@@ -1683,7 +1698,7 @@ html.reviewer-mode { background-color: var(--bg-void); }
     border-color: var(--blue-300);
     box-shadow: var(--glow-soft);
 }
-/* The rest of this site speaks in mono hairlines and brackets — [1] ABOUT, ~$,
+/* The rest of this site speaks in mono hairlines and brackets - [1] ABOUT, ~$,
    // SELECTED PROJECTS. A solid filled pill is the one element on the page that
    came from somewhere else, and it is the first thing the eye lands on. Keep the
    primary action obviously primary, but say it in the site's own voice: a lit

@@ -1,12 +1,12 @@
-// spaceEnv.js — the empty-space backdrop: ONE static void gradient.
+// spaceEnv.js - the empty-space backdrop: ONE static void gradient.
 //
 // Everything else in the sky is real, live geometry: the stars are 3D
-// points (starShell.js — the destination shell AND the infinite deep
-// field — plus the flight corridor in transit.js) and the nebula is a
+// points (starShell.js - the destination shell AND the infinite deep
+// field - plus the flight corridor in transit.js) and the nebula is a
 // permanent raymarched volume (corridor.js). This sphere is the only
 // thing with no structure at all, because a STATIC IMAGE cannot survive
 // this panel: a baked equirect sky was tried twice (2026-07-12) and
-// REJECTED both times — at ~6x magnification baked stars are bilinear
+// REJECTED both times - at ~6x magnification baked stars are bilinear
 // blobs ("PSX") and baked dark gradients band/macroblock ("pixelated"),
 // unconditionally, at any encode quality. Structure in the sky must be
 // computed per-pixel (the volume) or be real geometry (the points).
