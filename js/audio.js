@@ -21,6 +21,8 @@ let current = null;          // currently-loaded track from SONIFICATIONS
 let mutedPref = true;
 let enabled = false;
 let listeners = [];          // subscribers for track changes
+let errorRun = 0;            // consecutive load failures since the last success
+let retryTimer = 0;          // pending backoff retry, so it can be cancelled
 
 // Always boot muted. The previous behavior persisted "on" across sessions,
 // which surprised users who expected a quiet site by default. The mute pref
@@ -127,6 +129,7 @@ function loadTrack(track) {
 }
 
 function playNextRandom() {
+    clearTimeout(retryTimer);
     const next = pickRandom(current ? current.url : null);
     loadTrack(next);
     if (!mutedPref && ctx) {
@@ -145,6 +148,7 @@ export function setMuted(muted, opts = {}) {
         // First unmute - the toggle's click counts as the gesture that
         // satisfies autoplay policy. Resume context if needed and start
         // the currently-loaded track (or pick one if none loaded).
+        errorRun = 0;
         const start = () => {
             if (!current) playNextRandom();
             else audioEl.play().catch(() => {});
@@ -161,6 +165,7 @@ export function setMuted(muted, opts = {}) {
 
 export function skipToNext() {
     if (!ctx) return;
+    errorRun = 0;
     playNextRandom();
 }
 
@@ -177,8 +182,17 @@ export function initAudio() {
         playNextRandom();
     });
     audioEl.addEventListener('error', () => {
-        // Track failed to load (CORS, 404, offline). Skip to the next.
-        playNextRandom();
+        // Track failed to load (CORS, 404, offline). Try another, but with
+        // backoff and a ceiling: a dead host would otherwise put the
+        // src -> error -> src cycle into a tight loop that never stops.
+        // After a full catalog's worth of consecutive failures, go quiet;
+        // the next unmute or skip re-arms the search.
+        errorRun++;
+        if (errorRun >= SONIFICATIONS.length) return;
+        retryTimer = setTimeout(playNextRandom, 1000 * Math.min(errorRun, 8));
+    });
+    audioEl.addEventListener('loadeddata', () => {
+        errorRun = 0;
     });
     document.body.appendChild(audioEl);
 

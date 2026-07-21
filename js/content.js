@@ -45,7 +45,7 @@ const WORKS = [
         year: '2025',
         authors: 'Mingsuwan, C. et al.',
         title: 'Foundations of a Visualization Tool for NASA Gateway and Lunar Surface Operations',
-        venue: 'IEEE SMC-IT/SCC, 6th AR/VR Workshop (co-author)',
+        venue: 'IEEE SMC-IT/SCC, 6th AR/VR Workshop (co-author; presented 2025, to appear in the 2026 proceedings)',
     },
     {
         year: '2025',
@@ -77,7 +77,7 @@ const PROJECTS = [
     },
     {
         title: 'ExoPlaSim origin-of-life pipeline',
-        blurb: 'My dissertation engine: 3D general circulation model parameter sweeps with a custom post-processing pipeline, building toward an Origin of Life Index that ranks worlds by their likelihood of starting life. (Model code is dissertation IP, not in the public repo.)',
+        blurb: 'My dissertation engine: 3D general circulation model parameter sweeps with a custom post-processing pipeline, building toward an Origin of Life Index that ranks worlds by their potential for wet-dry cycling, one of the leading proposed routes to an origin of life. (Model code is dissertation IP, not in the public repo.)',
         tags: ['Python', 'Fortran', 'HPC', 'NetCDF'],
         links: [],
     },
@@ -129,7 +129,7 @@ function projectCard(p) {
     }).join('');
     return (
         '<article class="project-card">' +
-        '<h4 class="project-card__title">' + p.title + '</h4>' +
+        '<h3 class="project-card__title">' + p.title + '</h3>' +
         '<p class="project-card__blurb">' + p.blurb + '</p>' +
         (tags ? '<div class="project-card__tags">' + tags + '</div>' : '') +
         (links ? '<div class="project-card__links">' + links + '</div>' : '') +
