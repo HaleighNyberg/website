@@ -22,7 +22,7 @@ const STORM_RIM_COLOR   = new THREE.Color(0.28, 0.34, 0.44); // cool steel
 // dish into darkness. The day/night terminator on the island must
 // read the same in every weather state - the deck blocks some light,
 // it does not switch the sun off.
-// Raised twice by owner review (0.55 era -> 0.68 -> 0.80): the island
+// Raised twice (0.55 era -> 0.68 -> 0.80): the island
 // must stay clearly readable at full storm - the DARKNESS of a storm
 // should come from the near-black deck overhead, not from starving
 // the terrain lights.
@@ -173,7 +173,7 @@ export function captureBaseline() {
         // does the "plasma channel" widening. Held to ~1.2 - at 1.6-1.95
         // the 1-px line's HDR energy came out of the post chain as
         // scattered zero-channel garbage pixels (magenta/green pips,
-        // owner-caught; isolation-tested: pips track the bolt, not the
+        // caught by eye; isolation-tested: pips track the bolt, not the
         // island, and vanish with the bolt layer-masked).
         _boltCoreMat.color.setRGB(1.15, 1.2, 1.35);
         _boltCore = new THREE.LineSegments(_boltGeo, _boltCoreMat);
@@ -366,7 +366,7 @@ function _scheduleStrike(t) {
         const cm = window._cloud && window._cloud.mesh;
         const cloudY = cm ? cm.position.y : CLOUD_Y_FALLBACK;
         const cloudH = cm ? cm.scale.y : CLOUD_HEIGHT;
-        // Channel origin rides the UPPER deck (owner call): the bolt
+        // Channel origin rides the UPPER deck: the bolt
         // reads as coming down out of the cell top, its first stretch
         // veiled by the volume. Track the LIVE mesh height - the deck
         // rides lower/thicker under storm.

@@ -147,7 +147,7 @@ function applyWeatherToScene(wt, ws) {
             window.__mistU.value = Math.min(1, Math.max(0, (u.coverage.value - 0.30) / 0.45));
             // Mist must carry the deck's own storm self-darkening or the
             // shrouded summit reads as glowing snow caps against the
-            // near-black storm deck (owner-caught). Same ramp as
+            // near-black storm deck (caught by eye). Same ramp as
             // uStormDark's 0.20-0.28 crush at full storm.
             window.__mistColU.value.copy(_weatherScratchSky)
                 .multiplyScalar(1.0 - ws * 0.66);
@@ -327,7 +327,7 @@ export function startAnimateLoop() {
         }
         // The layered star fields each carry a fraction of the real
         // (splice-corrected) camera motion - everything in the sky must
-        // visibly move when we move (owner-locked), and the per-layer k
+        // visibly move when we move (locked), and the per-layer k
         // builds a continuous parallax ramp down to the deepest field.
         // Zone moves at rest shift even the fastest layer well under a
         // degree: the resting sky stays the sky.
@@ -410,7 +410,7 @@ export function startAnimateLoop() {
             // pulls it down - a heavy cloud deck shouldn't read as a
             // bright hemisphere. ws is the smoothed weather fade.
             const wsBloom = _wSmooth((window._weather && window._weather.smoothed) || 0);
-            // Base 0.24 (was 0.6): owner-tuned to a restrained glow -
+            // Base 0.24 (was 0.6): tuned to a restrained glow -
             // this is the shipped look.
             const above = 0.24 * (1 - wsBloom * 0.55);
             state.bloomPass.strength = state.camera.position.y < OCEAN_LEVEL ? 0.072 : above;
@@ -521,7 +521,7 @@ export function startAnimateLoop() {
                     // (chromatic) UV offsets - during a lightning flash
                     // they ghost the thin HDR bolt into scattered
                     // single-channel pixels (magenta/green pips at the
-                    // island, owner-caught; isolation-tested to track the
+                    // island, caught by eye; isolation-tested to track the
                     // bolt). Suppress them for the flash; the main glare
                     // doesn't chroma-sample and keeps the sun alive.
                     const strikeSup = 1.0 - Math.min(1, (state._strikePump || 0) * 2.0);

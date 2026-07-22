@@ -5,7 +5,7 @@
 // over every pixel and the winner re-rolls as the dish turns. Nothing spatial
 // can help: MSAA at 0/8/16 samples measures identical (it resolves coverage,
 // not per-fragment shading), and every material/AO/shadow knob was ruled out.
-// Reducing the geometry DOES work but costs the detail the owner wants. So we
+// Reducing the geometry DOES work but costs the detail I want. So we
 // fix it in TIME instead: each pixel is blended with its own history, so a
 // value that flickers between two states converges to their average while a
 // value that is genuinely stable is unchanged.
@@ -33,7 +33,7 @@ import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 // fraction of a pixel every frame. The neighbourhood clamp is the only thing
 // holding that misalignment back. Push the weight up (0.94) or slacken the
 // clamp (1.25x) to chase the last of the seabed shimmer and the misalignment
-// leaks through as MOTION BLUR over the whole scene - owner-caught, twice.
+// leaks through as MOTION BLUR over the whole scene - caught twice.
 // 0.88 with a STRICT clamp is the setting that kills the twinkle and stays
 // sharp. Anything more needs real motion vectors, not a bigger blend.
 const BLEND = 0.88;

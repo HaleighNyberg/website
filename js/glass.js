@@ -23,7 +23,7 @@ export function initGlass() {
         transparent: true,
         opacity: 1.0,                  // transmission handles see-through; opacity must be 1
         transmission: 1.0,
-        // 0 - FINAL, owner-ruled. The dish is the CONTAINER: the seabed
+        // 0 - FINAL. The dish is the CONTAINER: the seabed
         // must visibly END and the glass extend past it, holding everything
         // in. Any refraction displacement re-draws the backdrop shifted
         // outward and breaks exactly that illusion, so it stays off at any
@@ -34,12 +34,11 @@ export function initGlass() {
         ior: 1.5,
         // Crisp wet-polish layer: this is most of what makes real glass
         // read as glass - a sharp bright top-surface reflection riding
-        // over the clear transmission. 0.25/0.18 was so soft the shell
-        // read as acrylic; 0.85/0.06 blew the sun-side rim into a hot
-        // blob. 0.35/0.14 gives a defined sun-side sheen arc.
-        // 0.45/0.11 (was 0.35/0.14): a wetter, tighter polish layer -
-        // the sheen arc reads more like museum glass under gallery light.
-        clearcoat: 0.45,
+        // over the clear transmission. Soft settings read as acrylic.
+        // 1.0/0.11: full-strength wet coat. Safe at full strength now that
+        // the coat's direct-light term is zeroed in the shader patch below
+        // - the old hot-blob failure at high clearcoat was direct light.
+        clearcoat: 1.0,
         clearcoatRoughness: 0.11,
         // 0: the base-layer direct-light specular painted a pair of
         // camera-following hotspots on the rim (halving it to 0.22

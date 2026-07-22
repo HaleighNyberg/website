@@ -227,7 +227,7 @@ export function initScene() {
     // Low-power tier: only genuinely weak TOUCH devices get a lighter scene
     // (ambient-occlusion pass off, reduced water-reflection resolution) so
     // they stay smooth. Desktops and laptops (fine pointer) are never
-    // affected - the owner and any reviewer on a computer always see the full
+    // affected - anyone on a computer always sees the full
     // scene. Preview either path with ?lowpower=1 / ?lowpower=0.
     state.lowPower = (function () {
         const q = new URLSearchParams(location.search).get('lowpower');
@@ -687,7 +687,7 @@ export function initScene() {
     // sun-glared silhouettes (dish rim, moon limb, lit ridge lines) still
     // landed as single-pixel stair-steps that crawled as objects rotated.
     // FXAA smoothed those but ALSO smeared texture detail across the
-    // whole frame (live-bisected by the owner: FXAA on = the global
+    // whole frame (live-bisected: FXAA on = the global
     // blur). SMAA does the same edge job with real edge detection, so
     // flat texture areas keep full sharpness.
     const smaaPR = Math.min(window.devicePixelRatio, 2.0);

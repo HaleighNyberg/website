@@ -210,7 +210,7 @@ export function updateVolcano(dt) {
     if (!_emberSys) return;
     dt = Math.min(dt, 0.05);
 
-    // Auto eruptions DISABLED for launch (owner call: the eruption is
+    // Auto eruptions DISABLED for launch (the eruption is
     // optional spectacle and reads less photoreal than the base scene).
     // window.eruptVolcano() still fires one on demand, and setting
     // window._volcanoAuto = true restores the lazy cadence.

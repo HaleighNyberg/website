@@ -381,7 +381,7 @@ export function initOcean() {
     const edgeWcH = 2.8;
     const edgeWcGeo = new THREE.CylinderGeometry(OCEAN_RADIUS, OCEAN_RADIUS, edgeWcH, 512, 8, true);
     // PHYSICAL water-body wall, fully STATIC by design (zero time input -
-    // it cannot flicker, ever; owner requirement after the animated wisp
+    // it cannot flicker, ever; a hard requirement after the animated wisp
     // versions kept shimmering). Models what a real cross-section of deep
     // water shows through an aquarium wall:
     //  - Beer-Lambert absorption: red dies first, then green - color runs
@@ -457,7 +457,7 @@ export function initOcean() {
                 // Scattered ambient so depth never goes darker than the
                 // space background (raised from a whisper (0.003,0.008,
                 // 0.015) that lost to the backdrop). uDeepLight is the
-                // owner-facing dial.
+                // live dial.
                 bodyCol += vec3(0.014, 0.028, 0.042) * uDeepLight;
 
                 // Opacity from the actual optical path: a HORIZONTAL

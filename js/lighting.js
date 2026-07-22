@@ -245,7 +245,7 @@ export function initLighting() {
         // NOT added to the scene yet: on a slow connection this download
         // lands mid-FLIGHT, and its first rendered frame pays the whole
         // 2.8 MB geometry+texture upload in one stall - the "stutter
-        // between cruise and landing" the owner kept feeling. It attaches
+        // between cruise and landing" I kept feeling. It attaches
         // only after the intro has landed, and even then its meshes
         // trickle in one per frame (invisible at opacity 0) so the
         // uploads never bunch; the fade then plays as before.
@@ -422,7 +422,7 @@ export function initLighting() {
             uLimbMid:    { value: new THREE.Color(1.0, 0.78, 0.42) },
             uLimbEdge:   { value: new THREE.Color(0.95, 0.45, 0.15) },
             // Vertex scale knob - permanently 1. (A growth animation was
-            // tried for the load-in and rejected by the owner: the sun
+            // tried for the load-in and rejected: the sun
             // must always be its complete, full-size self.)
             uDiscScale:  { value: 1.0 },
             // Distance extinction for the load-in approach: the disc dims
@@ -529,8 +529,8 @@ export function initLighting() {
 
                 // Approach extinction (rest: 1). The disc is an OPAQUE
                 // body: multiplying toward black made it a growing BLACK
-                // occluder over the glowing nebula ("black sun", owner-
-                // caught). Instead it dims toward the ambient sky color -
+                // occluder over the glowing nebula (the "black sun" bug).
+                // Instead it dims toward the ambient sky color -
                 // far out it is a nebula-lit body indistinguishable from
                 // the sky behind it, and it warms continuously inward.
                 col = mix(vec3(0.016, 0.036, 0.082), col, uSunFade);
@@ -683,7 +683,7 @@ export function initLighting() {
     // half of the orbit vanishes into space instead of terminating at
     // the viewport edge. Fade starts close to the dish (40u) and is
     // fully transparent by 340u so only the near arc reads at all.
-    // (Full-circle variant tried 2026-07-11, owner: "looks silly" -
+    // (Full-circle variant tried - looked silly -
     // reverted; keep the near arc.)
     const islandOrbitMat = new THREE.ShaderMaterial({
         transparent: true,
@@ -784,7 +784,7 @@ export function initLighting() {
 
 }
 
-// LOCKED by owner: "behind isle" placement - the sun rises just past
+// LOCKED: "behind isle" placement - the sun rises just past
 // the island's shoulder in the home framing, backlighting the peak.
 const SUN_PHASE0 = -0.35;
 
@@ -802,7 +802,7 @@ export function updateScene(elapsed) {
     // Drag overrides (unused in current build, kept for extensibility).
     const drag = state._dragOverride || {};
 
-    // --- Sun position: fully STATIC (owner-locked). ---
+    // --- Sun position: fully STATIC (locked). ---
     // SUN_WORLD_POSITION rotated once by SUN_PHASE0 ("behind isle"
     // staging). No orbital drift, no backdrop parade - the sun, sky,
     // terminator, and every framing hold still for the whole visit.

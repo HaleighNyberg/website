@@ -221,7 +221,7 @@ export function initTransit(scene, camera, opts = {}) {
             // fade so fresh spawns materialize gently out of the deep
             // instead of popping in at the spawn plane. The final factor
             // keeps a genuinely motionless star (dead ahead on the axis)
-            // barely-there - owner: nothing may read as a parked dot at
+            // barely-there - nothing may read as a parked dot at
             // warp - and lets it brighten as soon as it visibly drifts.
             const pd = 1 - Math.min(1, Math.max(0, (dz - 1900) / 900));
             const pa = POINT_BASE * (1 - a) * (0.35 + 0.65 * pd) * (0.22 + 0.78 * g);

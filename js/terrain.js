@@ -411,7 +411,7 @@ export function initTerrain() {
                     '// Band starts AT the cloud base - never below it. It used to',
                     '// open 0.7 BELOW a base that was itself the volume box floor',
                     '// rather than the visible cloud, so the summit went grey while',
-                    '// it was plainly under the deck (owner-caught from the side).',
+                    '// it was plainly under the deck (caught from the side).',
                     'float mistBand = smoothstep(uCloudBase, uCloudBase + 1.1, vWorldHeight);',
                     'float mistN = 0.78 + 0.22 * sin(vNormalMapUv.x * 41.0 + vNormalMapUv.y * 37.0);',
                     '// Mist is LIT MATTER, not paint: it takes the same sun the rock',

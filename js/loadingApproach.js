@@ -37,7 +37,7 @@
 //     REAL star shell emerges into the far plane with true parallax -
 //     we physically arrive among the neighborhood - and the destination
 //     is ONE COMPLETE OBJECT at every visible instant - disc, halos and
-//     rays together, never an assembly sequence (owner: "just have it be
+//     rays together, never an assembly sequence ("just have it be
 //     there"). During cruise it sits beyond the far plane and is clipped
 //     - naturally invisible. It enters the frustum at the splice ~8.4k
 //     units out, held at zero by a distance-driven extinction ramp, then
@@ -104,7 +104,7 @@ const LAND_C = 2 * LAND_SPEED / CRUISE_SPEED;
 // bigger (still invisible) splice.
 const D_TOTAL = D_START + CRUISE_SPEED * (MAX_TRANSIT_MS / 1000);
 
-// The sun is never staged (owner-locked 2026-07-11, after every staged
+// The sun is never staged (locked, after every staged
 // variant was caught: windowed halos/rays, visibility flips at k
 // .80/.85/.55, the uDiscScale growth - ALL read as "loading in"). The
 // complete assembly - disc + halos + screen-space ray pass - is gated by
@@ -112,7 +112,7 @@ const D_TOTAL = D_START + CRUISE_SPEED * (MAX_TRANSIT_MS / 1000);
 // the nebula the star is extinguished; entering the system's cleared
 // cavity it brightens; the growth on screen is pure parallax. It enters
 // the far plane at the splice (~8.4k out) already at zero - no pop.
-// Tightened 2026-07-12 (owner: the system read "way out in the distance"
+// Tightened (the system read "way out in the distance"
 // too early): the star resolves across the MIDDLE of the brake, not from
 // its first seconds - nothing of the destination is discernible until
 // the approach has genuinely closed in.
@@ -569,10 +569,10 @@ export function startApproach(camera, scene, onComplete, opts = {}) {
             }
             // Rings are the last thing to resolve - a near-field diagram
             // overlay that only reads once the system is genuinely close
-            // (owner: nothing of the destination discernible too early).
+            // (nothing of the destination discernible too early).
             setRingLevel(smoothstep(0.55, 0.95, k));
             // The far star fields resolve across the brake (absent at
-            // warp, per owner - the deceleration is when the faint
+            // warp - the deceleration is when the faint
             // background becomes legible).
             setLayerFade(smoothstep(0.25, 0.85, k));
 

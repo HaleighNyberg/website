@@ -32,7 +32,7 @@ const SEED = 481207;
 // Three populations, matched to the old skybox layers: a dense dim far
 // field (texture, not punctate), a mid field, and sparse bright feature
 // stars nearest the system. size = on-screen pixels at REF_DIST.
-// Pushed OUT and thinned (owner, 2026-07-12): the old 2.6-7k radii read
+// Pushed OUT and thinned: the old 2.6-7k radii read
 // as a small SPHERE of stars hugging the system on approach - a snow
 // globe around the sun. Stars must feel far apart and far away.
 const POPS = [
@@ -161,7 +161,7 @@ export function initStarShell(scene, pixelRatio) {
 // during the whole flight AND at rest. The soft nebulosity stays in the
 // baked map, where softness is what distance actually looks like.
 
-// THREE drift layers (owner: "more layers between us and the deep field")
+// THREE drift layers ("more layers between us and the deep field")
 // - a continuous parallax ramp between the corridor's real stars and the
 // deepest background. Each layer is view-locked geometry that carries
 // k × the real (splice-corrected) camera motion: k encodes its effective
@@ -219,7 +219,7 @@ const DEEP_VERT = /* glsl */`
         // fraction of the real (splice-corrected) camera translation -
         // animate.js feeds uEyeDrift = corrected eye × K. Over the whole
         // cruise the background drifts a couple of degrees, so every
-        // star in the sky moves when we move (owner: nothing may sit
+        // star in the sky moves when we move (nothing may sit
         // dead-still at warp); at rest the zone moves are far too small
         // to read, and the seeded pattern stays the same sky.
         mat4 viewNoTranslate = viewMatrix;

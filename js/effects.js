@@ -121,7 +121,7 @@ export function initEffects() {
     const causticMesh = new THREE.Mesh(causticGeo, causticMat);
     causticMesh.position.y = -1.88;
     causticMesh.renderOrder = 3;
-    // DISABLED FOR LAUNCH (owner decision, and good riddance): this
+    // DISABLED FOR LAUNCH (and good riddance): this
     // shader caused two separate runaway artifacts - the accelerating
     // rotating light-sweep (direction x absolute-time spiral) and then
     // the edge-weighted flashing ring (unbounded drift offsets rotting
@@ -445,7 +445,7 @@ export function initEffects() {
         // Ring plane stays small (0.26u) and expands via the vertex
         // shader's progress-based scale - final outer ripple stays
         // under ~0.5u so splashes read as pinprick impacts, not craters.
-        // 0.08 (owner-tuned down twice from 0.26): raindrop impacts are
+        // 0.08 (tuned down twice from 0.26): raindrop impacts are
         // barely-there pinpricks at this scene scale.
         const splashGeo = new THREE.PlaneGeometry(0.08, 0.08);
         splashGeo.rotateX(-Math.PI / 2); // lie flat on ocean surface
