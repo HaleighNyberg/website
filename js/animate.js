@@ -245,6 +245,7 @@ const _sunNDC = new THREE.Vector3();
 // Golden-hour grade scratches.
 const _toCel = new THREE.Vector3();
 const _sunLocal = new THREE.Vector3();
+const _cloudSun = new THREE.Vector3();
 const _v3a = new THREE.Vector3();
 const _v3b = new THREE.Vector3();
 const _islandQInv = new THREE.Quaternion();
@@ -551,7 +552,15 @@ export function startAnimateLoop() {
             if (state.SUN_DIR && state.islandGroup) {
                 _islandQInv.copy(state.islandGroup.quaternion).invert();
                 _sunLocal.copy(state.SUN_DIR).applyQuaternion(_islandQInv).normalize();
-                u.sunDirLocal.value.copy(_sunLocal);
+                // Cloud-private sun: same azimuth as the lighting sun, pinned
+                // at 40 deg elevation - judged live against 8 and 31; the
+                // deck reads best lit from there.
+                {
+                    const el = 40 * Math.PI / 180;
+                    const az = Math.atan2(_sunLocal.z, _sunLocal.x);
+                    _cloudSun.set(Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el));
+                }
+                u.sunDirLocal.value.copy(_cloudSun);
                 // Terrain day/night split shares the same island-local sun.
                 if (window._terrain && window._terrain.sunUniform) {
                     window._terrain.sunUniform.value.copy(_sunLocal);

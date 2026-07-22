@@ -18,7 +18,6 @@ export const SONIFICATIONS = [
     { title: 'RS Puppis',                slug: 'rs-puppis' },
     { title: 'Pismis 24',                slug: 'pismis-24' },
     { title: 'NGC 1300',                 slug: 'ngc-1300' },
-    { title: 'M87 Black Hole',           slug: 'black-hole-at-the-center-of-galaxy-m87' },
     { title: 'NGC 1569',                 slug: 'ngc-1569' },
     { title: 'Hoag\u2019s Object',        slug: 'hoags-object' },
     { title: 'Bubble Nebula',            slug: 'bubble-nebula' },
