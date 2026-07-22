@@ -82,12 +82,23 @@ export function initGlass() {
         fog: false,
     });
 
-    // Underwater reflection kill: light reaching SUBMERGED glass has
-    // already been filtered through metres of water, so the wall below
-    // the waterline must not sparkle with bright sky reflections - that
-    // sparkle was the "weird lights" at the seabed-glass bottom seam.
-    // Fade env + clearcoat specular to a whisper below y ~ 0.65 (the
-    // water surface); the above-water lip keeps its full sheen.
+    // Two shader-level specular rules the material parameters cannot express:
+    //
+    // 1. NO direct-light sparkle on the glass, anywhere. specularIntensity 0
+    //    only zeroes the base layer's F0 - the clearcoat and the iridescence
+    //    thin-film each keep their own direct-light Fresnel, and either one
+    //    is enough to paint a hot camera-following glint wherever a light
+    //    grazes the rim (the moon fill light did exactly that on the night
+    //    side). Layers cannot exclude a light per object - three tests light
+    //    layers against the camera only - so the kill has to happen here.
+    //    The sheen is env-driven; the sun's sparkle lives on the water.
+    //
+    // 2. Underwater reflection kill: light reaching SUBMERGED glass has
+    //    already been filtered through metres of water, so the wall below
+    //    the waterline must not sparkle with bright sky reflections - that
+    //    sparkle was the "weird lights" at the seabed-glass bottom seam.
+    //    Fade env + clearcoat specular to a whisper below y ~ 0.65 (the
+    //    water surface); the above-water lip keeps its full sheen.
     glassMat.onBeforeCompile = (shader) => {
         shader.vertexShader = shader.vertexShader
             .replace('#include <common>', '#include <common>\nvarying float vGlassWY;')
@@ -97,12 +108,12 @@ export function initGlass() {
             .replace('#include <common>', '#include <common>\nvarying float vGlassWY;')
             .replace('#include <lights_fragment_end>', [
                 '#include <lights_fragment_end>',
+                'reflectedLight.directSpecular = vec3(0.0);',
                 'float glassAbove = smoothstep(0.05, 0.72, vGlassWY);',
                 'reflectedLight.indirectSpecular *= mix(0.05, 1.0, glassAbove);',
-                'reflectedLight.directSpecular *= mix(0.10, 1.0, glassAbove);',
                 '#ifdef USE_CLEARCOAT',
                 'clearcoatSpecularIndirect *= mix(0.05, 1.0, glassAbove);',
-                'clearcoatSpecularDirect *= mix(0.10, 1.0, glassAbove);',
+                'clearcoatSpecularDirect = vec3(0.0);',
                 '#endif',
             ].join('\n'));
     };
@@ -189,13 +200,29 @@ export function initGlass() {
     // Rounded outer bottom corner up into the outer wall.
     pts.push(new THREE.Vector2(31.4, OUT_FLOOR_Y + 0.62));
     pts.push(new THREE.Vector2(R_OUT, OUT_FLOOR_Y + 1.35));
-    // Outer wall.
-    pts.push(new THREE.Vector2(R_OUT, LIP_Y - 0.55));
-    // Rounded lip: outer shoulder -> apex -> inner shoulder.
-    pts.push(new THREE.Vector2(R_OUT - 0.04, LIP_Y - 0.18));
-    pts.push(new THREE.Vector2(R_OUT - WALL_T / 2, LIP_Y));
-    pts.push(new THREE.Vector2(R_IN + 0.04, LIP_Y - 0.18));
-    // Inner wall.
+    // Rolled bead rim, swept as an arc. Real labware has a rolled rim for
+    // strength, and it is also what makes the glint resolvable: the old
+    // three-point lip crease squeezed the specular into a line thinner than
+    // a pixel on this near-mirror surface - unsamplable, no AA can recover
+    // it, so the rim glint broke into a dotted chain. A bead wider than the
+    // wall spreads that highlight across several pixels. The outer quarter
+    // is a circle arc (the bead overhangs outward like a real rolled lip);
+    // the inner quarter is an ellipse arc that lands tangent-vertical
+    // exactly ON the inner wall - a full circle there would overhang the
+    // inside and force a creased notch under it, which pinches the inner
+    // highlight worse than the old crease did.
+    const BEAD = 0.38;                    // > WALL_T/2 (0.275): a bead, not a fillet
+    const Rc = R_OUT - WALL_T / 2;        // bead centre, on the wall's midline
+    const yc = LIP_Y - BEAD;              // so the crown lands exactly on LIP_Y
+    const IN_HALF = Rc - R_IN;            // inner semi-axis: flush with the wall
+    pts.push(new THREE.Vector2(Rc + BEAD, yc - 0.30));   // outer wall runs up to the bead
+    const STEPS = 48;
+    for (let i = 0; i <= STEPS; i++) {
+        const a = (i / STEPS) * Math.PI;  // 0 = outside, PI/2 = crown, PI = inside
+        const rx = a <= Math.PI / 2 ? BEAD : IN_HALF;
+        pts.push(new THREE.Vector2(Rc + Math.cos(a) * rx, yc + Math.sin(a) * BEAD));
+    }
+    // Inner wall, straight down from the bead's tangent landing.
     pts.push(new THREE.Vector2(R_IN, LIP_Y - 0.55));
     pts.push(new THREE.Vector2(R_IN, IN_FLOOR_Y + 0.75));
     // Rounded inner floor corner and floor back to center.
@@ -224,11 +251,12 @@ export function initGlass() {
     dishGeo.computeVertexNormals();
     const dishMesh = new THREE.Mesh(dishGeo, glassMat);
     dishMesh.renderOrder = 10;
-    // Glass lives exclusively on layer 2 so we can exclude specific
-    // lights (the moonLight DirectionalLight) from producing a specular
-    // glint on it. Layer 1 is reserved by Water.js's mirrorCamera for
-    // reflection-only objects - glass there would appear inside the
-    // water reflection as a nested refraction mess at the rim.
+    // Glass lives exclusively on layer 2. Layer 1 is reserved by Water.js's
+    // mirrorCamera for reflection-only objects - glass there would appear
+    // inside the water reflection as a nested refraction mess at the rim.
+    // Note layers do NOT stop lights from hitting the glass - three tests a
+    // light's layers against the camera, never per object - which is why
+    // the direct-specular kill lives in the shader patch above.
     dishMesh.layers.set(2);
     // Feed the dish walls into the GTAO G-buffer so the glass-meets-
     // water contact ring reads grounded.
