@@ -213,13 +213,17 @@ class Water extends Mesh {
 					// keeps its living chop - only the far rim (where
 					// wavelets are genuinely sub-pixel) flattens.
 					float camDist = length( eye - worldPosition.xyz );
-					// Cap dropped again 0.65 -> 0.35: the flattening zone is
-					// exactly where the sun's mirror trail lives (the far
-					// half of the disc), and flat normals collapse what
-					// should be a long shimmering COLUMN into a small pool -
-					// the reason the glint presets read as doing nothing.
-					// SMAA + specular caps now carry the strobe protection.
-					float lodFade = clamp( ( camDist - 150.0 ) / 300.0, 0.0, 0.35 );
+					// Cap dropped again 0.65 -> 0.35 -> 0.10: the flattening
+					// zone is exactly where the sun's mirror trail lives (the
+					// far half of the disc), and flat normals collapse what
+					// should be a long shimmering COLUMN into a small pool.
+					// At 0.35 the top-down framing also lost its wave field
+					// entirely and the disc read as an airbrushed wash. MSAA
+					// 8x + the specular caps carry the strobe protection now
+					// (frame-difference shimmer measured LOWER at 0.10 with
+					// the dimmer scatter below than the old 0.35 shipped).
+					float lodFade = clamp( ( camDist - 150.0 ) / 300.0, 0.0, 0.10 );
+					vec3 rawWaveN = surfaceNormal;
 					surfaceNormal = normalize( mix( surfaceNormal, vec3( 0.0, 1.0, 0.0 ), lodFade ) );
 
 					vec3 diffuseLight = vec3(0.0);
@@ -285,7 +289,15 @@ class Water extends Mesh {
 					// 1.2 -> 1.6 to hand back the brightness the diffuse cut
 					// removed, but as WATER-COLORED light instead of grey.
 					float sss = pow( max( 0.0, dot( surfaceNormal, eyeDirection ) ), 1.5 );
-					vec3 scatter = sss * localWaterColor * 1.6 * sunFacing;
+					vec3 scatter = sss * localWaterColor * 1.4 * sunFacing;
+					// Slope-keyed texture: from straight above the scatter wash
+					// is near-uniform (sss ~ 1 everywhere), which was the milky
+					// airbrushed read in the top-down framing. Keying its gain
+					// on the PRE-flattened wave slope lets the wave field print
+					// through - troughs dip, faces lift - without touching the
+					// edge-on views (their shading is fresnel/glint dominated).
+					float slopeTex = smoothstep( 0.005, 0.09, 1.0 - rawWaveN.y );
+					scatter *= mix( 1.0, mix( 0.72, 1.30, slopeTex ), 0.7 );
 					// Depth-tinted ambient - darker water absorbs more red
 					vec3 depthTint = localWaterColor * 0.15;
 					// Shore proximity brightening - subtle lightening near island.

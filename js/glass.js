@@ -23,14 +23,14 @@ export function initGlass() {
         transparent: true,
         opacity: 1.0,                  // transmission handles see-through; opacity must be 1
         transmission: 1.0,
-        // 1.0: thickness drives the screen-space refraction displacement.
-        // It sat at 0.35 for a while because at 1.0 the wall duplicates its
-        // backdrop shifted OUTWARD - the seabed can appear to continue past
-        // where the glass should stop it. 0.35 pinned the refracted image to
-        // the truth but cost the shell its weight; the heavier refraction is
-        // what makes it read as a real optic. If that outward-shifted seabed
-        // ever shows up at the rim, this is the knob.
-        thickness: 1.0,
+        // 0 - FINAL, owner-ruled. The dish is the CONTAINER: the seabed
+        // must visibly END and the glass extend past it, holding everything
+        // in. Any refraction displacement re-draws the backdrop shifted
+        // outward and breaks exactly that illusion, so it stays off at any
+        // cost. The wall's substance comes from the grazing-angle tint in
+        // the shader patch below, the env reflection, the clearcoat and
+        // the bead rim - never from displacement.
+        thickness: 0.0,
         ior: 1.5,
         // Crisp wet-polish layer: this is most of what makes real glass
         // read as glass - a sharp bright top-surface reflection riding
@@ -61,8 +61,8 @@ export function initGlass() {
         // Bloom now thresholds in scene-linear HDR, so the band-aid is
         // reverted. If a hot spot ever reappears through the far wall,
         // fix the bloom threshold, not this.
-        // 1.5 (from 2.2): compensates the thinner transmission thickness
-        // above so the soda-lime edge tint keeps the same visual depth.
+        // Inert while thickness is 0 (the volume path has zero length);
+        // kept at the historic value in case thickness ever returns.
         attenuationDistance: 1.5,
         depthWrite: false,
         // FrontSide: the lathe dish is a watertight closed solid with
@@ -99,6 +99,13 @@ export function initGlass() {
     //    sparkle was the "weird lights" at the seabed-glass bottom seam.
     //    Fade env + clearcoat specular to a whisper below y ~ 0.65 (the
     //    water surface); the above-water lip keeps its full sheen.
+    //
+    // 3. Grazing-angle soda-lime tint: with thickness pinned at 0 the
+    //    built-in Beer-Lambert volume is dead, so the "long path through
+    //    the glass" color is reproduced from the view angle instead -
+    //    face-on rays stay clear, edge-on rays go green-cyan and darken a
+    //    step - and the backdrop never displaces. Applied to the
+    //    transmitted+diffuse light only; reflections stay white.
     glassMat.onBeforeCompile = (shader) => {
         shader.vertexShader = shader.vertexShader
             .replace('#include <common>', '#include <common>\nvarying float vGlassWY;')
@@ -115,7 +122,11 @@ export function initGlass() {
                 'clearcoatSpecularIndirect *= mix(0.05, 1.0, glassAbove);',
                 'clearcoatSpecularDirect = vec3(0.0);',
                 '#endif',
-            ].join('\n'));
+                'float glassGraze = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.0);',
+                'vec3 glassTint = mix(vec3(1.0), vec3(0.50, 0.82, 0.74) * 0.88, min(1.0, glassGraze));',
+            ].join('\n'))
+            .replace('#include <transmission_fragment>',
+                '#include <transmission_fragment>\ntotalDiffuse *= glassTint;');
     };
 
     // Optional dispersion (chromatic refraction) - three.js r170 supports it.
@@ -197,9 +208,21 @@ export function initGlass() {
     pts.push(new THREE.Vector2(14, OUT_FLOOR_Y + 0.02));
     pts.push(new THREE.Vector2(24, OUT_FLOOR_Y + 0.10));
     pts.push(new THREE.Vector2(29.5, OUT_FLOOR_Y + 0.32));
-    // Rounded outer bottom corner up into the outer wall.
-    pts.push(new THREE.Vector2(31.4, OUT_FLOOR_Y + 0.62));
-    pts.push(new THREE.Vector2(R_OUT, OUT_FLOOR_Y + 1.35));
+    // Outer bottom corner swept as a quarter-ellipse arc. The old two-point
+    // bend put a hard facet crease at (31.4, +0.62) and another where the
+    // slope met the wall - both caught the env light as distinct arc lines
+    // doubling along the bottom silhouette in edge view. The arc starts
+    // tangent to the shallow base sag and lands tangent-vertical on the
+    // outer wall, so there is no crease left to catch.
+    {
+        const CORNER_STEPS = 12;
+        const cx = 29.5, cy = OUT_FLOOR_Y + 1.35;
+        const ex = R_OUT - cx, ey = 1.35 - 0.32;
+        for (let i = 1; i <= CORNER_STEPS; i++) {
+            const t = (i / CORNER_STEPS) * Math.PI / 2;
+            pts.push(new THREE.Vector2(cx + Math.sin(t) * ex, cy - Math.cos(t) * ey));
+        }
+    }
     // Rolled bead rim, swept as an arc. Real labware has a rolled rim for
     // strength, and it is also what makes the glint resolvable: the old
     // three-point lip crease squeezed the specular into a line thinner than
